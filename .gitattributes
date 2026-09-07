@@ -22,4 +22,6 @@
 *.wav binary
 
 # Generated patches carry their own exact bytes; re-ending them would stop them applying.
-*.patch -text
+# Patch files preserve source whitespace by definition. Do not report a context or removed line
+# as a repository whitespace error merely because the source line it records contains spaces.
+*.patch -text whitespace=-trailing-space

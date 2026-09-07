@@ -1,53 +1,40 @@
 diff --git a/scripts/extract_asp_gsp_rsp.sh b/scripts/extract_asp_gsp_rsp.sh
-index e47babd..ff65139 100755
+index e47babd..d297266 100755
 --- a/scripts/extract_asp_gsp_rsp.sh
 +++ b/scripts/extract_asp_gsp_rsp.sh
-@@ -24,11 +24,14 @@ OUT_FILENAME=
- ROM_MD5=
- 
+@@ -26,3 +26,3 @@ ROM_MD5=
  # US
 -ROM_FILENAME="baserom.u.z64"
 +ROM_FILENAME="${1:-baserom.u.z64}"
  OUT_FILENAME="baserom.u.cdata"
- MD5_US="70c525880240c1e838b8b1be35666c3b"
+@@ -30,4 +30,6 @@ MD5_US="70c525880240c1e838b8b1be35666c3b"
  if [ -f "${ROM_FILENAME}" ]; then
 -    ROM_MD5=$(md5sum "${ROM_FILENAME}" | cut -d " " -f1)
+-
 +    # Hash stdin so GNU md5sum does not prefix the digest with a backslash when a Windows
 +    # filename itself contains backslashes. That output marker is otherwise mistaken for
 +    # part of the digest and a valid ROM is rejected.
 +    ROM_MD5=$(md5sum < "${ROM_FILENAME}" | cut -d " " -f1)
- 
      if [ "${ROM_MD5}" = "${MD5_US}" ]; then
-         echo "extracting US compressed data segment"
 diff --git a/scripts/extract_baserom.u.sh b/scripts/extract_baserom.u.sh
-index ddc570a..5efca3a 100755
+index ddc570a..f45289b 100755
 --- a/scripts/extract_baserom.u.sh
 +++ b/scripts/extract_baserom.u.sh
-@@ -49,7 +49,7 @@ done
- if [ "$DOALL" == "1" ] || [ $1 == 'files' ]; then
-     echo "Processing Files"
+@@ -51,3 +51,3 @@ if [ "$DOALL" == "1" ] || [ $1 == 'files' ]; then
      if [ -x tools/extractor/extractor ]; then
 -        tools/extractor/extractor "$BASEROM" scripts/filelist.u.csv
 +        tools/extractor/extractor "$BASEROM" scripts/filelist.u.csv || exit $?
      else
-         while IFS=, read -r offset size name compressed extract
-         do
-@@ -80,10 +80,10 @@ if [ "$DOALL" == "1" ] || [ $1 == 'images' ]; then
-     # Generate imagelist with proper names from images.def and offsets from imagelist.u.csv
-     echo "Syncing imagelist.u.csv with images.def names..."
+@@ -82,6 +82,5 @@ if [ "$DOALL" == "1" ] || [ $1 == 'images' ]; then
      mkdir -p build/u
 -    python3 scripts/make/sync_imagelist_with_def.py build/u/imagelist.csv
+-    
 +    "${GETV_PORTABLE_PYTHON:-python3}" scripts/make/sync_imagelist_with_def.py build/u/imagelist.csv || exit $?
-     
      if [ -x tools/extractor/extractor ]; then
 -        tools/extractor/extractor "$BASEROM" build/u/imagelist.csv
 +        tools/extractor/extractor "$BASEROM" build/u/imagelist.csv || exit $?
      else
-         while IFS=, read -r offset size name rest
-         do
-@@ -99,4 +99,4 @@ if [ "$DOALL" == "1" ] || [ $1 == 'images' ]; then
-     #and always end with a newline
- fi
+@@ -101,2 +100,2 @@ fi
  mkdir -p ./bin
 -./scripts/extract_asp_gsp_rsp.sh
 +./scripts/extract_asp_gsp_rsp.sh "$BASEROM" || exit $?

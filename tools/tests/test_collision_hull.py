@@ -2,7 +2,9 @@
 
 Requires the source checkout prepared by tools/setup.sh, but no generated assets.
 Only the function under test is compiled; no decomp source is stored in this test.
-Run: python3 -m unittest discover -s tools/tests -p test_collision_hull.py
+Run: python3 tools/tests/test_collision_hull.py
+Direct execution is strict: skipped tests or zero executed tests fail the run.
+Unittest discovery retains optional skips for unprepared developer checkouts.
 """
 from __future__ import annotations
 
@@ -10,6 +12,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -129,4 +132,9 @@ class CollisionHullTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(CollisionHullTests)
+    result = unittest.TextTestRunner(verbosity=2).run(suite)
+    if result.skipped or result.testsRun == 0:
+        print("Collision regression tests must execute without skips.", file=sys.stderr)
+        sys.exit(1)
+    sys.exit(0 if result.wasSuccessful() else 1)

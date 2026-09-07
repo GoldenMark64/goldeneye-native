@@ -1,0 +1,41 @@
+name: Collision hull regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  collision-hull:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Fetch pinned decomp source (no ROM or generated assets)
+        uses: actions/checkout@v4
+        with:
+          repository: n64decomp/007
+          ref: c4356466796c697dfd298010b9bed261f9ed8c6a
+          path: vendor/ge-decomp
+          persist-credentials: false
+      - name: Apply source patches
+        shell: bash
+        run: |
+          for patch in "$GITHUB_WORKSPACE"/getv/patches/0*.patch; do
+            # This patch requires locally generated assets and is never used in CI.
+            [[ "$(basename "$patch")" == 0002-* ]] && continue
+            git -C vendor/ge-decomp apply "$patch"
+          done
+      - name: Install Clang and sanitizer runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang libclang-rt-dev
+      - name: Run collision regression tests (skips fail)
+        env:
+          CC: clang
+        run: python3 tools/tests/test_collision_hull.py

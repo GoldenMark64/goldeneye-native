@@ -49,6 +49,10 @@ it does not replace it.
 [`AGENTS.md`](../AGENTS.md) is the concise, always-on repository policy for compatible agents. It
 contains the game-data boundary, contribution rules, evidence requirements and publication gate.
 
+An agent editing anything under `.github/workflows/`, `tools/`, or `getv/patches/` should also read
+[`docs/CI_TRUST.md`](CI_TRUST.md), which inventories what CI actually fetches, compiles and
+executes, and records the current (unactivated) merge-protection proposal.
+
 The two optional repository skills are:
 
 - `$report-goldeneye-bug`: reproduce one problem, collect sanitized evidence and prepare a GitHub

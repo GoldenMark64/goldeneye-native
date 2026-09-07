@@ -10,14 +10,15 @@ permissions:
 
 jobs:
   collision-hull:
+    name: collision-hull-linux
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
       - name: Fetch pinned decomp source (no ROM or generated assets)
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: n64decomp/007
           ref: c4356466796c697dfd298010b9bed261f9ed8c6a

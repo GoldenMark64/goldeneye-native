@@ -1,0 +1,30 @@
+# Review routing; merge enforcement requires an active Code Owner review rule.
+# See docs/CI_TRUST.md for the proposed rulesets and actual CI input inventory.
+*                                  @seb-patron
+
+# Workflow definitions, future local actions and ownership configuration.
+/.github/                          @seb-patron
+/.github/workflows/                @seb-patron
+/.github/CODEOWNERS                @seb-patron
+
+# Invoked scripts and transitive imports; also covers adjacent tools such as the
+# Windows dependency installer, which CI does not execute.
+/tools/                            @seb-patron
+
+# CI applies top-level 0*.patch except 0002-*, not thirdparty/*.
+# The whole directory is covered conservatively for maintenance review.
+/getv/patches/                     @seb-patron
+
+# Current cuff and multi-ammo test inputs, plus conservative coverage for other
+# native tests and port implementation changes; not all are compiled by CI.
+/getv/port/tests/                  @seb-patron
+/getv/port/src/                    @seb-patron
+/getv/port/include/                @seb-patron
+
+# Pages content and repository policy.
+/site/                             @seb-patron
+/docs/CI_TRUST.md                  @seb-patron
+/docs/MAINTAINING.md               @seb-patron
+/docs/AGENTIC_CONTRIBUTING.md      @seb-patron
+/AGENTS.md                         @seb-patron
+/CONTRIBUTING.md                   @seb-patron

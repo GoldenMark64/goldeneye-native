@@ -77,6 +77,7 @@ else
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0023-enemy-gibs.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0024-multi-ammo-endianness.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0025-cuff-native-pointer-stride.patch" )
+    ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0026-bloodier-gibs.patch" )
     echo "cloned and patched"
 fi
 

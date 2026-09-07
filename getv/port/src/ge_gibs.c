@@ -5,6 +5,7 @@
  * decompilation patch. The default is deliberately retail behaviour: no gibs.
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +13,47 @@
 #include "ge_gibs.h"
 
 static int ge_gibs_mode = -1;
+static int ge_base_game = -1;
+static int ge_blood_mode = -1;
+static int ge_blood_limit = -1;
+
+int gePortBaseGame(void)
+{
+    if (ge_base_game < 0) {
+        const char *v = getenv("GETV_BASE_GAME");
+        /* Unknown raw values fail safe: do not accidentally enable new gore. */
+        ge_base_game = v != NULL && strcmp(v, "0") != 0 && strcmp(v, "off") != 0
+            && strcmp(v, "false") != 0 && strcmp(v, "no") != 0;
+    }
+    return ge_base_game;
+}
+
+int gePortBloodMode(void)
+{
+    if (gePortBaseGame()) return 0;
+    if (ge_blood_mode < 0) {
+        const char *v = getenv("GETV_BLOOD");
+        ge_blood_mode = v == NULL || strcmp(v, "enhanced") == 0 ? 1
+            : strcmp(v, "excessive") == 0 ? 2 : 0;
+    }
+    return ge_blood_mode;
+}
+
+int gePortBloodLimit(void)
+{
+    if (ge_blood_limit < 0) {
+        const char *v = getenv("GETV_BLOOD_LIMIT");
+        char *end;
+        long n = 128;
+        if (v != NULL) {
+            errno = 0;
+            n = strtol(v, &end, 10);
+            if (end == v || *end != '\0' || errno == ERANGE) n = 128;
+        }
+        ge_blood_limit = n < 16 ? 16 : n > 512 ? 512 : (int)n;
+    }
+    return ge_blood_limit;
+}
 
 /* Character slots are recycled after their ordinary death cleanup. Keep the visual marker out
  * of ChrRecord so this port feature does not claim one of the decompilation's unknown flag bits.
@@ -88,7 +130,7 @@ int gePortGibsShouldSpawn(int cause, int newly_dead, float hit_damage)
 {
     int mode;
 
-    if (!newly_dead) {
+    if (!newly_dead || gePortBaseGame()) {
         return 0;
     }
 

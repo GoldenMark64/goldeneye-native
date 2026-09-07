@@ -16,7 +16,12 @@ enum GeGibMode {
 
 #define GE_GIB_HIGH_DAMAGE_THRESHOLD 4.0f
 
-int gePortGibsMode(void);
+/* Base Game overrides this entire optional feature family, without replacing preferences.
+ * These settings resolve at startup. Launcher changes apply to the next game launch. */
+int gePortBaseGame(void);
+int gePortBloodMode(void); /* 0 original, 1 enhanced, 2 excessive; zero in Base Game */
+int gePortBloodLimit(void);
+int gePortGibsMode(void); /* requested policy; ShouldSpawn applies the master override */
 /* Validate and replace the cached policy without rewriting GETV_GIBS. Returns 1 when `mode` is
  * accepted and 0 without changing state for an unknown value. Safe to call on the game thread
  * after startup; existing character/hit records are preserved. */

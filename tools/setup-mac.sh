@@ -205,6 +205,13 @@ else
     || die "0025-cuff-native-pointer-stride.patch failed to apply"
 fi
 
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0026-bloodier-gibs.patch" ) 2>/dev/null; then
+  echo "0026-bloodier-gibs.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0026-bloodier-gibs.patch" ) \
+    || die "0026-bloodier-gibs.patch failed to apply"
+fi
+
 # The ROM's SHA-1, from whichever tool this machine actually has.
 #
 # sha1sum on its own is not enough. Under the setup wizard, which runs this script with its output

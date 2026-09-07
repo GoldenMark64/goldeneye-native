@@ -11424,7 +11424,7 @@ index 1e9f186..7e96c35 100644
              IFICouldSeeBond(lblNext)
              GotoNext(lblRunning)
 diff --git a/src/game/chrprop.c b/src/game/chrprop.c
-index 67c901c..fecd01a 100644
+index 67c901c..694174e 100644
 --- a/src/game/chrprop.c
 +++ b/src/game/chrprop.c
 @@ -1,4 +1,5 @@
@@ -12207,6 +12207,66 @@ index 67c901c..fecd01a 100644
  }
  
  
+@@ -3475,7 +4121,12 @@ void sub_GAME_7F03ECC0(f32 x1, f32 x2, f32 y1, f32 y2, f32 z1, f32 z2, Mtxf *m,
+     s32 maxxi = 0;
+     s32 minzi;
+     s32 maxzi = 0;
++#ifdef GE_PORT_NATIVE
++    /* Coincident extrema can leave more than four of the eight corners. */
++    s32 rem[8];
++#else
+     s32 rem[4];
++#endif
+     s32 cnt;
+     f64 x1d = x1;
+     f64 x2d = x2;
+@@ -3557,12 +4208,18 @@ filterloop:
+         goto filterloop;
+     }
+
++#ifdef GE_PORT_NATIVE
++    /* Search every remaining corner, including when the box is flat. */
++    lim = cnt;
++#else
++    lim = 4;
++#endif
+     cnt = 0;
+     poly->points[cnt].x = pts[minxi][0];
+     poly->points[cnt].y = pts[minxi][1];
+     cnt++;
+
+-    for (i = 0; i < 4; i++)
++    for (i = 0; i < lim; i++)
+     {
+         s32 index = rem[i];
+
+@@ -3579,7 +4236,7 @@ filterloop:
+     poly->points[cnt].y = pts[minzi][1];
+     cnt++;
+
+-    for (i = 0; i < 4; i++)
++    for (i = 0; i < lim; i++)
+     {
+         s32 index = rem[i];
+
+@@ -3596,7 +4253,7 @@ filterloop:
+     poly->points[cnt].y = pts[maxxi][1];
+     cnt++;
+
+-    for (i = 0; i < 4; i++)
++    for (i = 0; i < lim; i++)
+     {
+         s32 index = rem[i];
+
+@@ -3613,7 +4270,7 @@ filterloop:
+     poly->points[cnt].y = pts[maxzi][1];
+     cnt++;
+
+-    for (i = 0; i < 4; i++)
++    for (i = 0; i < lim; i++)
+     {
+         s32 index = rem[i];
+
 diff --git a/src/game/cleanup_objectives.c b/src/game/cleanup_objectives.c
 index a08eaf9..d94ea9b 100644
 --- a/src/game/cleanup_objectives.c

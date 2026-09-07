@@ -76,6 +76,7 @@ else
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0022-lockstep-stop-shuffling-every-frame.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0023-enemy-gibs.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0024-multi-ammo-endianness.patch" )
+    ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0025-cuff-native-pointer-stride.patch" )
     echo "cloned and patched"
 fi
 

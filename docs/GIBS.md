@@ -111,7 +111,7 @@ chunks or blood should appear. Switching Base Game off should retain your chosen
 | `chraction.c` | Hides the original model and emits the one shared twelve-chunk effect. |
 | `explosion.c` | Owns bounded allocation, solid rendering, stan collision, bounce, settling and fade. |
 | `getv/patches/0023-enemy-gibs.patch` | Replays the original gib hooks and chunk behavior. |
-| `getv/patches/0025-bloodier-gibs.patch` | Replays bounded blood simulation, triangle placement, rendering and stage reset. |
+| `getv/patches/0026-bloodier-gibs.patch` | Replays bounded blood simulation, triangle placement, rendering and stage reset. |
 | `getv/port/src/ge_blood_math.h` | ROM-free polygon clipping shared with focused geometry tests. |
 
 Keeping policy separate from presentation is important: `explosions`, `high_damage` and `always`

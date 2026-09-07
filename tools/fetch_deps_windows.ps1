@@ -33,25 +33,36 @@ $tmp = $env:TEMP
 
 function Step($msg) { Write-Output "==> $msg" }
 
+function Get-VerifiedFile($Uri, $Sha256, $Destination) {
+  Invoke-WebRequest -Uri $Uri -OutFile $Destination -UseBasicParsing
+  $got = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant()
+  if ($got -ne $Sha256) {
+    Remove-Item -LiteralPath $Destination -Force -ErrorAction SilentlyContinue
+    throw "download checksum mismatch for $Uri`n  expected $Sha256`n  got      $got"
+  }
+}
+
 # ---------------------------------------------------------------- 1. toolchain
 # WinLibs is a plain zip of mingw-w64: no installer, no registry, no runtime. Pinned by URL
 # rather than tracking "latest", because a compiler version change is exactly the kind of
 # thing that should be a deliberate edit -- GCC 15 moving the default to C23 broke this tree
 # once already.
 $gccUrl = 'https://github.com/brechtsanders/winlibs_mingw/releases/download/16.2.0posix-14.0.0-ucrt-r1/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1.zip'
+$gccSha256 = 'c1f52294597c0b73786b2a78eb5d176d89226d2f21875eab75e783a8b1cefcc4'
 if (-not $SkipToolchain -and -not (Test-Path "$Mingw\bin\gcc.exe")) {
   Step "mingw-w64 (gcc 16.2, ~260 MB)"
-  Invoke-WebRequest -Uri $gccUrl -OutFile "$tmp\winlibs.zip" -UseBasicParsing
+  $toolchainArchive = Join-Path $tmp 'winlibs.zip'
+  Get-VerifiedFile $gccUrl $gccSha256 $toolchainArchive
   $toolchainStage = Join-Path $tmp 'goldeneye-native-winlibs'
   Remove-Item $toolchainStage -Recurse -Force -ErrorAction SilentlyContinue
-  Expand-Archive -Path "$tmp\winlibs.zip" -DestinationPath $toolchainStage -Force
+  Expand-Archive -Path $toolchainArchive -DestinationPath $toolchainStage -Force
   $toolchainSource = Join-Path $toolchainStage 'mingw64'
   if (-not (Test-Path (Join-Path $toolchainSource 'bin\gcc.exe'))) {
     throw "WinLibs archive did not contain mingw64\bin\gcc.exe"
   }
   New-Item -ItemType Directory -Force -Path $Mingw | Out-Null
   Copy-Item (Join-Path $toolchainSource '*') $Mingw -Recurse -Force
-  Remove-Item "$tmp\winlibs.zip",$toolchainStage -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item $toolchainArchive,$toolchainStage -Recurse -Force -ErrorAction SilentlyContinue
 }
 if (-not (Test-Path "$Mingw\bin\gcc.exe")) { throw "no gcc at $Mingw\bin -- toolchain step failed" }
 $gcc = "$Mingw\bin\gcc.exe"; $gxx = "$Mingw\bin\g++.exe"; $ar = "$Mingw\bin\ar.exe"
@@ -79,7 +90,7 @@ if ((Test-Path $mingwMake) -and (-not (Test-Path $plainMake))) {
 if (-not (Test-Path "$Mingw\include\SDL2\SDL.h")) {
   Step "SDL2 2.30.9"
   $u = 'https://github.com/libsdl-org/SDL/releases/download/release-2.30.9/SDL2-devel-2.30.9-mingw.zip'
-  Invoke-WebRequest -Uri $u -OutFile "$tmp\sdl2.zip" -UseBasicParsing
+  Get-VerifiedFile $u '492abbc78bbcad000d224cc56a200938f8be09a4a9aae253defa6035cbf68d9d' "$tmp\sdl2.zip"
   Expand-Archive -Path "$tmp\sdl2.zip" -DestinationPath "$tmp\sdl2" -Force
   $s = Join-Path "$tmp\sdl2" 'SDL2-2.30.9\x86_64-w64-mingw32'
   Copy-Item "$s\include\*" "$Mingw\include\" -Recurse -Force
@@ -96,7 +107,7 @@ if (-not (Test-Path "$Mingw\include\SDL2\SDL.h")) {
 if (-not (Test-Path "$Mingw\lib\libglew32.a")) {
   Step "GLEW 2.2.0 (built from source)"
   $u = 'https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip'
-  Invoke-WebRequest -Uri $u -OutFile "$tmp\glew.zip" -UseBasicParsing
+  Get-VerifiedFile $u 'a9046a913774395a095edcc0b0ac2d81c3aacca61787b39839b941e9be14e0d4' "$tmp\glew.zip"
   Expand-Archive -Path "$tmp\glew.zip" -DestinationPath "$tmp\glew" -Force
   $g = "$tmp\glew\glew-2.2.0"
   & $gcc -DGLEW_STATIC -DGLEW_NO_GLU -I"$g\include" -O2 -w -c "$g\src\glew.c" -o "$tmp\glew.o"
@@ -150,7 +161,7 @@ $imguiPrefix = Join-Path $Prefix 'imgui-win'
 if (-not (Test-Path "$imguiPrefix\lib\libimgui.a")) {
   Step "Dear ImGui v1.91.9b (dev overlay + launcher)"
   $u = 'https://github.com/ocornut/imgui/archive/refs/tags/v1.91.9b.zip'
-  Invoke-WebRequest -Uri $u -OutFile "$tmp\imgui.zip" -UseBasicParsing
+  Get-VerifiedFile $u 'fd37507c8476a6d14cc7c4b352401f31bcbd0f0d995d35390811e968c466f46e' "$tmp\imgui.zip"
   Expand-Archive -Path "$tmp\imgui.zip" -DestinationPath "$tmp\imguisrc" -Force
   $i = "$tmp\imguisrc\imgui-1.91.9b"
   New-Item -ItemType Directory -Force -Path "$imguiPrefix\lib","$imguiPrefix\include" | Out-Null

@@ -35,9 +35,11 @@ scripts, rather than assuming every native test includes production code.
 | `multi-ammo-regression.yml` | `tools/test_multi_ammo.py` fetches the pinned decomp's source, headers and committed `assets/images.def` identifier list; applies only source/header hunks from top-level `0*.patch`, excluding `0002-*`. It compiles `getv/port/tests/game/test_multi_ammo_layout.c` against patched `bondtypes.h` and its header dependencies. Windows downloads a pinned WinLibs archive and verifies its SHA-256. |
 | `public-artifact-safety.yml` | Runs `tools/check_no_game_data.py --tracked` and `tools/tests/test_agent_tools.py` via unittest discovery. Tests import `check_no_game_data`, `collect_bug_report`, and `compare_render_fingerprints`, which transitively imports `render_refs`. |
 | `pages.yml` | Pinned configure/upload/deploy Pages actions publish `site/`. No game build or asset extraction runs. |
+| `windows-setup-package.yml` | Builds the ROM-free setup wizard on a hosted Windows runner. `tools/fetch_deps_windows.ps1 -WizardOnly` downloads SHA-256-pinned WinLibs, SDL2, GLEW, and Dear ImGui archives; it does not fetch the decompilation or a ROM. The job runs the tracked-game-data guard, the wizard's byte-order self-test, embedded-bootstrap PowerShell syntax check, import inspection, and forbidden-string scan before uploading the setup package. |
 
-These regression workflows do **not** apply `getv/patches/thirdparty/*`. CI does not invoke
-`tools/fetch_deps_windows.ps1`; it shares the WinLibs release pin with the Windows job.
+These regression workflows do **not** apply `getv/patches/thirdparty/*`. Only the ROM-free Windows
+packaging workflow invokes `tools/fetch_deps_windows.ps1`, in `-WizardOnly` mode; the separate
+multi-ammo Windows regression shares its WinLibs release pin.
 There are currently no local composite/reusable actions, PR artifact handoffs to a privileged
 job, shared PR/deployment caches, or `pull_request_target` workflows.
 

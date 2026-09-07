@@ -750,8 +750,16 @@ if (-not (Test-Path -LiteralPath (Join-Path $gitDir 'cmd\git.exe')) -or
   New-Item -ItemType Directory -Force -Path $staging | Out-Null
   # Invoke the official self-extracting archive itself (not 7-Zip against its contents), so its
   # configured post-install step runs exactly once after extraction.
-  & $archive -y "-o$staging"
-  if ($LASTEXITCODE -ne 0) { throw "PortableGit extraction failed (exit $LASTEXITCODE)" }
+  # PortableGit's self-extractor uses the Windows GUI subsystem. Invoking it with `&` makes
+  # Windows PowerShell return immediately, leaves $LASTEXITCODE unset, and reports failure while
+  # extraction is still running in the background. Start-Process -Wait gives setup the real exit
+  # code and prevents the next step from racing a half-populated directory.
+  $extractor = Start-Process -FilePath $archive `
+    -ArgumentList @('-y', ('-o"{0}"' -f $staging)) `
+    -WindowStyle Hidden -Wait -PassThru
+  if ($extractor.ExitCode -ne 0) {
+    throw "PortableGit extraction failed (exit $($extractor.ExitCode))"
+  }
   if (-not (Test-Path -LiteralPath (Join-Path $staging 'cmd\git.exe')) -or
       -not (Test-Path -LiteralPath (Join-Path $staging 'bin\bash.exe'))) {
     throw 'PortableGit archive did not contain git.exe and bash.exe'
@@ -852,9 +860,11 @@ bool start_pipeline(Pipeline *p, const char *repoRoot, std::string *err)
     char cmd[MAX_PATH + 64];
     const char *testCmd = getenv("GETV_WIZARD_TEST_CMD");
     if (testCmd != NULL && *testCmd) {
-        snprintf(cmd, sizeof cmd, "\"%s\" -c \"%s\"", bash, testCmd);
+        snprintf(cmd, sizeof cmd, "\"%s\" -lc \"%s\"", bash, testCmd);
     } else {
-        snprintf(cmd, sizeof cmd, "\"%s\" \"tools/setup-windows.sh\"", bash);
+        /* PortableGit's core Unix commands live in /usr/bin. They are added by its login
+         * profile, not by launching bin/bash.exe directly; without -l setup stops at dirname. */
+        snprintf(cmd, sizeof cmd, "\"%s\" -lc \"tools/setup-windows.sh\"", bash);
     }
     return start_process(p, cmd, repoRoot, err);
 }

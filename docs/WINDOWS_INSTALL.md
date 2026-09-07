@@ -51,9 +51,9 @@ release can put the same package on the Releases page; until then, use the workf
    data locally, and builds the playable program.
 6. When all build groups report `0 failed`, click **Launch GoldenEye**.
 
-Afterward, launch the game from `getv\build-windows\goldeneye.exe --launcher` inside the folder
-you chose. Re-running setup in that same folder is the supported way to resume a stopped build;
-verified downloads and completed steps are reused.
+Afterward, double-click **Play GoldenEye** in the folder you chose. It opens the launcher without a
+terminal or command line. Re-running setup in that same folder is the supported way to resume a
+stopped build; verified downloads and completed steps are reused.
 
 ## Windows SmartScreen
 

@@ -1,8 +1,9 @@
 # Getting started
 
-This is the shortest path from a fresh checkout to playing GoldenEye-Native. The installer fetches
-the open-source dependencies, prepares the decompilation, extracts assets from your own ROM, and
-builds the native executable. Re-running it is safe and resumes completed work.
+This is the shortest path from a fresh computer or source checkout to playing GoldenEye-Native.
+The installer fetches the open-source dependencies, prepares the decompilation, extracts assets
+from your own ROM, and builds the native executable. Re-running it is safe and resumes completed
+work.
 
 You need:
 
@@ -64,28 +65,17 @@ bash tools/install.sh --rom /path/to/your/rom.z64 --desktop
 
 ### Windows
 
-1. Install [Git for Windows](https://git-scm.com/download/win) with its default options.
-2. Install [Python](https://www.python.org/downloads/windows/). Enable **Add python.exe to PATH**
-   on the first installer screen.
-3. Put your legally dumped GoldenEye 007 ROM on your **Desktop**.
-4. On [the project page](https://github.com/seb-patron/goldeneye-native), click the green
-   **Code** button, then **Download ZIP**. Double-click the downloaded file to unzip it.
-5. Open PowerShell in that folder and run:
+1. Have your legally dumped GoldenEye 007 ROM ready. `.z64`, `.v64`, and `.n64` are accepted.
+2. Download and extract the ROM-free Windows setup package. Until the first reviewed release is
+   published, get the test candidate from this repository's **Package Windows setup** Actions run.
+3. Double-click `GoldenEye-Native-Setup.exe`, choose an empty installation folder, and select your
+   ROM in the normal file picker.
+4. Leave setup open for the first local build. When it finishes, double-click **Play GoldenEye**
+   in the folder you chose.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\install.ps1
-```
-
-The original repository's `setup_wizard.exe` release was not preserved, so PowerShell is currently
-the supported install path. The installer asks where to install and which file is your ROM. To
-skip the ROM picker, add an explicit file:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\install.ps1 -Rom C:\path\to\rom.z64
-```
-
-It downloads its build toolchain into user-controlled directories and does not alter the
-system-wide `PATH`.
+You do not install Git, Python, a compiler, or the source repository. Setup downloads verified
+portable tools privately under your Windows profile and does not need administrator access. See
+[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) for the artifact download and SmartScreen details.
 
 ## Run
 
@@ -100,8 +90,8 @@ The normal OpenGL executables are:
 .\getv\build-windows\goldeneye.exe --launcher
 ```
 
-On macOS you can instead double-click **Play GoldenEye**. `--launcher` opens the settings window;
-omit it to boot directly with the current configuration.
+On macOS and Windows, double-click **Play GoldenEye** instead. `--launcher` opens the settings
+window; omit it to boot directly with the current configuration.
 
 The application logs its selected renderer, config path, save path, controllers, and resolved
 bindings at startup. Those lines are useful when troubleshooting.

@@ -78,7 +78,8 @@ computer, and never uploads your dump. The first release candidate is still bein
 **3.** Double-click it, choose an installation folder, and select your ROM. You do not install
 Git, Python, or a compiler and do not need to handle source code: the setup app downloads private,
 checksum-verified portable tools and performs the local build. It takes 10 to 40 minutes the first
-time and produces the playable executable only on your computer.
+time and produces the playable executable only on your computer. After setup, double-click
+**Play GoldenEye** in that folder whenever you want to start the game.
 
 ### On Linux
 

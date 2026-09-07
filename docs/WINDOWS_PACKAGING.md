@@ -104,8 +104,8 @@ Python, MinGW, or this repository installed:
 5. Confirm the wizard says the format was recognized and, for v64/n64, converted locally.
 6. Confirm all four build groups report `0 failed`, **Launch GoldenEye** opens the launcher, and a
    mission starts.
-7. Close and reopen `getv\build-windows\goldeneye.exe --launcher` to verify the built result does
-   not depend on the setup executable remaining open.
+7. Close the game and double-click `Play GoldenEye.cmd` in the installation folder to verify the
+   built result does not depend on the setup executable remaining open.
 8. Rerun setup into the same completed checkout to verify the resumable path and cached tool reuse.
 
 If it fails, use **Copy the log** and keep only build output in the report. Never attach a ROM,

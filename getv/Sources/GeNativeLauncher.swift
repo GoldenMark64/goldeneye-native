@@ -78,6 +78,11 @@ private final class GeLauncherModel: ObservableObject {
     @Published var profile: Int { didSet { geBridgeSetProfile(Int32(profile)) } }
     @Published var ruleset: Int { didSet { geBridgeSetRuleset(Int32(ruleset)) } }
 
+    @Published var baseGame: Bool { didSet { geBridgeSetBaseGame(baseGame ? 1 : 0) } }
+    @Published var gibs: Int { didSet { geBridgeSetGibs(Int32(gibs)) } }
+    @Published var blood: Int { didSet { geBridgeSetBlood(Int32(blood)) } }
+    @Published var bloodLimit: Int { didSet { geBridgeSetBloodLimit(Int32(bloodLimit)) } }
+
     @Published var horde: Bool { didSet { geBridgeSetHorde(horde ? 1 : 0) } }
     @Published var hordePerKill: Int { didSet { geBridgeSetHordePerKill(Int32(hordePerKill)) } }
     @Published var hordePerKillCap: Int { didSet { geBridgeSetHordePerKillCap(Int32(hordePerKillCap)) } }
@@ -222,6 +227,10 @@ private final class GeLauncherModel: ObservableObject {
         stageIdx = Int(geBridgeGetStageIdx())
         profile = Int(geBridgeGetProfile())
         ruleset = Int(geBridgeGetRuleset())
+        baseGame = geBridgeGetBaseGame() != 0
+        gibs = Int(geBridgeGetGibs())
+        blood = Int(geBridgeGetBlood())
+        bloodLimit = Int(geBridgeGetBloodLimit())
         horde = geBridgeGetHorde() != 0
         hordePerKill = Int(geBridgeGetHordePerKill())
         hordePerKillCap = Int(geBridgeGetHordePerKillCap())
@@ -423,6 +432,32 @@ private struct RulesetPage: View {
                         .buttonStyle(GeButtonStyle())
                     }
                 }
+
+                GeSectionTitle(text: "Brutal GoldenEye")
+                Toggle(isOn: $m.baseGame) {
+                    Text("Base Game (Brutal effects off)").foregroundColor(geText)
+                }
+                Text("Next launch: disables Brutal effects and keeps your choices. Other mods and rules remain separately configured.")
+                    .foregroundColor(geDim).font(.system(size: 12))
+                GePanel {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Picker("Gib trigger", selection: $m.gibs) {
+                            Text("Off").tag(0)
+                            Text("Explosions").tag(1)
+                            Text("High damage").tag(2)
+                            Text("Always").tag(3)
+                        }
+                        Picker("Blood intensity", selection: $m.blood) {
+                            Text("Original").tag(0)
+                            Text("Enhanced").tag(1)
+                            Text("Excessive").tag(2)
+                        }
+                        GeStepper(label: "Stain limit", value: $m.bloodLimit, range: 16...512, step: 16)
+                    }
+                }
+                .disabled(m.baseGame)
+                Text("Blood effects apply when an enemy gibs. Choose a gib trigger to enable them.")
+                    .foregroundColor(geDim).font(.system(size: 12))
 
                 Toggle(isOn: $m.rsCustom) {
                     Text("Override with custom values").foregroundColor(geText)

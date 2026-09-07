@@ -2,8 +2,8 @@
 
 Enemy gibs are an opt-in visual system for non-player character deaths. Every enabled policy
 uses the same Quake-like effect: solid chunks launch away from the killing hit, bounce off the
-level, settle on the floor, remain for about ten seconds, then fade. Retail behavior remains the
-default.
+level, settle on the floor, remain for about ten seconds, then fade. Retail death behavior remains the
+default. Enabled gibs now also emit optional blood, described below.
 
 ## Policies
 
@@ -65,6 +65,42 @@ civilian mission characters. In `always` mode those actors gib too; allegiance f
 explicit expansion item below rather than an unreliable assumption that every character is an
 enemy.
 
+## Bloodier gibs (Brutal GoldenEye)
+
+The first [Brutal GoldenEye milestone](https://github.com/seb-patron/goldeneye-native/milestone/2)
+feature adds a short mist, ballistic droplets, clustered directional surface splashes, a broad
+immediate death pool, and smaller growing pools under settled chunks. All are cosmetic and use a private random sequence. No model dismemberment
+or extra blood on ordinary hits is implemented in this step.
+
+Use the launcher Ruleset page, or set `gibs = explosions`, `blood = enhanced` and
+`base_game = off`. `blood = excessive` produces a much denser eruption, broad overlapping splashes,
+and larger pooling; `enhanced` uses a smaller version of the same layered effect. `blood = original`
+restores the earlier chunk-only presentation. `base_game = on` suppresses all Brutal effects,
+including chunks, without erasing those preferences. These are launch-time choices; the launcher
+itself does not write the config file. See [configuration](CONFIGURATION.md#brutal-goldeneye-blood-and-base-game).
+
+Blood rays use background triangle collision, traverse connected rooms, and clip each stain to
+the triangle it actually hit. Large splashes combine elongated lobes and satellite specks, each
+traced separately from the victim, so they can cover adjacent triangles without projecting through
+corners. This supports floors, walls and ceilings. It deliberately skips moving props and doors. Clipping to a single triangle can
+produce a straight edge at a level's triangulation boundary; visual tuning belongs in playtesting.
+Mist uses soft vertex alpha. Surface stains use an original, procedurally generated splatter
+texture with ragged edges and gaps, tinted red by the renderer; no game assets or renderer-specific
+shaders are added.
+
+At most 128 airborne particles and the configured `blood_limit` (16–512, default 128) stains are
+retained. Stains last about thirty seconds, then fade. Large blotches are retained ahead of small
+droplet marks when the stain budget fills; new major splashes recycle minor marks first, then older
+major marks. Each flying chunk can shed at most three additional droplets.
+Rendering retains headroom in the game's fixed dynamic graphics pools, while stage initialization
+clears all blood. Blood simulation follows the existing flying-particle update, including pause.
+
+For a human playtest, use **Always** gibs briefly to make each NPC death exercise the effect.
+Check a close-range kill near a wall, another under a low ceiling, and watch chunks settle on the
+floor. Stains should remain attached as you move the camera. Compare **Original**, **Enhanced** and
+**Excessive**, then relaunch with **Base Game** checked: stock bodies should remain and no new
+chunks or blood should appear. Switching Base Game off should retain your chosen controls.
+
 ## Implementation map
 
 | Part | Responsibility |
@@ -74,7 +110,9 @@ enemy.
 | `chr.c` death observer | Detects the first `ACT_DIE` or `ACT_DEAD` tick and asks the policy whether the recorded final hit qualifies. |
 | `chraction.c` | Hides the original model and emits the one shared twelve-chunk effect. |
 | `explosion.c` | Owns bounded allocation, solid rendering, stan collision, bounce, settling and fade. |
-| `getv/patches/0023-enemy-gibs.patch` | Replays all game-source changes on a fresh decomp checkout. |
+| `getv/patches/0023-enemy-gibs.patch` | Replays the original gib hooks and chunk behavior. |
+| `getv/patches/0025-bloodier-gibs.patch` | Replays bounded blood simulation, triangle placement, rendering and stage reset. |
+| `getv/port/src/ge_blood_math.h` | ROM-free polygon clipping shared with focused geometry tests. |
 
 Keeping policy separate from presentation is important: `explosions`, `high_damage` and `always`
 do not select different visuals. They only decide whether the same death event reaches the same
@@ -132,3 +170,10 @@ The first success line contains `killed=1 alpha=0 chunks=12`. A second line 360 
 the persistent chunk count; this is beyond the old short-lived particle lifetime. Repeat with
 `GETV_GIBS=off`: the death still occurs, while the stock body remains and `chunks=0`. The self-test
 gate is developer-only, off by default, and does not require Horde mode.
+
+For a deterministic visual fixture, add `GETV_GIBS_SELFTEST_VISIBLE=1` to the self-test command.
+It filters eligible NPCs by a camera-frustum point check and a rendered room with collision geometry, instead of the
+first character slot (which may be in an unloaded room). The log reports the selected room and
+burst counts. This filter does not establish visibility through occluding scenery: verify the actual
+victim in before/after captures before tuning appearance. A room that is not loaded cannot receive triangle stains. A capture during the intro
+can verify presentation but is not evidence of ordinary player-controlled combat.

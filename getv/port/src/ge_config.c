@@ -1094,6 +1094,18 @@ static int apply(const char *key_in, const char *val, int over)
  key_bool_gate("GETV_REALCLOCK", key, val, over); return 1;
     }
  if (strcmp(key, "gibs") == 0) { key_gibs(val, over); return 1; }
+ if (strcmp(key, "base_game") == 0 || strcmp(key, "base_only") == 0) {
+ key_bool_gate("GETV_BASE_GAME", key, val, over); return 1;
+ }
+ if (strcmp(key, "blood") == 0) {
+ if (strcmp(val, "original") == 0 || is_false(val)) put("GETV_BLOOD", "original", over);
+ else if (strcmp(val, "enhanced") == 0 || strcmp(val, "excessive") == 0) put("GETV_BLOOD", val, over);
+ else ge_err("blood=\"%s\" - expected original|enhanced|excessive%s", val, "");
+ return 1;
+ }
+ if (strcmp(key, "blood_limit") == 0) {
+ key_int("GETV_BLOOD_LIMIT", key, val, over, 16, 512); return 1;
+ }
 
     /* ---- Rare's own left-in developer features ------------------------------ */
 
@@ -1310,6 +1322,8 @@ static void usage(void)
 "deadzone=0..40 stick deadzone, percent, clamped to range          [20]\n"
 "invert_look=0|1 forces look inversion; UNSET = save file decides   [unset]\n"
 "fullscreen=0|1 audio=0|1 unlock_all=0|1 save_dir=PATH\n"
+"base_game=on disables all Brutal GoldenEye effects while preserving their settings [off]\n"
+"blood=original|enhanced|excessive controls added gib blood [enhanced]; blood_limit=16..512 [128]\n"
 "gibs=off|explosions|high_damage|always controls which deaths produce physics chunks [off]\n"
 "cheats=a,b,c GE's OWN named cheat flags (NOT GameShark addresses)\n"
 "roster=8|64 multiplayer character count\n"
@@ -1409,6 +1423,9 @@ static const char *DEFAULT_CFG =
 "\n"
 "# --- misc ------------------------------------------------------------------\n"
 "audio       = 1\n"
+"# base_game  = off        # on disables all Brutal GoldenEye effects. Alias: base_only.\n"
+"# blood      = enhanced   # original | enhanced | excessive. Only affects gib deaths for now.\n"
+"# blood_limit = 128       # maximum persistent stains, clamped to 16..512.\n"
 "# gibs       = explosions # off | explosions | high_damage | always. Default: off.\n"
 "# unlock_all = 1          # show every mission on the file-select screen\n"
 "# save_dir   = /path/to/saves\n"

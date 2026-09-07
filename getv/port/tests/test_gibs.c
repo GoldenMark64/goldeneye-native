@@ -42,6 +42,33 @@ static void reset_characters(void)
 int main(void)
 {
     printf("test_gibs\n");
+    unsetenv("GETV_BASE_GAME");
+    unsetenv("GETV_BLOOD");
+    unsetenv("GETV_BLOOD_LIMIT");
+    check("blood enhancement default", gePortBloodMode(), 1);
+    check("stain budget default", gePortBloodLimit(), 128);
+    set_mode("always");
+    setenv("GETV_BASE_GAME", "1", 1); ge_base_game = -1;
+    check("base game suppresses fatal gibs", gePortGibsShouldSpawn(GE_GIB_CAUSE_HIT, 1, 10), 0);
+    check("base game suppresses blood", gePortBloodMode(), 0);
+    check("base game preserves gib preference", gePortGibsMode(), GE_GIBS_ALWAYS);
+    setenv("GETV_BASE_GAME", "0", 1); ge_base_game = -1;
+    check("next launch restores gib preference", gePortGibsShouldSpawn(GE_GIB_CAUSE_HIT, 1, 10), 1);
+    check("next launch restores blood preference", gePortBloodMode(), 1);
+    setenv("GETV_BASE_GAME", "nonsense", 1); ge_base_game = -1;
+    check("unknown raw base value fails safe", gePortBaseGame(), 1);
+    unsetenv("GETV_BASE_GAME"); ge_base_game = -1;
+    setenv("GETV_BLOOD", "excessive", 1); ge_blood_mode = -1;
+    check("excessive blood", gePortBloodMode(), 2);
+    setenv("GETV_BLOOD", "bogus", 1); ge_blood_mode = -1;
+    check("unknown raw blood is off", gePortBloodMode(), 0);
+    setenv("GETV_BLOOD_LIMIT", "999", 1); ge_blood_limit = -1;
+    check("stain cap bounded above", gePortBloodLimit(), 512);
+    setenv("GETV_BLOOD_LIMIT", "-1", 1); ge_blood_limit = -1;
+    check("stain cap bounded below", gePortBloodLimit(), 16);
+    setenv("GETV_BLOOD_LIMIT", "bad", 1); ge_blood_limit = -1;
+    check("invalid stain cap uses default", gePortBloodLimit(), 128);
+
 
     set_mode(NULL);
     check("retail default is off", gePortGibsMode(), GE_GIBS_OFF);

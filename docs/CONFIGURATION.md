@@ -629,6 +629,37 @@ canonical names in `GETV_GIBS`. Unknown values fail closed to `off`. `PROP_TYPE_
 some friendly and civilian mission actors, so `always` truly means all NPC actors rather than
 hostiles only. See [GIBS.md](GIBS.md) for implementation boundaries, tests and expansion guidance.
 
+### Brutal GoldenEye blood and Base Game
+
+The launcher's Ruleset page has a **Brutal GoldenEye** section. These choices apply when you
+launch the game. The launcher holds choices for that launch; put them in `goldeneye.cfg` to keep
+preferences between application sessions.
+
+```ini
+base_game = off
+# base_only is an alias for base_game.
+gibs = explosions
+blood = enhanced
+blood_limit = 128
+```
+
+- `base_game = on` disables all Brutal GoldenEye effects, including the original optional gibs,
+  without replacing the chosen `gibs`, `blood`, or `blood_limit` values. Switch it off to use those
+  preferences again. It controls this feature family; other mods, cheats and rulesets have their
+  own controls. Default: `off`, with `gibs = off` still preserving stock deaths by default.
+- `blood = original | enhanced | excessive` controls added blood from gib deaths. `original`
+  (also `off`) retains the previous chunk effect with no added blood. `enhanced` is the default;
+  `excessive` creates a denser short burst, much larger overlapping surface splashes, and a broad
+  immediate pool. Ordinary hits do not yet emit added blood.
+- `blood_limit = 16..512` caps persistent stains, default `128`. Major splashes have priority over tiny
+  marks when full; airborne blood has a separate fixed cap. Rendering also respects the available graphics
+  memory, so crowded views may show fewer effects.
+
+The raw gates are `GETV_BASE_GAME`, `GETV_BLOOD`, and `GETV_BLOOD_LIMIT`. The Base Game override
+wins over the runtime `gibs` console command too. Added blood attaches to static level triangles,
+including walls and ceilings, and fades after roughly thirty seconds of simulation time. Doors
+and other moving objects do not receive blood decals.
+
 ## Developer overlay and console
 
 When the ImGui dependency is present, press backquote/grave to open the command console on either

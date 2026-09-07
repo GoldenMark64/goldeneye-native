@@ -31,6 +31,7 @@ Split by *when* they can be applied rather than by subject.
 | `0022-lockstep-stop-shuffling-every-frame.patch` | 1 file | `src/game/player.c` | after `0001` |
 | `0023-enemy-gibs.patch` | 5 files | `src/game/chr.c`, `chraction.c`, `explosion.c`, `explosion.h`, `propobj.c` | after `0022` |
 | `0024-multi-ammo-endianness.patch` | 2 files | `src/bondtypes.h`, `src/game/propobj.c` | after `0023` |
+| `0025-bloodier-gibs.patch` | 4 files | `explosion.c`, `explosion.h`, `initexplosioncasing.c`, `chr.c`: blood, reset and visible self-test | after `0024` |
 
 ## The gap at 0003, 0004 and 0005 is deliberate
 
@@ -121,6 +122,7 @@ git apply ../../getv/patches/0021-stan-pointer-return-decls.patch
 git apply ../../getv/patches/0022-lockstep-stop-shuffling-every-frame.patch
 git apply ../../getv/patches/0023-enemy-gibs.patch
 git apply ../../getv/patches/0024-multi-ammo-endianness.patch
+git apply ../../getv/patches/0025-bloodier-gibs.patch
 # ... run the asset pipeline (docs/SETUP.md 3.5) and the namespacing pass (3.6) ...
 python3 ../../tools/transform_rarewarelogo.py
 git apply ../../getv/patches/0002-assets.patch

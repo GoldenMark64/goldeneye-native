@@ -36,6 +36,16 @@ void geBridgeSetProfile(int v);
 int  geBridgeGetRuleset(void);
 void geBridgeSetRuleset(int v);
 
+/* Next-launch Brutal preferences; Base Game preserves the other selections. */
+int  geBridgeGetBaseGame(void);
+void geBridgeSetBaseGame(int v);
+int  geBridgeGetGibs(void);
+void geBridgeSetGibs(int v);
+int  geBridgeGetBlood(void);
+void geBridgeSetBlood(int v);
+int  geBridgeGetBloodLimit(void);
+void geBridgeSetBloodLimit(int v);
+
 int  geBridgeGetHorde(void);
 void geBridgeSetHorde(int v);
 int  geBridgeGetHordePerKill(void);

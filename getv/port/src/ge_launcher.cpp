@@ -279,6 +279,12 @@ struct Model {
      * deliberately unchanged so existing goldeneye.cfg files keep parsing. */
     int  profile;
 
+    /* Brutal preferences remain selected while Base Game suppresses their effects. */
+    bool base_game;
+    int gibs;
+    int blood;
+    int blood_limit;
+
     /* ruleset */
     int  ruleset;             /* index into kRulesets */
     bool rs_custom;           /* show and send the nine individual percentages */
@@ -479,6 +485,36 @@ void model_load(Model &m)
     memset(&m, 0, sizeof m);
 
     m.profile = env_bool("GETV_PROFILE_PLUS", false) ? 1 : 0;
+    const char *base = getenv("GETV_BASE_GAME");
+    m.base_game = base && strcmp(base, "0") && strcmp(base, "off") &&
+                  strcmp(base, "false") && strcmp(base, "no");
+    /* Read preferences directly: querying runtime policy here would cache it before
+     * the player has finished choosing settings. */
+    {
+        const char *gibs = getenv("GETV_GIBS");
+        m.gibs = 0;
+        if (gibs) {
+            if (!strcmp(gibs, "1") || !strcmp(gibs, "on") || !strcmp(gibs, "true") ||
+                !strcmp(gibs, "yes") || !strcmp(gibs, "explosion") || !strcmp(gibs, "explosions"))
+                m.gibs = 1;
+            else if (!strcmp(gibs, "high_damage") || !strcmp(gibs, "high-damage") ||
+                     !strcmp(gibs, "highdamage")) m.gibs = 2;
+            else if (!strcmp(gibs, "always")) m.gibs = 3;
+        }
+        const char *blood = getenv("GETV_BLOOD");
+        m.blood = !blood || !strcmp(blood, "enhanced") ? 1 :
+                  !strcmp(blood, "excessive") ? 2 : 0;
+        const char *limit = getenv("GETV_BLOOD_LIMIT");
+        char *end;
+        long n = 128;
+        if (limit) {
+            ge_errno = 0;
+            n = strtol(limit, &end, 10);
+            if (end == limit || *end != '\0' || ge_errno == ERANGE) n = 128;
+        }
+        m.blood_limit = n < 16 ? 16 : n > 512 ? 512 : (int)n;
+    }
+
 
     {
         const char *rs = getenv("GETV_RULESET");
@@ -644,6 +680,13 @@ void model_load(Model &m)
 void model_store(const Model &m)
 {
     setenv("GETV_PROFILE_PLUS", m.profile ? "1" : "0", 1);
+    static const char *const gibs[] = { "off", "explosions", "high_damage", "always" };
+    static const char *const blood[] = { "original", "enhanced", "excessive" };
+    setenv("GETV_BASE_GAME", m.base_game ? "1" : "0", 1);
+    put_str("GETV_GIBS", gibs[m.gibs]);
+    put_str("GETV_BLOOD", blood[m.blood]);
+    put_int("GETV_BLOOD_LIMIT", m.blood_limit);
+
     put_str("GETV_RULESET", kRulesets[m.ruleset]);
 
     /* The nine percentages are sent only when custom is on. Sending them unconditionally
@@ -934,6 +977,15 @@ void geBridgeSetProfile(int v)    { g_bridgeModel.profile = v; apply_profile(g_b
 
 int  geBridgeGetRuleset(void)     { return g_bridgeModel.ruleset; }
 void geBridgeSetRuleset(int v)    { if (v >= 0 && v < kRulesetCount) g_bridgeModel.ruleset = v; }
+
+int  geBridgeGetBaseGame(void)       { return g_bridgeModel.base_game ? 1 : 0; }
+void geBridgeSetBaseGame(int v)      { g_bridgeModel.base_game = (v != 0); }
+int  geBridgeGetGibs(void)           { return g_bridgeModel.gibs; }
+void geBridgeSetGibs(int v)          { if (v >= 0 && v <= 3) g_bridgeModel.gibs = v; }
+int  geBridgeGetBlood(void)          { return g_bridgeModel.blood; }
+void geBridgeSetBlood(int v)         { if (v >= 0 && v <= 2) g_bridgeModel.blood = v; }
+int  geBridgeGetBloodLimit(void)     { return g_bridgeModel.blood_limit; }
+void geBridgeSetBloodLimit(int v)    { if (v >= 16 && v <= 512) g_bridgeModel.blood_limit = v; }
 
 int  geBridgeGetHorde(void)             { return g_bridgeModel.horde ? 1 : 0; }
 void geBridgeSetHorde(int v)            { g_bridgeModel.horde = (v != 0); }
@@ -2045,6 +2097,20 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                         ImGui::Dummy(ImVec2(0, 0));
                     }
                 }
+
+                Section("BRUTAL GOLDENEYE");
+                ImGui::Checkbox("Base Game (Brutal effects off)", &m.base_game);
+                Hint("Next launch: disables Brutal effects and keeps your choices. "
+                     "Other mods and rules remain separately configured.");
+                ImGui::BeginDisabled(m.base_game);
+                static const char *const kGibs[] = { "Off", "Explosions", "High damage", "Always" };
+                static const char *const kBlood[] = { "Original", "Enhanced", "Excessive" };
+                ImGui::Combo("Gib trigger", &m.gibs, kGibs, 4);
+                ImGui::Combo("Blood intensity", &m.blood, kBlood, 3);
+                SliderRow("Stain limit", &m.blood_limit, 16, 512, NULL,
+                          ImGui::GetContentRegionAvail().x, true);
+                ImGui::EndDisabled();
+                Hint("Blood effects apply when an enemy gibs. Choose a gib trigger to enable them.");
 
                 Section("HORDE MODE");
                 ImGui::Checkbox("Endless waves", &m.horde);

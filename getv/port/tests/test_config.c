@@ -90,6 +90,9 @@ static void reset(void)
     unsetenv("GETV_FILTERING");
     unsetenv("GETV_POINT_FILTER");
     unsetenv("GETV_GIBS");
+    unsetenv("GETV_BASE_GAME");
+    unsetenv("GETV_BLOOD");
+    unsetenv("GETV_BLOOD_LIMIT");
     unsetenv("GETV_IMGUI");
     unsetenv("GETV_CONSOLE_KEY");
     configFiltering = 2;
@@ -105,6 +108,29 @@ static int set(const char *key, const char *val) { return apply(key, val, 1); }
 int main(void)
 {
     printf("test_config\n");
+    reset();
+    set("gibs", "always");
+    set("blood", "excessive");
+    set("base_only", "on");
+    check_env("base alias sets master switch", "GETV_BASE_GAME", "1");
+    check_env("master switch preserves gib setting", "GETV_GIBS", "always");
+    check_env("master switch preserves blood setting", "GETV_BLOOD", "excessive");
+    set("base_game", "off");
+    check_env("master switch can be disabled", "GETV_BASE_GAME", "0");
+    set("blood_limit", "9999");
+    check_env("stain count clamps to budget", "GETV_BLOOD_LIMIT", "512");
+    set("blood_limit", "0");
+    check_env("stain count clamps above zero", "GETV_BLOOD_LIMIT", "16");
+    set("blood", "original");
+    check_env("original blood disables extra effects", "GETV_BLOOD", "original");
+    set("blood", "banana");
+    check("invalid blood rejected", g_errors, 1);
+    check_env("invalid blood preserves prior value", "GETV_BLOOD", "original");
+    reset();
+    setenv("GETV_BASE_GAME", "1", 1);
+    apply("base_game", "off", 0);
+    check_env("environment overrides config master switch", "GETV_BASE_GAME", "1");
+
 
     reset();
     check("developer_tools accepted", set("developer_tools", "1"), 1);

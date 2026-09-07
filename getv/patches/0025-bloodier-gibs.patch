@@ -1,0 +1,622 @@
+diff --git a/src/game/explosion.c b/src/game/explosion.c
+--- a/src/game/explosion.c
++++ b/src/game/explosion.c
+@@ -27,6 +27,11 @@
+ #include <assets/oddtextures.h>
+ 
+ #ifdef GE_PORT_NATIVE
++#include "../../../../getv/port/src/ge_blood_math.h"
++extern Gfx globalDL_0xa50;
++extern s32 gePortBloodMode(void);
++extern s32 gePortBloodLimit(void);
++extern s32 gePortBaseGame(void);
+ extern void gePortGibsRecordHit(const void *character, s32 cause, f32 damage,
+                                 f32 impulse_x, f32 impulse_y, f32 impulse_z);
+ #endif
+@@ -243,6 +248,8 @@
+     s32 settled_at;
+     u8 settled;
+     u8 bounces;
++    u8 blood_impacts;
++    u8 blood_trails;
+ };
+ 
+ static struct GeGibPhysics ge_gib_physics[MAX_FLYING_PARTICLES];
+@@ -264,6 +271,406 @@
+ static f32 geGibRandUnit(u32 *state)
+ {
+     return (f32)(geGibRand(state) & 0xffffU) * (1.0f / 65535.0f);
++}
++
++/* Blood is a separate bounded cosmetic pool: it cannot evict retail debris or
++ * consume gameplay props. Positions remain in world units, including ray hits
++ * converted back from the background renderer's scaled coordinates. */
++#define GE_BLOOD_STAINS 512
++#define GE_BLOOD_DROPS 128
++struct GeBloodStain {
++    coord3d position;
++    coord3d offsets[GE_BLOOD_POLY_MAX];
++    s16 uv[GE_BLOOD_POLY_MAX][2];
++    s32 count, age, room;
++    u8 pool, major, shade;
++};
++struct GeBloodDrop {
++    coord3d position, velocity;
++    s32 age, life, room;
++    f32 size;
++    u8 mist;
++};
++static struct GeBloodStain ge_blood_stains[GE_BLOOD_STAINS];
++static struct GeBloodDrop ge_blood_drops[GE_BLOOD_DROPS];
++static u32 ge_blood_next_stain, ge_blood_next_drop;
++static s32 ge_blood_surface_hits[3];
++static u64 ge_blood_mask_words[GE_BLOOD_MASK_SIZE*GE_BLOOD_MASK_SIZE/8];
++static s32 ge_blood_mask_ready;
++
++void explosionResetBloodEffects(void)
++{
++    memset(ge_blood_stains, 0, sizeof(ge_blood_stains));
++    memset(ge_blood_drops, 0, sizeof(ge_blood_drops));
++    memset(ge_gib_physics, 0, sizeof(ge_gib_physics));
++    memset(ge_blood_surface_hits, 0, sizeof(ge_blood_surface_hits));
++    ge_blood_next_stain = ge_blood_next_drop = 0;
++    ge_gib_selftest_age = -1;
++}
++
++static s32 geBloodTrace(coord3d *from, coord3d *to, s32 *room, HitThing *hit)
++{
++    u8 initial[8], final[8];
++    s32 rooms[16], count=0, i, found=0;
++    f32 nearest=1.0e30f, scale=get_room_data_float1();
++    if (*room<=0 || *room>=g_MaxNumRooms || scale<=0.0f) return 0;
++    memset(initial, 0xff, sizeof(initial));
++    initial[0]=(u8)*room;
++    bgFindRoomsAlongSegment(from, to, initial, final, rooms, &count, 16);
++    for (i=0; i<count; i++) {
++        HitThing candidate;
++        s32 axis;
++        f32 dist=0.0f, projection=0.0f, segment_length_sq=0.0f;
++        if (rooms[i]<=0 || rooms[i]>=g_MaxNumRooms) continue;
++        if (!bgTestBulletHitBackground(from,to,rooms[i],&candidate)) continue;
++        for (axis=0; axis<3; axis++) {
++            f32 delta;
++            candidate.hitpos.f[axis]/=scale;
++            delta=candidate.hitpos.f[axis]-from->f[axis];
++            dist+=delta*delta;
++            projection+=delta*(to->f[axis]-from->f[axis]);
++            segment_length_sq+=(to->f[axis]-from->f[axis])*(to->f[axis]-from->f[axis]);
++        }
++        if (projection < 0.0f || projection > segment_length_sq + 0.01f) continue;
++        if (dist<nearest) {
++            nearest=dist; *hit=candidate; *room=rooms[i]; found=1;
++        }
++    }
++    if (!found && final[0]!=0xff) *room=final[0];
++    return found;
++}
++
++static void geBloodStain(HitThing *hit, s32 room, coord3d *incoming, f32 size, u32 *seed, s32 pool)
++{
++    coord3d normal=hit->normal, tangent, bitangent;
++    Vertex *vertices[3]={hit->vtx0,hit->vtx1,hit->vtx2};
++    coord3d *origin=getRoomPositionByIndex(room);
++    GeBloodPoint polygon[GE_BLOOD_POLY_MAX], triangle[3];
++    f32 length=0.0f, dot=0.0f, scale=get_room_data_float1();
++    f32 angle=geGibRandUnit(seed)*M_TAU_F;
++    f32 stretch=pool ? 1.1f : 1.15f+geGibRandUnit(seed)*0.7f;
++    s32 i,axis,count,limit=gePortBloodLimit(),slot=-1,rank=-1,oldest=-1;
++    s32 major=size>=24.0f;
++    struct GeBloodStain *stain;
++    if (gePortBloodMode()==0 || gePortBaseGame() || scale<=0.0f) return;
++    for (axis=0;axis<3;axis++) { length+=normal.f[axis]*normal.f[axis]; dot+=normal.f[axis]*incoming->f[axis]; }
++    if (length<0.0001f) return;
++    length=sqrtf(length)*(dot>0.0f ? -1.0f:1.0f);
++    for(axis=0;axis<3;axis++) normal.f[axis]/=length;
++    tangent.x=normal.z; tangent.y=0.0f; tangent.z=-normal.x;
++    length=sqrtf(tangent.x*tangent.x+tangent.z*tangent.z);
++    if(length<0.01f) { tangent.x=1.0f; tangent.z=0.0f; } else { tangent.x/=length; tangent.z/=length; }
++    bitangent.x=normal.y*tangent.z-normal.z*tangent.y;
++    bitangent.y=normal.z*tangent.x-normal.x*tangent.z;
++    bitangent.z=normal.x*tangent.y-normal.y*tangent.x;
++    for(i=0;i<3;i++) {
++        triangle[i].x=triangle[i].y=0.0f;
++        for(axis=0;axis<3;axis++) {
++            f32 delta=((f32)(axis==0 ? vertices[i]->coord.x : axis==1 ? vertices[i]->coord.y : vertices[i]->coord.z)+origin->f[axis])/scale-hit->hitpos.f[axis];
++            triangle[i].x+=delta*tangent.f[axis]; triangle[i].y+=delta*bitangent.f[axis];
++        }
++    }
++    for(i=0;i<8;i++) {
++        f32 radius=size*1.5f;
++        f32 x=cosf(i*(M_TAU_F/8.0f))*radius*stretch;
++        f32 y=sinf(i*(M_TAU_F/8.0f))*radius/stretch;
++        polygon[i].x=x*cosf(angle)-y*sinf(angle);
++        polygon[i].y=x*sinf(angle)+y*cosf(angle);
++    }
++    count=geBloodClip(polygon,8,triangle);
++    if(count<3 || geBloodPolygonArea(polygon,count)<1.0f) return;
++    if(limit<16) limit=16;
++    if(limit>GE_BLOOD_STAINS) limit=GE_BLOOD_STAINS;
++    /* Fine spray cannot replace the broad masses a moment later. New major
++     * splashes replace minor marks first, then the oldest major mark. */
++    for(i=0;i<limit;i++) {
++        s32 candidate=(ge_blood_next_stain+(u32)i)%(u32)limit;
++        struct GeBloodStain *old=&ge_blood_stains[candidate];
++        s32 candidate_rank=old->major ? 0:1;
++        if(!old->age) { slot=candidate; break; }
++        if(!major && old->major) continue;
++        if(candidate_rank>rank || (candidate_rank==rank && old->age>oldest)) {
++            slot=candidate; rank=candidate_rank; oldest=old->age;
++        }
++    }
++    if(slot<0) return;
++    ge_blood_next_stain=(u32)slot+1;
++    stain=&ge_blood_stains[slot];
++    stain->age=1; stain->count=count; stain->room=room; stain->pool=pool;
++    stain->major=major; stain->shade=(u8)(geGibRand(seed)&31U);
++    for(axis=0;axis<3;axis++) {
++        stain->position.f[axis]=hit->hitpos.f[axis]+normal.f[axis]*0.3f;
++        for(i=0;i<count;i++) stain->offsets[i].f[axis]=polygon[i].x*tangent.f[axis]+polygon[i].y*bitangent.f[axis];
++    }
++    /* UVs use the unclipped splash plane. A triangle cut therefore crops the
++     * same ink image instead of stretching a fresh complete mask to every face. */
++    for(i=0;i<count;i++) {
++        f32 x=(polygon[i].x*cosf(angle)+polygon[i].y*sinf(angle))/stretch;
++        f32 y=(-polygon[i].x*sinf(angle)+polygon[i].y*cosf(angle))*stretch;
++        stain->uv[i][0]=(s16)((x/(size*3.0f)+0.5f)*((GE_BLOOD_MASK_SIZE-1)*32));
++        stain->uv[i][1]=(s16)((y/(size*3.0f)+0.5f)*((GE_BLOOD_MASK_SIZE-1)*32));
++    }
++    ge_blood_surface_hits[normal.y>0.65f ? 0 : normal.y< -0.65f ? 2 : 1]++;
++}
++
++/* A splash is a union of overlapping, stretched lobes and trailing specks.
++ * Each lobe is ray-tested from the victim to a point near the first hit, so it
++ * can cover an adjacent mesh triangle without projecting through a corner. */
++static void geBloodSplash(coord3d *from, HitThing *hit, s32 room, coord3d *incoming,
++                          f32 size, u32 *seed, s32 pool, s32 source_room)
++{
++    coord3d normal=hit->normal,tangent,bitangent;
++    f32 length=sqrtf(normal.x*normal.x+normal.y*normal.y+normal.z*normal.z);
++    f32 facing=normal.x*incoming->x+normal.y*incoming->y+normal.z*incoming->z;
++    s32 mode=gePortBloodMode(),i,axis,lobes=mode==2 ? 5:3,specks=mode==2 ? 4:2;
++    if(length<0.0001f) return;
++    if(facing>0.0f) length=-length;
++    for(axis=0;axis<3;axis++) normal.f[axis]/=length;
++    tangent.x=normal.z; tangent.y=0.0f; tangent.z=-normal.x;
++    length=sqrtf(tangent.x*tangent.x+tangent.z*tangent.z);
++    if(length<0.01f) { tangent.x=1.0f; tangent.z=0.0f; }
++    else { tangent.x/=length; tangent.z/=length; }
++    bitangent.x=normal.y*tangent.z-normal.z*tangent.y;
++    bitangent.y=normal.z*tangent.x-normal.x*tangent.z;
++    bitangent.z=normal.x*tangent.y-normal.y*tangent.x;
++    geBloodStain(hit,room,incoming,size,seed,pool);
++    for(i=0;i<lobes+specks;i++) {
++        HitThing nearby;
++        coord3d target=hit->hitpos,velocity;
++        f32 angle=geGibRandUnit(seed)*M_TAU_F;
++        f32 radius=size*(i<lobes ? 0.45f+geGibRandUnit(seed)*0.55f : 1.1f+geGibRandUnit(seed)*0.9f);
++        f32 marksize=size*(i<lobes ? 0.50f+geGibRandUnit(seed)*0.30f : 0.06f+geGibRandUnit(seed)*0.12f);
++        s32 hitroom=source_room;
++        for(axis=0;axis<3;axis++) {
++            target.f[axis]+=radius*(cosf(angle)*tangent.f[axis]+sinf(angle)*bitangent.f[axis])-normal.f[axis]*6.0f;
++            velocity.f[axis]=target.f[axis]-from->f[axis];
++        }
++        if(geBloodTrace(from,&target,&hitroom,&nearby)) {
++            f32 nlength=sqrtf(nearby.normal.x*nearby.normal.x+nearby.normal.y*nearby.normal.y+nearby.normal.z*nearby.normal.z);
++            if(pool && fabsf(nearby.normal.y)<nlength*0.65f) continue;
++            geBloodStain(&nearby,hitroom,&velocity,marksize,seed,pool);
++        }
++    }
++}
++
++static void geBloodPool(coord3d *pos, StandTile *stan, f32 size, u32 seed)
++{
++    coord3d from=*pos,to=*pos,velocity={{0.0f,-1.0f,0.0f}};
++    s32 room=stan ? getTileRoom(stan):0,source_room=room;
++    HitThing hit;
++    from.y+=3.0f; to.y-=320.0f;
++    if(geBloodTrace(&from,&to,&room,&hit)) {
++        if(size>=40.0f) geBloodSplash(&from,&hit,room,&velocity,size,&seed,1,source_room);
++        else geBloodStain(&hit,room,&velocity,size,&seed,1);
++    }
++}
++
++static void geBloodBurst(coord3d *pos, coord3d *direction, StandTile *stan, u32 seed)
++{
++    s32 i,axis,mode=gePortBloodMode(),room=stan ? getTileRoom(stan):0;
++    s32 mist_count=mode==2 ? 14:8,drop_count=mode==2 ? 64:28;
++    coord3d center=*pos;
++    if (!mode || gePortBaseGame() || room<=0 || room>=g_MaxNumRooms) return;
++    center.y+=32.0f;
++    for(i=0;i<mist_count+drop_count;i++) {
++        struct GeBloodDrop *drop=&ge_blood_drops[ge_blood_next_drop++%GE_BLOOD_DROPS];
++        drop->position=center; drop->room=room; drop->age=1;
++        drop->mist=i<mist_count; drop->life=drop->mist ? 22:100;
++        drop->size=drop->mist ? (mode==2?24.0f:18.0f)+geGibRandUnit(&seed)*18.0f : 2.5f+geGibRandUnit(&seed)*(mode==2?4.0f:2.0f);
++        for(axis=0;axis<3;axis++) {
++            drop->position.f[axis]+=(geGibRandUnit(&seed)*2.0f-1.0f)*(drop->mist ? 16.0f:8.0f);
++            drop->velocity.f[axis]=(geGibRandUnit(&seed)*2.0f-1.0f)*(drop->mist?2.8f:9.0f)+direction->f[axis]*(drop->mist?1.8f:5.0f);
++        }
++        if(!drop->mist) drop->velocity.y+=3.0f;
++    }
++    for(i=0;i<(mode==2 ? 10:6);i++) {
++        coord3d to=center,velocity;
++        HitThing hit;
++        s32 hitroom=room;
++        /* Evenly spread directions avoid an unlucky burst missing every nearby
++         * wall. Vertical components deliberately include floor and ceiling rays. */
++        f32 angle=i*(M_TAU_F/(mode==2?10.0f:6.0f))+geGibRandUnit(&seed)*0.4f;
++        f32 reach=mode==2 ? 420.0f:300.0f;
++        velocity.x=cosf(angle)*reach+direction->x*90.0f;
++        velocity.z=sinf(angle)*reach+direction->z*90.0f;
++        velocity.y=(i%3==0 ? -0.7f:i%3==1 ? 0.8f:0.15f)*reach;
++        for(axis=0;axis<3;axis++) to.f[axis]+=velocity.f[axis];
++        if(geBloodTrace(&center,&to,&hitroom,&hit)) geBloodSplash(&center,&hit,hitroom,&velocity,
++            (mode==2?64.0f:44.0f)+geGibRandUnit(&seed)*(mode==2?22.0f:16.0f),&seed,0,room);
++    }
++    /* Put the broad death pool in immediately, not after the chunks settle.
++     * Emit it last so fresh ground coverage receives the same render priority. */
++    geBloodPool(&center,stan,mode==2?90.0f:75.0f,seed);
++    if(getenv("GETV_GIBS_SELFTEST")!=NULL) {
++        s32 stains=0,k,major=0;
++        for(k=0;k<GE_BLOOD_STAINS;k++) if(ge_blood_stains[k].age) { stains++; major+=ge_blood_stains[k].major; }
++        printf("[getv][blood] burst: mode=%d room=%d collision_loaded=%d mist=%d droplets=%d stains=%d major=%d\n",
++            mode,room,g_BgRoomInfo[room].vtx_batch_bounds!=NULL,mist_count,drop_count,stains,major);
++    }
++}
++
++static void geBloodUpdate(s32 steps)
++{
++    s32 i,j,limit=gePortBloodLimit();
++    if(!gePortBloodMode() || gePortBaseGame()) {
++        memset(ge_blood_stains,0,sizeof(ge_blood_stains));
++        memset(ge_blood_drops,0,sizeof(ge_blood_drops));
++        return;
++    }
++    for(i=0;i<GE_BLOOD_STAINS;i++) {
++        struct GeBloodStain *stain=&ge_blood_stains[i];
++        if(i>=limit) stain->age=0;
++        if(stain->age && (stain->age+=steps)>=1860) stain->age=0;
++    }
++    for(i=0;i<GE_BLOOD_DROPS;i++) {
++        struct GeBloodDrop *drop=&ge_blood_drops[i];
++        if(!drop->age) continue;
++        if((drop->age+=steps)>=drop->life) { drop->age=0; continue; }
++        for(j=0;j<steps;j++) {
++            coord3d to=drop->position;
++            HitThing hit;
++            s32 axis,room=drop->room;
++            for(axis=0;axis<3;axis++) to.f[axis]+=drop->velocity.f[axis];
++            if(!drop->mist && geBloodTrace(&drop->position,&to,&room,&hit)) {
++                u32 seed=(u32)(i*977+drop->age*131);
++                geBloodStain(&hit,room,&drop->velocity,drop->size*2.8f,&seed,0);
++                drop->age=0; break;
++            }
++            drop->position=to; drop->room=room;
++            drop->velocity.y-=drop->mist?0.008f:0.18f;
++        }
++    }
++}
++
++/* Dynamic vertices keep alpha/expansion immutable for each submitted view. The
++ * simulation ticks once in lv.c, while each split-screen camera draws its view. */
++static Gfx *geBloodRender(Gfx *gdl, s32 opaque)
++{
++    s32 i,j,axis,active=0;
++    s32 vertex_budget=dynGetFreeVtx()/4, command_budget=dynGetFreeGfx(gdl)/4;
++    s32 draw_count=0,mist_drawn=0,textured=0,limit=gePortBloodLimit();
++    if(!gePortBloodMode() || gePortBaseGame()) return gdl;
++    for(i=0;i<GE_BLOOD_STAINS;i++) active |= ge_blood_stains[i].age;
++    for(i=0;i<GE_BLOOD_DROPS;i++) active |= ge_blood_drops[i].age;
++    if(!active || vertex_budget<512 || command_budget<64) return gdl;
++    if(limit<16) limit=16;
++    if(limit>GE_BLOOD_STAINS) limit=GE_BLOOD_STAINS;
++    if(!ge_blood_mask_ready) {
++        geBloodMakeMask((u8 *)ge_blood_mask_words);
++        ge_blood_mask_ready=1;
++    }
++    gDPPipeSync(gdl++);
++    gDPSetTextureLUT(gdl++,G_TT_NONE);
++    gDPSetTextureLOD(gdl++,G_TL_TILE);
++    gDPSetTextureFilter(gdl++,G_TF_BILERP);
++    gDPSetAlphaCompare(gdl++,G_AC_NONE);
++    gDPLoadTextureBlock(gdl++,ge_blood_mask_words,G_IM_FMT_IA,G_IM_SIZ_8b,
++        GE_BLOOD_MASK_SIZE,GE_BLOOD_MASK_SIZE,0,G_TX_CLAMP,G_TX_CLAMP,6,6,G_TX_NOLOD,G_TX_NOLOD);
++    command_budget-=24;
++    gSPTexture(gdl++,0,0,0,0,G_OFF);
++    gSPClearGeometryMode(gdl++,G_LIGHTING|G_CULL_BOTH|G_FOG);
++    gDPSetCombineMode(gdl++,G_CC_SHADE,G_CC_SHADE);
++    gDPSetRenderMode(gdl++,G_RM_AA_ZB_XLU_SURF,G_RM_AA_ZB_XLU_SURF2);
++    /* Budget each camera independently and reserve three quarters of the free
++     * pools for remaining retail rendering and later split-screen views. Fresh
++     * mist, major splashes, droplets, then specks receive priority in that order.
++     * At most eight mist lobes can consume the budget ahead of surface coverage. */
++    for(i=0;i<2*(limit+GE_BLOOD_DROPS);i++) {
++        coord3d pos,rotation={{0,0,0}};
++        Mtxf matrix;
++        Mtx *fixed;
++        Vtx *verts;
++        s32 count,alpha,mist=0;
++        f32 expansion=1.0f;
++        struct GeBloodStain *stain=NULL;
++        struct GeBloodDrop *drop=NULL;
++        s32 phase_index=i%(limit+GE_BLOOD_DROPS);
++        s32 primary=i<limit+GE_BLOOD_DROPS;
++        if(phase_index>=GE_BLOOD_DROPS) {
++            u32 offset=(u32)(phase_index-GE_BLOOD_DROPS);
++            stain=&ge_blood_stains[(ge_blood_next_stain+(u32)limit-1-offset)%(u32)limit];
++            if(!stain->age || (!!stain->major)!=primary || !getROOMID_isRendered(stain->room)) continue;
++            pos=stain->position; count=stain->count;
++            alpha=stain->age<1740 ? 235:235*(1860-stain->age)/120;
++            if(stain->pool && stain->age<45) expansion=0.85f+0.15f*stain->age/45.0f;
++        } else {
++            drop=&ge_blood_drops[phase_index];
++            if(!drop->age || (!!drop->mist)!=primary || !getROOMID_isRendered(drop->room)) continue;
++            if(drop->mist && mist_drawn>=8) continue;
++            pos=drop->position; count=8; mist=drop->mist;
++            alpha=(mist?140:245)*(drop->life-drop->age)/drop->life;
++            expansion=drop->size*(mist ? 1.0f+drop->age*0.055f:1.0f);
++        }
++        {
++            f32 radius=expansion;
++            if(stain) {
++                f32 radius_sq=0.0f;
++                for(j=0;j<count;j++) {
++                    coord3d *v=&stain->offsets[j];
++                    f32 length_sq=v->x*v->x+v->y*v->y+v->z*v->z;
++                    if(length_sq>radius_sq) radius_sq=length_sq;
++                }
++                radius=sqrtf(radius_sq);
++            }
++            if(!camIsPosInScreen(&pos,radius)) continue;
++        }
++        matrix_4x4_set_position_and_rotation_around_xyz(&pos,&rotation,&matrix);
++        matrix_4x4_multiply_homogeneous_in_place(camGetWorldToScreenMtxf(),&matrix);
++        if(fabsf(matrix.m[3][0])>20000.0f || fabsf(matrix.m[3][1])>20000.0f || fabsf(matrix.m[3][2])>20000.0f) continue;
++        for(j=0;j<3;j++) for(axis=0;axis<3;axis++) matrix.m[j][axis]=(drop ? (j==axis?1.0f:0.0f):matrix.m[j][axis])*0.125f;
++        if(draw_count>=96 || vertex_budget<(s32)(sizeof(Mtx)+(count+1)*sizeof(Vtx)) || command_budget<count+7) break;
++        draw_count++;
++        if(mist) mist_drawn++;
++        vertex_budget-=sizeof(Mtx)+(count+1)*sizeof(Vtx);
++        command_budget-=count+7;
++        fixed=dynAllocateMatrix(); matrix_4x4_f32_to_s32(&matrix,(Mtxf *)fixed);
++        verts=dynAllocateVertices(count+1);
++        memset(verts,0,(count+1)*sizeof(Vtx));
++        /* Fan around the clipped polygon centroid. Pool growth scales inward
++         * toward the impact point, keeping its footprint within the triangle. */
++        for(j=0;j<count;j++) {
++            for(axis=0;axis<3;axis++) {
++                f32 value=stain ? stain->offsets[j].f[axis] : axis==0 ? cosf(j*M_TAU_F/8.0f):axis==1?sinf(j*M_TAU_F/8.0f):0.0f;
++                verts[j+1].v.ob[axis]=(s16)(value*expansion*8.0f);
++            }
++            if(stain) {
++                verts[j+1].v.tc[0]=stain->uv[j][0];
++                verts[j+1].v.tc[1]=stain->uv[j][1];
++            }
++            verts[j+1].v.cn[0]=mist?160:stain?105+stain->shade:130; verts[j+1].v.cn[1]=3; verts[j+1].v.cn[2]=5;
++            verts[j+1].v.cn[3]=mist?0:alpha*3/4;
++        }
++        for(axis=0;axis<3;axis++) {
++            s32 sum=0;
++            for(j=1;j<=count;j++) sum+=verts[j].v.ob[axis];
++            verts[0].v.ob[axis]=(s16)(sum/count);
++        }
++        if(stain) for(axis=0;axis<2;axis++) {
++            s32 sum=0;
++            for(j=1;j<=count;j++) sum+=verts[j].v.tc[axis];
++            verts[0].v.tc[axis]=(s16)(sum/count);
++        }
++        if(textured!=(stain!=NULL)) {
++            textured=stain!=NULL;
++            gDPPipeSync(gdl++);
++            if(textured) {
++                gSPTexture(gdl++,0xffff,0xffff,0,G_TX_RENDERTILE,G_ON);
++                gDPSetCombineMode(gdl++,G_CC_MODULATEIA,G_CC_MODULATEIA);
++            } else {
++                gSPTexture(gdl++,0,0,0,0,G_OFF);
++                gDPSetCombineMode(gdl++,G_CC_SHADE,G_CC_SHADE);
++            }
++        }
++        verts[0].v.cn[0]=mist?185:stain?125+stain->shade:165; verts[0].v.cn[1]=5; verts[0].v.cn[2]=8; verts[0].v.cn[3]=alpha;
++        gSPMatrix(gdl++,osVirtualToPhysical(fixed),G_MTX_NOPUSH|G_MTX_LOAD|G_MTX_MODELVIEW);
++        gSPVertex(gdl++,osVirtualToPhysical(verts),count+1,0);
++        for(j=0;j<count;j++) { gSP1Triangle(gdl++,0,j+1,(j+1)%count+1,0); }
++    }
++    gDPPipeSync(gdl++);
++    gSPDisplayList(gdl++, &globalDL_0xa50);
++    if(opaque) { gDPSetRenderMode(gdl++,G_RM_AA_ZB_OPA_SURF,G_RM_AA_ZB_OPA_SURF2); }
++    else { gDPSetRenderMode(gdl++,G_RM_AA_ZB_XLU_SURF,G_RM_AA_ZB_XLU_SURF2); }
++    return gdl;
+ }
+ 
+ static s32 geGibIsActive(s32 index)
+@@ -1803,7 +2210,7 @@
+     f32 blastz = 0.0f;
+     s32 i;
+ 
+-    if (g_FlyingParticlesBuffer == NULL || max_particles <= 0 || count <= 0) {
++    if (gePortBaseGame() || g_FlyingParticlesBuffer == NULL || max_particles <= 0 || count <= 0) {
+         return;
+     }
+ 
+@@ -1818,6 +2225,11 @@
+         blastx = blastvel->f[0] / blastlen;
+         blasty = blastvel->f[1] / blastlen;
+         blastz = blastvel->f[2] / blastlen;
++    }
++
++    {
++        coord3d direction={{blastx, blasty, blastz}};
++        geBloodBurst(spawnpos, &direction, stan, seed);
+     }
+ 
+     seed ^= 0x9e3779b9U;
+@@ -1891,6 +2303,8 @@
+         physics->settled_at = 0;
+         physics->settled = 0;
+         physics->bounces = 0;
++        physics->blood_impacts = 0;
++        physics->blood_trails = 0;
+         if (physics->stan == NULL) {
+             f32 floory;
+             physics->stan = stanFindTileBelowPos(&particle->position, NULL, &floory);
+@@ -1948,6 +2362,18 @@
+                 (u8)(255 * (GE_GIB_FADE_TICKS - fade_ticks) / GE_GIB_FADE_TICKS));
+         }
+         return;
++    }
++
++    /* A few heavy beads leave each moving chunk, then collide normally. The
++     * cap prevents persistent chunks from becoming unlimited particle emitters. */
++    if(steps>0 && gePortBloodMode() && physics->stan && physics->blood_trails<3 &&
++       particle->unk00>=18*(physics->blood_trails+1)) {
++        struct GeBloodDrop *drop=&ge_blood_drops[ge_blood_next_drop++%GE_BLOOD_DROPS];
++        drop->position=particle->position; drop->room=getTileRoom(physics->stan);
++        drop->age=1; drop->life=70; drop->mist=0;
++        drop->size=gePortBloodMode()==2 ? 3.5f:2.0f;
++        for(j=0;j<3;j++) drop->velocity.f[j]=particle->position_drift.f[j]*0.25f;
++        physics->blood_trails++;
+     }
+ 
+     particle->rotation.f[0] += particle->rotation_drift.f[0] * steps;
+@@ -1969,6 +2395,20 @@
+         } else {
+             coord3d edge_a;
+             coord3d edge_b;
++
++            if (gePortBloodMode() && physics->blood_impacts < 3 && physics->stan) {
++                coord3d target=particle->position;
++                HitThing hit;
++                s32 room=getTileRoom(physics->stan);
++                u32 seed=(u32)(index*977+particle->unk00);
++                target.x=destx; target.z=destz;
++                target.y+=particle->position_drift.y;
++                if (geBloodTrace(&particle->position,&target,&room,&hit)) {
++                    geBloodStain(&hit,room,&particle->position_drift,
++                        physics->floor_offset*1.3f,&seed,0);
++                    physics->blood_impacts++;
++                }
++            }
+ 
+             if (getCollisionEdge_maybe(&edge_a, &edge_b)) {
+                 f32 edgex = edge_b.f[0] - edge_a.f[0];
+@@ -2024,6 +2464,8 @@
+                     particle->rotation_drift.f[1] *= 0.75f;
+                     particle->rotation_drift.f[2] *= 0.75f;
+                 } else {
++                    if (gePortBloodMode()) geBloodPool(&particle->position, physics->stan,
++                        physics->floor_offset * 1.8f, (u32)(index * 977 + particle->unk00));
+                     physics->settled = 1;
+                     physics->settled_at = particle->unk00;
+                     particle->position_drift.f[0] = 0.0f;
+@@ -2064,6 +2506,10 @@
+     }
+ 
+ 
++#ifdef GE_PORT_NATIVE
++    geBloodUpdate((s32)scalar);
++#endif
++
+     for (i = 0; i < max_particles; i++)
+     {
+         if (g_FlyingParticlesBuffer[i].unk00 > 0)
+@@ -2072,7 +2518,12 @@
+ 
+ #ifdef GE_PORT_NATIVE
+             if (g_FlyingParticlesBuffer[i].unk34 == GE_FLYING_PARTICLE_GIB) {
+-                geGibUpdateOne(i, (s32)scalar);
++                if (gePortBaseGame()) {
++                    g_FlyingParticlesBuffer[i].unk00 = 0;
++                    g_FlyingParticlesBuffer[i].unk34 = 0;
++                } else {
++                    geGibUpdateOne(i, (s32)scalar);
++                }
+                 continue;
+             }
+ #endif
+@@ -2117,6 +2568,13 @@
+         if (ge_gib_selftest_age >= 360) {
+             printf("[getv][gibs] selftest persistence: after=360 chunks=%d\n",
+                    explosionCountGibParticles());
++            {
++                s32 stains=0, drops=0, k;
++                for(k=0;k<GE_BLOOD_STAINS;k++) if(ge_blood_stains[k].age) stains++;
++                for(k=0;k<GE_BLOOD_DROPS;k++) if(ge_blood_drops[k].age) drops++;
++                printf("[getv][blood] stains=%d drops=%d hits_floor=%d hits_wall=%d hits_ceiling=%d\n",
++                    stains,drops,ge_blood_surface_hits[0],ge_blood_surface_hits[1],ge_blood_surface_hits[2]);
++            }
+             ge_gib_selftest_age = -2;
+         }
+     }
+@@ -2204,6 +2662,9 @@
+         }
+     }
+ 
++#ifdef GE_PORT_NATIVE
++    gdl = geBloodRender(gdl, opaque);
++#endif
+     return gdl;
+ }
+ 
+diff --git a/src/game/explosion.h b/src/game/explosion.h
+--- a/src/game/explosion.h
++++ b/src/game/explosion.h
+@@ -190,4 +190,8 @@
+ void sub_GAME_7F09C250(s32 arg0, struct coord3d *pos, struct StandTile *stan, s16 arg3, s32 flag4, s32 playernum, u8 *rooms, s32 flag7);
+ #endif
+ 
++#ifdef GE_PORT_NATIVE
++void explosionResetBloodEffects(void);
+ #endif
++
++#endif
+diff --git a/src/game/initexplosioncasing.c b/src/game/initexplosioncasing.c
+--- a/src/game/initexplosioncasing.c
++++ b/src/game/initexplosioncasing.c
+@@ -14,6 +14,9 @@
+     s32 i;
+     s32 j;
+ 
++#ifdef GE_PORT_NATIVE
++    explosionResetBloodEffects();
++#endif
+     g_NumExplosionEntries = 0;
+     g_NumSmokeEntries = 0;
+     g_NumParticleEntries = 0;
+diff --git a/src/game/chr.c b/src/game/chr.c
+--- a/src/game/chr.c
++++ b/src/game/chr.c
+@@ -4692,6 +4692,8 @@
+ 
+     {
+         s32 i;
++        const char *visible=getenv("GETV_GIBS_SELFTEST_VISIBLE");
++        s32 visible_only=visible && strcmp(visible,"1")==0;
+         for (i = 0; i < g_NumChrSlots; i++) {
+             ChrRecord *chr = &g_ChrSlots[i];
+             if (chr->model != NULL && chr->prop != NULL && chr->prop->stan != NULL &&
+@@ -4699,6 +4701,14 @@
+                 chr->prop->type == PROP_TYPE_CHR) {
+                 coord3d source = chr->prop->pos;
+                 s32 killed;
++                s32 room=getTileRoom(chr->prop->stan);
++
++                /* Opt-in capture fixture: an unloaded first-slot guard cannot
++                 * exercise blood collision or provide meaningful visual evidence. */
++                if (visible_only && (!(chr->prop->flags & PROPFLAG_ONSCREEN) ||
++                    room<=0 || room>=g_MaxNumRooms || !getROOMID_isRendered(room) ||
++                    g_BgRoomInfo[room].vtx_batch_bounds==NULL ||
++                    !camIsPosInScreen(&chr->prop->pos, -20.0f))) continue;
+ 
+                 source.f[0] -= 1.0f;
+                 killed = chrlvExplosionDamage(chr, &source, 4.0f, 0);
+@@ -4710,8 +4720,8 @@
+                         gePortGibCharacterDeath(chr, &chr->fallspeed);
+                     }
+                 }
+-                printf("[getv][gibs] selftest: slot %d killed=%d alpha=%u chunks=%d\n",
+-                       i, killed, (u32)chr->fadealpha, explosionCountGibParticles());
++                printf("[getv][gibs] selftest: slot %d killed=%d alpha=%u chunks=%d room=%d visible_only=%d\n",
++                       i, killed, (u32)chr->fadealpha, explosionCountGibParticles(), room, visible_only);
+                 return;
+             }
+         }

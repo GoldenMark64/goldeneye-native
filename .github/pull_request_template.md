@@ -27,6 +27,9 @@ python3 tools/compare_render_fingerprints.py --format markdown --reference REF.b
 <!-- List exact commands and results, including build counts and pre-existing failures. -->
 
 - [ ] Focused regression test or check:
+- [ ] Bug fixes: regression fails on unchanged base for the reported reason and passes with the fix:
+- [ ] Bug fixes: CI runs the required regression cases and fails if their prerequisites are missing, they skip, or none execute (N/A for documentation-only changes):
+- [ ] Bug fixes: CI run link, tested revision, command, executed test count and result (or explain pending/unavailable coverage; N/A for documentation-only changes):
 - [ ] Complete self-test workflow:
 - [ ] Relevant platform build:
 - [ ] `git diff --check`:

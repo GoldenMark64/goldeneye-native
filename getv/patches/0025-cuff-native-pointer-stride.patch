@@ -1,0 +1,24 @@
+diff --git a/src/game/bondview2.c b/src/game/bondview2.c
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -9190,11 +9190,19 @@ void bondviewSelectCuff(Model *model, ModelFileHeader *header, s32 switchindex)
+
+     local = fileGetBondForCurrentFolder();
+     switches = header->Switches;
++#ifdef GE_PORT_NATIVE
++    if (switchindex < 0 || header->numSwitches < 6 || switchindex > header->numSwitches - 6)
++    {
++        return;
++    }
++    offset = switchindex * (s32) sizeof(*switches);
++#else
+     offset = switchindex << 2;
++#endif
+
+     if (1);
+
+-    // byte-indexed on purpose: offset = switchindex * 4. &switches[i] won't match.
++    // Byte indexed to preserve the retail layout; native uses the host pointer width above.
+     base = (ModelNode **) (((u8 *) switches) + offset);
+
+     if (base[0] != NULL)

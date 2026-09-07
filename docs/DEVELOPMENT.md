@@ -132,6 +132,20 @@ bash getv/port/tests/run_tests.sh mouse
 
 Then run the complete suite before handoff.
 
+The desktop mouse-capture regression exercises the actual SDL event-handler and mouse-polling
+source sections with simulated device state and real SDL2 headers. It needs a C compiler, Python,
+SDL2 headers and the reconstructed third-party window source, but no SDL library, game source,
+ROM, generated assets or live window:
+
+```bash
+bash tools/fetch-thirdparty.sh   # fresh checkout only; do not overwrite local edits
+python3 tools/tests/test_mouse_capture.py
+```
+
+Use `--sdl-include /path/to/SDL2` for headers outside the usual install prefixes. Missing source,
+headers, compiler, skipped scenarios or zero checks are failures. The dedicated Linux CI job runs
+this command; OS focus and windowed/fullscreen capture still need interactive platform checks.
+
 The game-header multi-ammo regression has a separate source-only runner. From a fresh
 checkout, with Git, Python 3 and a C compiler installed:
 

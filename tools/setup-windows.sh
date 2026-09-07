@@ -11,9 +11,8 @@
 # different slice of section 2 than build_mac.sh's SDL2-from-source step does:
 #   - no SDL2-source step -- fetch_deps_windows.ps1 installs the official prebuilt mingw
 #     package instead, into the same private -Mingw directory the build below uses.
-#   - the ROM is copied into the decomp checkout, not symlinked -- creating a symlink on
-#     Windows needs Developer Mode or an elevated prompt, and most machines this script
-#     runs on will have neither.
+#   - the extractor reads the verified ROM from its existing local path -- no symlink,
+#     administrator privilege, Developer Mode, or second checkout-local ROM copy is needed.
 #
 # What it cannot do: the ROM is yours to supply (README's "bring your own" rules). If it is
 # missing this exits with the same instructions SETUP.md gives.
@@ -125,7 +124,7 @@ for p in 0001-source 0006-fov-live-setter 0007-load-trace \
          0016-freecam 0017-coop-friendly-fire \
          0018-coop-one-death-is-not-the-team 0019-coop-respawn 0020-kill-selftest 0021-stan-pointer-return-decls \
          0022-lockstep-stop-shuffling-every-frame 0023-enemy-gibs 0024-multi-ammo-endianness \
-         0025-cuff-native-pointer-stride 0026-bloodier-gibs; do
+         0025-cuff-native-pointer-stride 0026-bloodier-gibs 0027-external-rom-path; do
   if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/$p.patch" ) 2>/dev/null; then
     echo "$p.patch: already applied"
   else
@@ -187,8 +186,7 @@ fi
 [ -n "$SHA" ] || die "could not compute the ROM's SHA-1 on this machine -- no working sha1sum, shasum, openssl, python3 or certutil. The ROM itself has not been checked and may well be fine."
 WANT="abe01e4aeb033b6c0836819f549c791b26cfde83"
 [ "$SHA" = "$WANT" ] || die "ROM SHA-1 $SHA does not match $WANT -- see docs/SETUP.md 3.4"
-cp -f "$ROM" "$DECOMP/baserom.u.z64"
-echo "ROM ok, copied into $DECOMP/baserom.u.z64"
+echo "ROM ok; the extractor will read it in place"
 
 # ---------------------------------------------------------------------- 5. asset pipeline
 step "asset generation (docs/SETUP.md 3.5)"
@@ -198,7 +196,7 @@ else
   (
     cd "$DECOMP"
     python3 "$HERE/tools/enable_bg_extraction.py"
-    bash scripts/extract_baserom.u.sh
+    bash scripts/extract_baserom.u.sh "$ROM"
     # The extractor is what reads the ROM, and its build is the one step above that can fail
     # without failing the script. Everything after this point consumes what it produced, so a
     # missing binary here is worth one line now rather than a link error later.

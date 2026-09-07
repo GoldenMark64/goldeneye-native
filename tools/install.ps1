@@ -60,6 +60,7 @@ if (-not (Test-Path $Bash)) { $Bash = 'bash' }
 # patched here; setting the encoding for the children is what survives a fresh clone.
 $env:PYTHONIOENCODING = 'utf-8'
 $env:PYTHONUTF8       = '1'
+$env:GETV_PORTABLE_PYTHON = (Get-Command python -ErrorAction SilentlyContinue).Source
 
 $script:step = 0
 function Say  ($m) { $script:step++; Write-Output ""; Write-Output "== $($script:step). $m" }
@@ -88,6 +89,7 @@ if ($missing.Count -gt 0) {
   Die "install the above and run this again"
 }
 Info "git and python are present"
+$env:GETV_PORTABLE_PYTHON = (Get-Command python).Source
 
 if ($SkipDeps) {
   Info "-SkipDeps given; not running fetch_deps_windows.ps1"
@@ -182,11 +184,23 @@ foreach ($p in (Get-ChildItem "$root\getv\patches\0*.patch" | Sort-Object Name))
 
 Say "your copy of the game"
 
-$romDest   = Join-Path $root 'roms\ge007.u.z64'
-$decompRom = Join-Path $decomp 'baserom.u.z64'
-$romSha  = 'ABE01E4AEB033B6C0836819F549C791B26CFDE83'
+$romCache = Join-Path $root 'roms\ge007.u.z64'
+$romSha   = 'ABE01E4AEB033B6C0836819F549C791B26CFDE83'
+$romForBuild = $null
+$temporaryRom = $null
 
 function Get-Sha1 ($path) { (Get-FileHash -Algorithm SHA1 -LiteralPath $path).Hash.ToUpper() }
+
+function Get-RomMagic ($path) {
+  $stream = [IO.File]::OpenRead($path)
+  try {
+    $header = New-Object byte[] 4
+    if ($stream.Read($header, 0, 4) -ne 4) { return $null }
+    return ('{0:x2}{1:x2}{2:x2}{3:x2}' -f $header[0],$header[1],$header[2],$header[3])
+  } finally {
+    $stream.Dispose()
+  }
+}
 
 # A dump in the wrong byte order is the normal case, not the exception, and the extension does
 # not tell you which one you have. The header does.
@@ -215,64 +229,75 @@ function Convert-Rom ($src, $dst) {
   return $magic
 }
 
-if ((Test-Path $romDest) -and (Get-Sha1 $romDest) -eq $romSha) {
-  Info "$romDest verified"
-} else {
-  $cand = $Rom
-  if (-not $cand) {
-    # Only somewhere the person running this would obviously have put it. No walking the disk
-    # looking for game data.
-    foreach ($d in @("$root\roms", "$env:USERPROFILE\Desktop", "$env:USERPROFILE\Downloads")) {
-      if (-not (Test-Path $d)) { continue }
-      # The trailing \* is required: -Include is ignored unless the path itself ends in a
-      # wildcard or -Recurse is passed, so against a bare directory this matched nothing at all
-      # and every Windows run reported "no ROM" with the ROM sitting on the Desktop.
-      $hit = Get-ChildItem "$d\*" -File -Include *.z64,*.n64,*.v64 -ErrorAction SilentlyContinue |
-             Where-Object { $_.Length -eq 12582912 } | Select-Object -First 1
-      if ($hit) { $cand = $hit.FullName; break }
-    }
+$cand = $Rom
+if (-not $cand -and (Test-Path $romCache) -and (Get-Sha1 $romCache) -eq $romSha) {
+  $cand = $romCache
+}
+if (-not $cand) {
+  # Only somewhere the person running this would obviously have put it. No walking the disk
+  # looking for game data.
+  foreach ($d in @("$root\roms", "$env:USERPROFILE\Desktop", "$env:USERPROFILE\Downloads")) {
+    if (-not (Test-Path $d)) { continue }
+    # The trailing \* is required: -Include is ignored unless the path itself ends in a
+    # wildcard or -Recurse is passed, so against a bare directory this matched nothing at all
+    # and every Windows run reported "no ROM" with the ROM sitting on the Desktop.
+    $hit = Get-ChildItem "$d\*" -File -Include *.z64,*.n64,*.v64 -ErrorAction SilentlyContinue |
+           Where-Object { $_.Length -eq 12582912 } | Select-Object -First 1
+    if ($hit) { $cand = $hit.FullName; break }
   }
-  if (-not $cand) {
-    Write-Output @'
+}
+if (-not $cand) {
+  Write-Output @'
    No ROM found, and nothing here will download one.
 
    Supply your own copy of GoldenEye 007 (USA), 12,582,912 bytes. Any byte order
-   works; this converts it. Put it at roms\ge007.u.z64 or pass -Rom <path>, then
+   works; this converts a temporary local copy when needed. Put it on your Desktop
+   or pass -Rom <path>, then
    run this again. docs/SETUP.md section 3 covers what a correct dump looks like.
 '@
-    Die "no ROM"
-  }
+  Die "no ROM"
+}
 
-  Info "candidate: $cand"
-  if ($cand -ne $romDest -and -not (Confirm-Step "convert and copy this into roms\ ?")) {
-    Die "declined. Pass -Rom <path> or put the file at $romDest yourself."
-  }
+Info "candidate: $cand"
+$magic = Get-RomMagic $cand
+if (-not $magic -or $magic -notin @('80371240','37804012','40123780')) {
+  Info "unrecognised ROM header $magic"
+  Die "that file is not a recognisable N64 ROM"
+}
 
-  New-Item -ItemType Directory -Force -Path (Join-Path $root 'roms') | Out-Null
-  $tmp = [IO.Path]::GetTempFileName()
-  $magic = Convert-Rom $cand $tmp
-  if (-not $magic) { Remove-Item $tmp -Force; Die "that file is not a recognisable N64 ROM" }
-  $got = Get-Sha1 $tmp
+if ($magic -eq '80371240') {
+  $got = Get-Sha1 $cand
   if ($got -ne $romSha) {
-    Remove-Item $tmp -Force
+    Info "sha1:    $got"
+    Info "expected:              $romSha"
+    Die "that is not the US retail dump this port builds from. docs/SETUP.md 3.4 covers what to do."
+  }
+  $romForBuild = (Resolve-Path -LiteralPath $cand).Path
+  Info "ROM verified in place; no copy was made"
+} else {
+  if (-not (Confirm-Step "convert a temporary local copy for asset extraction?")) {
+    Die "declined. Pass a big-endian z64 dump with -Rom <path> to avoid conversion."
+  }
+  $temporaryRom = [IO.Path]::GetTempFileName()
+  $convertedMagic = Convert-Rom $cand $temporaryRom
+  if (-not $convertedMagic) { Remove-Item $temporaryRom -Force; Die "that file is not a recognisable N64 ROM" }
+  $got = Get-Sha1 $temporaryRom
+  if ($got -ne $romSha) {
+    Remove-Item $temporaryRom -Force
+    $temporaryRom = $null
     Info "sha1 after conversion: $got"
     Info "expected:              $romSha"
     Die "that is not the US retail dump this port builds from. docs/SETUP.md 3.4 covers what to do."
   }
-  Move-Item -Force $tmp $romDest
-  Info "$romDest written and verified ($(if ($magic -eq '80371240') { 'already z64' } else { "converted from $magic" }))"
+  $romForBuild = $temporaryRom
+  Info "ROM verified after temporary conversion from $magic"
 }
 
 # ---------------------------------------------------------------- 5. the asset pipeline
 
-# The extractor reads baserom.u.z64 from inside the decomp, not roms\ge007.u.z64, and defaults
-# that name with no way to pass another. A copy rather than a symlink: New-Item -ItemType
-# SymbolicLink needs Developer Mode or an elevated shell on Windows, and a 12 MB copy is a
-# smaller price than an installer that fails for anyone who has neither.
-if (-not (Test-Path $decompRom)) {
-  Copy-Item -LiteralPath $romDest -Destination $decompRom -Force
-  Info "copied roms\ge007.u.z64 to vendor\ge-decomp\baserom.u.z64 for the extractor"
-}
+# Patch 0027 teaches both extraction scripts to accept the original ROM path. Keep a verified z64
+# dump where the user put it instead of duplicating it in the source checkout. Byte-swapped inputs
+# use a temporary normalized copy which is removed immediately after extraction.
 
 Say "generating the asset sources"
 
@@ -418,7 +443,16 @@ try {
   if ($rc -ne 0) { $out | Select-Object -Last 20 | ForEach-Object { Write-Output "      $_" }; Die "enabling background extraction failed" }
 } finally { Pop-Location }
 
-Invoke-AssetStep 'assets\obseg\bg\bg_ame_all_p.bin'      'extracting from the ROM' $Bash @('scripts/extract_baserom.u.sh')
+try {
+  # Use a late image as the resume marker. A background file is produced early in extraction, so
+  # treating it as completion let a failed image pass be skipped forever on the next run.
+  Invoke-AssetStep 'assets\images\split\2697.bin'        'extracting from the ROM' $Bash @('scripts/extract_baserom.u.sh', $romForBuild)
+} finally {
+  if ($temporaryRom -and (Test-Path -LiteralPath $temporaryRom)) {
+    Remove-Item -LiteralPath $temporaryRom -Force
+    Info "removed temporary normalized ROM copy"
+  }
+}
 Invoke-AssetStep 'assets\obseg\chr\*\Model.c'            'character models'        'python' @('scripts/generate_chr_c.py')
 Invoke-AssetStep 'assets\obseg\gun\*\Model.c'            'weapon models'           'python' @('scripts/generate_gun_c.py')
 Invoke-AssetStep 'assets\obseg\prop\*\Model.c'           'prop models'             'python' @('scripts/generate_prop_model_c.py')

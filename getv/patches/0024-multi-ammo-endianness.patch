@@ -1,0 +1,33 @@
+diff --git a/src/bondtypes.h b/src/bondtypes.h
+index f16c369..a4c5199 100644
+--- a/src/bondtypes.h
++++ b/src/bondtypes.h
+@@ -3441,8 +3441,11 @@ typedef union
+         }
+ 
+     struct multiammocrateslot {
+-        u16 modelnum;
+-        u16 quantity;
++        // Both fields share one N64 setup word; GE_SUBWORD2 preserves their logical
++        // order on little-endian native builds.
++        GE_SUBWORD2(
++        u16 modelnum;,
++        u16 quantity;)
+     };
+     // PROPDEF_AMMO (20)
+     typedef struct MultiAmmoCrateRecord
+diff --git a/src/game/propobj.c b/src/game/propobj.c
+index 4dfe174..053b9d5 100644
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -98,6 +98,10 @@ _Static_assert(__builtin_offsetof(ObjectRecord, state)      == 1, "GE_SUBWORD3 o
+ _Static_assert(__builtin_offsetof(ObjectRecord, extrascale) == 2, "GE_SUBWORD3 order changed: extrascale");
+ _Static_assert(__builtin_offsetof(ObjectRecord, pad)        == 4, "GE_SUBWORD2 order changed: pad");
+ _Static_assert(__builtin_offsetof(ObjectRecord, obj)        == 6, "GE_SUBWORD2 order changed: obj");
++_Static_assert(__builtin_offsetof(struct multiammocrateslot, quantity) == 0,
++               "GE_SUBWORD2 order changed: multi-ammo quantity");
++_Static_assert(__builtin_offsetof(struct multiammocrateslot, modelnum) == 2,
++               "GE_SUBWORD2 order changed: multi-ammo model");
+ _Static_assert(__builtin_offsetof(WeaponObjRecord, weaponnum)
+                >  __builtin_offsetof(WeaponObjRecord, timer),
+                "GE_SUBWORD3 order changed: WeaponObjRecord weaponnum/timer");

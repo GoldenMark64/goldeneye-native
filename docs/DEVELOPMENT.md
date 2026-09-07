@@ -132,6 +132,38 @@ bash getv/port/tests/run_tests.sh mouse
 
 Then run the complete suite before handoff.
 
+The game-header multi-ammo regression has a separate source-only runner. From a fresh
+checkout, with Git, Python 3 and a C compiler installed:
+
+```bash
+python3 tools/test_multi_ammo.py --cc cc
+```
+
+On Windows use the supported standalone WinLibs MinGW toolchain from
+`tools/fetch_deps_windows.ps1`, without running the game installer:
+
+```powershell
+python tools/test_multi_ammo.py --cc C:\mingw64\bin\gcc.exe
+```
+
+The runner fetches pinned decomp commit `c4356466796c697dfd298010b9bed261f9ed8c6a`
+into a temporary directory, checks out `src`, `include`, and the source-controlled
+`assets/images.def` enum definition list required by `bondconstants.h`, and applies the
+source/header hunks of the numbered patches (excluding the generated-asset patch). It needs no ROM, SDL,
+extracted assets, generated game-data source or reconstructed renderer files. For offline use,
+pass `--source-repo /path/to/local/ge-decomp`; only the pinned committed source is used.
+Temporary sources and the synthetic test executable are removed on exit.
+
+The test includes the actual patched `bondtypes.h`. Invented host-endian setup words check
+the empty sentinel with zero quantity, unequal nonempty fields and four-byte size/array stride.
+To reproduce the negative control, run this same runner with
+`--patch-root /path/to/unchanged-base-checkout`: before patch 0024, little-endian hosts report
+four field mismatches, including empty-slot quantity 65535. Compilation failure is not a valid
+negative control. The dedicated Linux/Windows CI workflow runs this narrow regression; it does
+not establish crate pickup or full-game behavior. The whole-game forced declaration include is
+intentionally omitted because it requires generated assets; native/endian declaration flags
+and the Windows MinGW bitfield ABI flag are retained.
+
 When the behavior requires the running game, use a bounded deterministic scenario. The common
 shape is:
 

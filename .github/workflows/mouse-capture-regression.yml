@@ -1,0 +1,27 @@
+name: Mouse capture regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  mouse-capture:
+    name: mouse-capture-linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install SDL2 headers and C compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libsdl2-dev gcc
+      - name: Reconstruct pinned SDL window source (no ROM or game assets)
+        run: bash tools/fetch-thirdparty.sh
+      - name: Run production mouse event and polling regression (missing or empty tests fail)
+        run: python3 tools/tests/test_mouse_capture.py --cc gcc

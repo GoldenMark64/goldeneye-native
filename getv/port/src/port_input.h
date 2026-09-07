@@ -60,6 +60,13 @@ int gePortInputPadCount(void);
  * well-defined zeroes. Out-of-range ports read as absent rather than faulting. */
 void gePortInputPollPort(int port, struct GePadState *out);
 
+/* Desktop SDL window handoff. The event owner calls MouseClick only for left-button-down
+ * in the game window after console capture, and FocusLost on keyboard-focus loss. */
+#ifdef GE_PLATFORM_DESKTOP
+void gePortInputMouseClick(unsigned int window_id, int x, int y);
+void gePortInputMouseFocusLost(void);
+#endif
+
 /* GETV_INPUT_DEBUG, read once and cached.
  *   0 = silent (default)
  *   1 = one line whenever the decoded N64 pad changes, plus a heartbeat

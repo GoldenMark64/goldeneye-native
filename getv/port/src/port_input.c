@@ -897,6 +897,30 @@ static void geSynthState(int port, struct GePadState *out)
  */
 static int geKeyboardIdle(void);   /* defined below; the mouse must idle for the same runs */
 static int ge_mouse_capture_wanted;
+static int ge_mouse_resume_buttons;
+static long ge_mouse_pend_x;
+static long ge_mouse_pend_y;
+
+static void geMouseDiscardMotion(void)
+{
+ int dx, dy;
+ (void)SDL_GetRelativeMouseState(&dx, &dy);
+ ge_mouse_pend_x = 0;
+ ge_mouse_pend_y = 0;
+}
+
+static int geMouseSetRelative(SDL_bool enabled)
+{
+ int result = SDL_SetRelativeMouseMode(enabled);
+ geMouseDiscardMotion();
+ if (result < 0 || SDL_GetRelativeMouseMode() != enabled) {
+ printf("[getv] input: could not %s mouse: %s\n",
+        enabled ? "capture" : "release", SDL_GetError());
+ fflush(stdout);
+ return 0;
+ }
+ return 1;
+}
 
 /* Event swallowing alone cannot protect gameplay: this file polls SDL's process-wide key and
  * button state independently of gfx_sdl2.c. Test the physical devices together so the console's
@@ -917,15 +941,12 @@ static int geConsoleInputPollAllowed(const Uint8 *keys)
 
 void gePortInputConsoleCapture(int capture)
 {
- int dx, dy;
  if (capture) {
- SDL_SetRelativeMouseMode(SDL_FALSE);
+ (void)geMouseSetRelative(SDL_FALSE);
     } else if (ge_mouse_capture_wanted) {
- SDL_SetRelativeMouseMode(SDL_TRUE);
+ (void)geMouseSetRelative(SDL_TRUE);
     }
-    /* Discard motion accumulated while changing modes. It belongs to cursor handoff, not to
-     * Bond's next look sample. The pending stick carry is cleared in geMousePoll while blocked. */
- (void)SDL_GetRelativeMouseState(&dx, &dy);
+ geMouseDiscardMotion();
 }
 
 static int geMouseEnabled(void)
@@ -940,14 +961,54 @@ static int geMouseEnabled(void)
  on = (s != NULL && *s != '\0') ? (atoi(s) != 0) : 1;
  if (on) {
  ge_mouse_capture_wanted = 1;
- if (!geConsoleInputOpen()) SDL_SetRelativeMouseMode(SDL_TRUE);
+ if (!geConsoleInputOpen() && SDL_GetKeyboardFocus())
+ (void)geMouseSetRelative(SDL_TRUE);
  printf("[getv] input: mouse look ON (left button fires, right aims, ESC releases "
-                   "the cursor; GETV_MOUSE_SENS to tune, GETV_MOUSE_INVERT=1 to invert Y, "
+                   "the cursor; click in the game or press ESC to recapture; "
+                   "GETV_MOUSE_SENS to tune, GETV_MOUSE_INVERT=1 to invert Y, "
                    "GETV_MOUSE=0 to disable)\n");
  fflush(stdout);
         }
     }
  return on;
+}
+
+static int geMouseCaptureIdle(void)
+{
+ const char *sx = getenv("GETV_MOUSE_SELFTEST");
+ const char *sy = getenv("GETV_MOUSE_SELFTEST_Y");
+ return geKeyboardIdle() || (sx && atoi(sx)) || (sy && atoi(sy));
+}
+
+/* Called only for a fresh left-button event in the game window, after the console has had
+ * first refusal. Polling button state here would miss quick clicks or capture a held drag
+ * into the window. SDL's focus-click hint lets the activating click reach this path too. */
+void gePortInputMouseClick(unsigned int window_id, int x, int y)
+{
+ SDL_Window *window = SDL_GetKeyboardFocus();
+ int w, h;
+ if (geConsoleInputCaptureActive() || geMouseCaptureIdle() || SDL_GetRelativeMouseMode()) return;
+ if (!window || SDL_GetMouseFocus() != window ||
+     SDL_GetWindowID(window) != window_id) return;
+ SDL_GetWindowSize(window, &w, &h);
+ if (x < 0 || y < 0 || x >= w || y >= h || !geMouseEnabled()) return;
+ if (geMouseSetRelative(SDL_TRUE)) {
+ ge_mouse_capture_wanted = 1;
+ ge_mouse_resume_buttons = 1;
+ printf("[getv] input: mouse captured\n");
+ fflush(stdout);
+ }
+}
+
+void gePortInputMouseFocusLost(void)
+{
+ if (geMouseCaptureIdle()) return;
+    /* SDL can retain its logical relative-mode flag while focus is elsewhere. Release it
+     * explicitly so the activating click is a resume gesture, never an accidental shot. */
+ if (SDL_GetRelativeMouseMode()) (void)geMouseSetRelative(SDL_FALSE);
+ ge_mouse_capture_wanted = 0;
+ ge_mouse_resume_buttons = 0;
+ geMouseDiscardMotion();
 }
 
 static int geMouseSens(void)
@@ -976,11 +1037,6 @@ static int geMouseInvert(void)
  * alongside the arithmetic that reads them. 21 counts per full-scale deflection was picked off
  * the measured sweep in docs/MOUSE.md rather than by feel; the old 220 was set against nothing
  * and needed roughly a metre of desk for a 180 degree turn. */
-
-/* Motion the stick could not express yet. Held here rather than inside geMouseAccumulate so
- * that tests can run independent sequences without one bleeding into the next. */
-static long ge_mouse_pend_x = 0;
-static long ge_mouse_pend_y = 0;
 
 static void geMousePoll(int port, struct GePadState *out)
 {
@@ -1039,7 +1095,7 @@ static void geMousePoll(int port, struct GePadState *out)
     /* Relative mode keeps delivering motion with the cursor hidden and locked, so the
      * pointer cannot wander onto another monitor mid-firefight. SDL_PumpEvents() has
      * already run this frame, the same reason the keyboard read relies on. */
-    /* ESC releases the cursor, and pressing it again recaptures.
+    /* ESC releases the cursor; another press or a left click recaptures.
      *
      * This matters more with the mouse on by default: relative mode hides and locks the
      * pointer, and a player who cannot reach their other windows will read that as the game
@@ -1050,19 +1106,31 @@ static void geMousePoll(int port, struct GePadState *out)
  static int prev_esc = 0;
  const Uint8 *ks = SDL_GetKeyboardState(NULL);
  int esc = (ks != NULL && ks[SDL_SCANCODE_ESCAPE]) ? 1 : 0;
- if (esc && !prev_esc) {
+ if (esc && !prev_esc && SDL_GetKeyboardFocus()) {
  SDL_bool now = SDL_GetRelativeMouseMode();
+ if (geMouseSetRelative(now ? SDL_FALSE : SDL_TRUE)) {
  ge_mouse_capture_wanted = now ? 0 : 1;
- SDL_SetRelativeMouseMode(now ? SDL_FALSE : SDL_TRUE);
- printf("[getv] input: mouse %s\n", now ? "released (ESC to recapture)" : "captured");
+ ge_mouse_resume_buttons = 1;
+ printf("[getv] input: mouse %s\n",
+        now ? "released (click in the game or press ESC to recapture)" : "captured");
  fflush(stdout);
+ }
         }
  prev_esc = esc;
- if (!SDL_GetRelativeMouseMode()) { return; }   /* released: no look, no clicks */
+ if (!SDL_GetRelativeMouseMode() || !SDL_GetKeyboardFocus()) {
+ geMouseDiscardMotion();
+ return;
+ }
     }
 
  if (selftest) { dx = (selftest == -1) ? 0 : selftest; dy = selftest_y; }
  else          { mb = SDL_GetRelativeMouseState(&dx, &dy); }
+ if (!selftest && ge_mouse_resume_buttons) {
+    /* SDL still reports the held resume click after the event was consumed. Keep mouse
+     * actions blocked until all buttons are released; mouse look can resume immediately. */
+ if (SDL_GetMouseState(NULL, NULL) == 0) ge_mouse_resume_buttons = 0;
+ mb = 0;
+ }
  sens = geMouseSens();
 
     /* GETV_MOUSE_SELFTEST=<counts>: pretend the mouse moves this many counts right every

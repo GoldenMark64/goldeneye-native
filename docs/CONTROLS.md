@@ -27,6 +27,11 @@ fixed; there is no keyboard-key picker or config syntax for assigning an arbitra
 | Right mouse button | Aim |
 | `Escape` | Release or recapture the mouse cursor |
 
+After releasing the cursor or switching to another app, left-click inside the game to resume
+mouse control. The resume click does not fire; release the mouse buttons before clicking to fire
+or aim again. Pressing `Escape` again also recaptures the cursor. The developer console keeps
+control of clicks while it is open.
+
 The keyboard map comes from `geKeyboardApply()` and the crouch helpers in
 `getv/port/src/port_input.c`. It is also summarized in the launcher and printed at startup.
 

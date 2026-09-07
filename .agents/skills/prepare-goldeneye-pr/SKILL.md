@@ -40,8 +40,14 @@ Keep runtime screenshots outside Git. Attach them to the pull request only after
 1. Change the smallest correct abstraction boundary.
 2. Add focused ROM-free regression coverage that fails against the old behavior and passes with
    the fix. Do not commit captured frames or extracted fixtures.
-3. Build frequently and preserve existing behavior outside the intended scope.
-4. Keep the source and test in one replayable commit when practical. Keep `PATCH_QUEUE.md` or other
+3. For bug fixes, wire the regression into an appropriate CI job; adding a test file alone is not
+   CI coverage. Prepare required source/toolchain prerequisites without a ROM or generated assets.
+   Fail CI if the required regression cases lack prerequisites, skip, or execute zero tests;
+   unrelated optional test skips in a reused job need not fail it. Reuse an existing job when
+   suitable and keep any CI addition focused on the fix. Documentation-only changes may mark
+   runtime regression coverage not applicable and report document validation instead.
+4. Build frequently and preserve existing behavior outside the intended scope.
+5. Keep the source and test in one replayable commit when practical. Keep `PATCH_QUEUE.md` or other
    community-only bookkeeping in a separate commit.
 
 ## Capture renderer evidence
@@ -66,7 +72,9 @@ it does not replace the ROM-free regression test.
 ## Validate and review
 
 1. Run the focused test, complete self-test workflow, relevant platform builds, dependency checks,
-   patch checks and `tools/render_refs.py check` when applicable.
+   patch checks and `tools/render_refs.py check` when applicable. Demonstrate that the regression
+   fails on the unchanged base for the reported reason and passes with the fix. If a scenario
+   cannot run in CI, explain the limitation and local validation; do not call it CI-tested.
 2. Reproduce any failure on unchanged `main` before calling it pre-existing. Never loosen a
    threshold or omit a failed command.
 3. Run the publication guard before staging and again before pushing:
@@ -91,7 +99,11 @@ it does not replace the ROM-free regression test.
    the user already authorized that exact publication.
 5. Push only the intended branch. Create or update the PR with the configured GitHub tool. Attach
    only reviewed runtime screenshots, never source captures committed to the branch.
-6. Return the branch, commit SHA, PR URL, checks run and any unresolved uncertainty.
+6. After an authorized push, inspect the regression CI log for the submitted revision. Record the
+   job/run link, command, executed test count and result in the PR's validation evidence when an
+   update is authorized. A green workflow that omits or skips the regression is not a pass. State
+   pending or unavailable CI explicitly.
+7. Return the branch, commit SHA, PR URL, checks run and any unresolved uncertainty.
 
 Stop rather than publishing if the branch may contain a ROM or other prohibited artifact, the
 diff is not focused, provenance is uncertain, evidence is materially incomplete, or human

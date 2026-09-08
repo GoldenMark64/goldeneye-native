@@ -75,20 +75,23 @@ To rebuild after the dependencies are already present:
 
 No ROM is used by either command.
 
-## CI artifact
+## CI and official releases
 
 The **Package Windows setup** GitHub Actions workflow runs the same packaging command on a native
-Windows runner. It can be started manually and also runs when its build, wizard, or packaging files
-change. A successful run uploads `GoldenEye-Native-Windows-Setup-<commit>` as a 30-day artifact.
-It does not create a release or publish an executable automatically; a tested artifact can be
-promoted deliberately after review. The workflow embeds the source repository and branch that
-triggered it, so a feature-branch artifact clones that feature branch instead of silently testing
-the setup pipeline from `main`. A release candidate should use a reviewed, immutable tag.
+Windows runner. Pull requests that change the setup surface build and test it with a read-only
+token, but do not upload a player download. Only a pushed, stable `vMAJOR.MINOR.PATCH` tag stages
+the package for publication.
 
-The first artifact is intentionally described as a test package. It is not Authenticode-signed,
-so SmartScreen may call it an unrecognized app. Testers should obtain it only from this repository's
-workflow run and compare its SHA-256 with `SHA256SUMS.txt`. A broad public release needs an explicit
-code-signing decision in addition to a successful functional test.
+After every safety and package check passes, the tag job creates a draft GitHub Release, attaches
+`GoldenEye-Native-Windows-Setup-<tag>.zip` and the ZIP's SHA-256 file, then publishes the release.
+The ZIP contains all four package files; the bare setup executable is not separated from its
+instructions and third-party notices. The embedded repository ref is the same immutable tag, so a
+released setup app cannot silently install a later branch.
+
+The setup app is not Authenticode-signed yet, so SmartScreen may call it an unrecognized app.
+Testers should obtain it only from this repository's Releases page and compare the ZIP checksum as
+well as the executable checksum inside it. See [`RELEASING.md`](RELEASING.md) for the version and
+publication process. A broad public release still needs an explicit code-signing decision.
 
 ## First Windows test pass
 
@@ -104,8 +107,9 @@ Python, MinGW, or this repository installed:
 5. Confirm the wizard says the format was recognized and, for v64/n64, converted locally.
 6. Confirm all four build groups report `0 failed`, **Launch GoldenEye** opens the launcher, and a
    mission starts.
-7. Close the game and double-click `Play GoldenEye.cmd` in the installation folder to verify the
-   built result does not depend on the setup executable remaining open.
+7. Close the game and double-click the locally built `goldeneye.exe` in the installation folder.
+   Confirm it opens the custom launcher without an argument or command file and does not depend on
+   the setup executable remaining open.
 8. Rerun setup into the same completed checkout to verify the resumable path and cached tool reuse.
 
 If it fails, use **Copy the log** and keep only build output in the report. Never attach a ROM,

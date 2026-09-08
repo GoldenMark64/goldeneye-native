@@ -5,9 +5,10 @@ edit the project or build from a source checkout, use [`BUILDING.md`](BUILDING.m
 
 ## Current status
 
-The Windows setup app is an unsigned **test candidate**, not a published release yet. It supports
-64-bit Windows 10 and 11. Obtain a candidate only from this repository's **Package Windows setup**
-workflow; do not use an executable reposted elsewhere.
+The Windows setup app is an unsigned release candidate for 64-bit Windows 10 and 11. Official
+downloads are published only from this repository's stable tagged Releases; do not use an
+executable reposted elsewhere. If the Releases page has no Windows setup ZIP yet, there is no
+official public candidate yet.
 
 The downloaded setup package is not the game and cannot play without a ROM. It contains no ROM,
 extracted game assets, decompiled game source, or playable `goldeneye.exe`. The playable program
@@ -28,17 +29,14 @@ You do **not** need to install Git, Python, a compiler, or this source repositor
 private, checksum-verified portable tools under your Windows user profile and does not need
 administrator access.
 
-## Download the test candidate
+## Download an official version
 
-1. Open this repository's **Actions** tab and select **Package Windows setup**.
-2. Open the successful run for the commit or branch you were asked to test.
-3. Under **Artifacts**, download `GoldenEye-Native-Windows-Setup-<commit>`.
-4. Extract the downloaded ZIP into a new folder. Keep these four files together:
+1. Open this repository's **Releases** page and choose the version you want.
+2. Download `GoldenEye-Native-Windows-Setup-<version>.zip` and its `.sha256` file.
+3. Compare the downloaded ZIP's SHA-256 with that checksum.
+4. Extract the ZIP into a new folder. Keep these four files together:
    `GoldenEye-Native-Setup.exe`, `SHA256SUMS.txt`, `README.txt`, and
    `THIRD_PARTY_NOTICES.txt`.
-
-GitHub may require you to sign in before downloading a workflow artifact. A future reviewed
-release can put the same package on the Releases page; until then, use the workflow artifact.
 
 ## Install and play
 
@@ -58,10 +56,10 @@ resume a stopped build; verified downloads and completed steps are reused.
 
 ## Windows SmartScreen
 
-The test candidate is not Authenticode-signed, so SmartScreen may identify it as an unrecognized
-app. Confirm that it came from the expected workflow run and compare its SHA-256 with
-`SHA256SUMS.txt` before choosing **More info** and **Run anyway**. Do not bypass a warning for a
-copy obtained from somewhere else.
+The setup app is not Authenticode-signed, so SmartScreen may identify it as an unrecognized app.
+Confirm that it came from this repository's Releases page and compare both supplied SHA-256 files
+before choosing **More info** and **Run anyway**. Do not bypass a warning for a copy obtained from
+somewhere else.
 
 ## If setup fails
 

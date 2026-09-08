@@ -69,18 +69,18 @@ bash tools/install.sh --rom /path/to/your/rom.z64
 orders are accepted; the setup app verifies and normalizes the selected file locally. The project
 does not supply ROMs or instructions for acquiring one.
 
-**2.** Download `GoldenEye-Native-Setup.exe` from this project's release when a reviewed build is
-published. The replacement, ROM-free setup candidate is produced by the
-**Package Windows setup** workflow. It opens a normal ROM file picker, builds everything on your
-computer, and never uploads your dump. The first release candidate is still being tested; see
-[`docs/WINDOWS_PACKAGING.md`](docs/WINDOWS_PACKAGING.md) for the package and Windows test process.
+**2.** Download the versioned Windows setup ZIP from this project's **Releases** page. Only a
+reviewed stable version tag publishes that ROM-free package; development branches do not publish
+player downloads. The setup app opens a normal ROM file picker, builds everything on your
+computer, and never uploads your dump. See
+[`docs/WINDOWS_PACKAGING.md`](docs/WINDOWS_PACKAGING.md) for the package and test process.
 
-**3.** Double-click it, choose an installation folder, and select your ROM. You do not install
-Git, Python, or a compiler and do not need to handle source code: the setup app downloads private,
-checksum-verified portable tools and performs the local build. It takes 10 to 40 minutes the first
-time and produces the playable executable only on your computer. After setup, double-click
-**GoldenEye** or **Play GoldenEye** in that folder. The game itself opens the custom launcher,
-matching the Mac app.
+**3.** Extract the ZIP and double-click `GoldenEye-Native-Setup.exe`. Choose an installation folder
+and select your ROM. You do not install Git, Python, or a compiler and do not need to handle source
+code: the setup app downloads private, checksum-verified portable tools and performs the local
+build. It takes 10 to 40 minutes the first time and produces the playable executable only on your
+computer. After setup, double-click **GoldenEye** or **Play GoldenEye** in that folder. The game
+itself opens the custom launcher, matching the Mac app.
 
 ### On Linux
 

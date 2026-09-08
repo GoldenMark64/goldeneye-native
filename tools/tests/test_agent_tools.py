@@ -32,6 +32,15 @@ def write_bmp(path: Path, rgb: tuple[int, int, int], width: int = 32, height: in
     path.write_bytes(header + pixels)
 
 
+def hex_rows(count: int, per_line: int = 8, prefix: str = "") -> str:
+    """Build synthetic hexadecimal data lines. The values are invented, not game data."""
+    values = [f"0x{index % 251:02X}" for index in range(count)]
+    return "".join(
+        prefix + "    " + ", ".join(values[start:start + per_line]) + ",\n"
+        for start in range(0, count, per_line)
+    )
+
+
 class PublicArtifactSafetyTests(unittest.TestCase):
     def test_detects_renamed_rom_and_archive(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -83,6 +92,127 @@ class PublicArtifactSafetyTests(unittest.TestCase):
             )
             self.assertFalse(
                 any("high-density hexadecimal array" in item for item in safety.inspect_path(path))
+            )
+
+    def test_detects_dense_hex_run_in_a_hunk_without_braces(self) -> None:
+        """A patch hunk that starts partway through an initializer carries no braces."""
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "0002-invented.patch"
+            path.write_text(
+                "diff --git a/assets/invented.c b/assets/invented.c\n"
+                "--- a/assets/invented.c\n"
+                "+++ b/assets/invented.c\n"
+                "@@ -100,20 +100,20 @@\n" + hex_rows(160, prefix="+"),
+                encoding="utf-8",
+            )
+            self.assertTrue(
+                any("high-density hexadecimal array" in item for item in safety.inspect_path(path))
+            )
+
+    def test_detects_dense_hex_run_in_nested_tables(self) -> None:
+        """Each innermost brace is small, so only the run across lines sees the table."""
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "generated.c"
+            rows = "\n".join(
+                "    {" + ", ".join(f"0x{(row * 8 + column) % 251:02X}" for column in range(8)) + "},"
+                for row in range(20)
+            )
+            path.write_text("unsigned char invented[20][8] = {\n" + rows + "\n};\n", encoding="utf-8")
+            self.assertTrue(
+                any("high-density hexadecimal array" in item for item in safety.inspect_path(path))
+            )
+
+    def test_dense_hex_run_threshold_boundary(self) -> None:
+        """A short reviewed table stays clean; the same table past the threshold does not."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            below = root / "lookup.c"
+            below.write_text(hex_rows(safety.HEX_ARRAY_MIN_LITERALS - 8), encoding="utf-8")
+            at_threshold = root / "dumped.c"
+            at_threshold.write_text(hex_rows(safety.HEX_ARRAY_MIN_LITERALS), encoding="utf-8")
+            self.assertFalse(
+                any("high-density hexadecimal array" in item for item in safety.inspect_path(below))
+            )
+            self.assertTrue(
+                any(
+                    "high-density hexadecimal array" in item
+                    for item in safety.inspect_path(at_threshold)
+                )
+            )
+
+    def test_detects_dense_hex_run_split_by_generated_row_comments(self) -> None:
+        """Generated source annotates every row; the annotations must not hide the data."""
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "annotated.c"
+            rows = "".join(
+                f"    /* index = {row} */\n"
+                + "    " + ", ".join(f"0x{(row * 8 + column) % 251:02X}" for column in range(8))
+                + ",\n"
+                for row in range(20)
+            )
+            path.write_text(rows, encoding="utf-8")
+            self.assertTrue(
+                any("high-density hexadecimal array" in item for item in safety.inspect_path(path))
+            )
+
+    def test_allows_scattered_constants_checksums_and_pins(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            code = root / "flags.c"
+            code.write_text(
+                "".join(
+                    f"#define INVENTED_FLAG_{index} 0x{1 << (index % 16):04X}  /* note {index} */\n"
+                    for index in range(400)
+                ),
+                encoding="utf-8",
+            )
+            pins = root / "pins.sh"
+            pins.write_text(
+                "".join(
+                    f"invented_{index}_sha256=\"{index:064x}\"\n" for index in range(400)
+                ),
+                encoding="utf-8",
+            )
+            for path in (code, pins):
+                self.assertFalse(
+                    any(
+                        "high-density hexadecimal array" in item
+                        for item in safety.inspect_path(path)
+                    )
+                )
+
+    def test_dense_hex_run_does_not_span_two_files_in_one_patch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "0003-invented.patch"
+            half = safety.HEX_ARRAY_MIN_LITERALS // 2
+            section = (
+                "diff --git a/getv/port/invented{0}.c b/getv/port/invented{0}.c\n"
+                "--- a/getv/port/invented{0}.c\n"
+                "+++ b/getv/port/invented{0}.c\n"
+                "@@ -1,8 +1,8 @@\n"
+            )
+            path.write_text(
+                section.format(1) + hex_rows(half, prefix="+") + "\n"
+                + section.format(2) + hex_rows(half, prefix="+") + "\n",
+                encoding="utf-8",
+            )
+            self.assertFalse(
+                any("high-density hexadecimal array" in item for item in safety.inspect_path(path))
+            )
+
+    def test_dense_hex_allowance_is_exact_path_only(self) -> None:
+        allowed = sorted(safety.ALLOWED_DENSE_HEX_ARRAY_PATHS)
+        self.assertTrue(allowed, "the reviewed dense-array allowance must not be empty")
+        for path in allowed:
+            self.assertTrue(path.exists(), f"{path} is allowlisted but missing")
+            self.assertFalse(
+                any("high-density hexadecimal array" in item for item in safety.inspect_path(path))
+            )
+        with tempfile.TemporaryDirectory() as directory:
+            copied = Path(directory) / allowed[0].name
+            copied.write_bytes(allowed[0].read_bytes())
+            self.assertTrue(
+                any("high-density hexadecimal array" in item for item in safety.inspect_path(copied))
             )
 
 

@@ -49,9 +49,9 @@ extern int geConfigInit(int argc, char **argv);
  * argv scan has no equivalent here.
  *
  * Windows, Linux, and build_mac.sh's own plain-binary macOS build (GE_HAS_NATIVE_LAUNCHER
- * undefined in all three) keep gePortLauncherRun(argc, argv) -- ge_launcher.cpp's ImGui UI
- * -- entirely unchanged: no Swift toolchain exists to build the other branch in any of
- * them, and this pass's scope is the new Xcode-built .app (project-mac.yml) only.
+ * undefined in all three) use gePortLauncherRun(argc, argv) -- ge_launcher.cpp's ImGui UI.
+ * Windows now makes that UI the default for a plain double-click so it matches the Mac app;
+ * Linux and a command-line Mac binary remain opt-in because their launch conventions differ.
  *
  * Both share the same contract: 0 to carry on into the game, non-zero if the user closed
  * the window without playing (GeLauncherBridgeRunner's NSWindowDelegate conformance is what

@@ -40,6 +40,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include "ge_launcher_policy.h"
 /* The headers ge_lua.c uses to walk the mods directory, and for the same reason: the launcher
  * has to discover exactly what the loader would.
  *
@@ -1172,10 +1173,14 @@ void relaunch()
     }
 
     /* The environment must stop asking for the launcher too, or a GETV_LAUNCHER=1 set in
-     * goldeneye.cfg would survive into the child and open the launcher again, forever. The
-     * flag is stripped from argv below for the same reason; both routes in have to be shut,
-     * not just the one that happens to have been used this time. */
+     * goldeneye.cfg would survive into the child and open the launcher again, forever. On
+     * Windows, 0 must remain present: an absent setting plus a plain argv is intentionally
+     * interpreted as a double-click and opens the launcher by default. */
+#if defined(_WIN32)
+    setenv("GETV_LAUNCHER", "0", 1);
+#else
     unsetenv("GETV_LAUNCHER");
+#endif
     unsetenv("GETV_LAUNCHER_AUTOPLAY");
 
     /* Rebuild argv without --launcher, or the new process opens the launcher again. */
@@ -1589,17 +1594,26 @@ void InputRow(const char *label, char *buf, size_t n, float w)
 
 extern "C" int gePortLauncherRun(int argc, char **argv)
 {
-    bool wanted = false;
+    const char *launcher_env = getenv("GETV_LAUNCHER");
+#if defined(_WIN32)
+    const int default_on_plain_start = 1;
+#else
+    const int default_on_plain_start = 0;
+#endif
+    bool wanted = geLauncherPolicyWantsWindow(
+        argc, argv,
+        launcher_env != NULL,
+        env_bool("GETV_LAUNCHER", false),
+        env_bool("GETV_LAUNCHER_AUTOPLAY", false),
+        default_on_plain_start) != 0;
 
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--launcher") == 0) { wanted = true; break; }
-    }
-    if (!wanted && env_bool("GETV_LAUNCHER", false)) wanted = true;
+    /* On Windows the locally built game behaves like the Mac app: double-clicking the
+     * executable opens the settings UI. GETV_LAUNCHER=0 and command-line gameplay arguments
+     * remain explicit direct-start paths for automation and advanced use. */
     /* Autoplay implies the launcher. Without this it is unreachable, because the check above
      * would return before ever looking at it -- which is exactly what happened the first time
      * it was tested, and the run looked like a pass because the environment being asserted on
      * had been set by hand for the test anyway. */
-    if (!wanted && env_bool("GETV_LAUNCHER_AUTOPLAY", false)) wanted = true;
     if (!wanted) return 0;
 
     g_argc = argc;

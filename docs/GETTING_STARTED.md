@@ -87,11 +87,12 @@ The normal OpenGL executables are:
 ```
 
 ```powershell
-.\getv\build-windows\goldeneye.exe --launcher
+.\getv\build-windows\goldeneye.exe              # opens the Windows launcher
 ```
 
-On macOS and Windows, double-click **Play GoldenEye** instead. `--launcher` opens the settings
-window; omit it to boot directly with the current configuration.
+On macOS and Windows, double-click the game instead. The Windows executable now opens the custom
+launcher by default, matching the Mac app. Set `GETV_LAUNCHER=0` only when a scripted Windows run
+needs to bypass it; `--launcher` remains available on every desktop platform.
 
 The application logs its selected renderer, config path, save path, controllers, and resolved
 bindings at startup. Those lines are useful when troubleshooting.

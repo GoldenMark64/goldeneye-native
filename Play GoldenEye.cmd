@@ -10,4 +10,4 @@ if not exist "%GAME%" (
   exit /b 1
 )
 
-start "" /d "%GAME_DIR%" "%GAME%" --launcher
+start "" /d "%GAME_DIR%" "%GAME%"

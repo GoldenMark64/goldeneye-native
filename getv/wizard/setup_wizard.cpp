@@ -910,7 +910,10 @@ void launch_game_and_exit(const char *repoRoot)
     memset(&pi, 0, sizeof pi);
 
     char cmd[MAX_PATH + 32];
-    snprintf(cmd, sizeof cmd, "\"%s\" --launcher", exePath);
+    /* A plain Windows start now opens the custom launcher, matching the Mac app. Keep this
+     * handoff argument-free so the setup button exercises the same player path as a later
+     * double-click rather than relying on a hidden command-line detail. */
+    snprintf(cmd, sizeof cmd, "\"%s\"", exePath);
 
     if (CreateProcessA(exePath, cmd, NULL, NULL, FALSE, 0, NULL, exeDir, &si, &pi)) {
         CloseHandle(pi.hProcess);

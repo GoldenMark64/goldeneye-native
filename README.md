@@ -79,7 +79,8 @@ computer, and never uploads your dump. The first release candidate is still bein
 Git, Python, or a compiler and do not need to handle source code: the setup app downloads private,
 checksum-verified portable tools and performs the local build. It takes 10 to 40 minutes the first
 time and produces the playable executable only on your computer. After setup, double-click
-**Play GoldenEye** in that folder whenever you want to start the game.
+**GoldenEye** or **Play GoldenEye** in that folder. The game itself opens the custom launcher,
+matching the Mac app.
 
 ### On Linux
 
@@ -243,8 +244,9 @@ looks exactly like a preset that did not work.
 
 ## The launcher
 
-`--launcher` opens a window for choosing a level, a ruleset, cheats and video settings before the
-game starts, so none of this needs a config file or a terminal.
+On Windows, double-clicking `goldeneye.exe` opens a window for choosing a level, a ruleset, cheats
+and video settings before the game starts. Other desktop binaries accept `--launcher`, so none of
+this needs a config file.
 
 | | |
 |---|---|
@@ -268,9 +270,10 @@ environment and re-executes, so the game begins in a process where nothing has b
 getv\build-windows\goldeneye.exe      # Windows
 ```
 
-Add `--launcher` for the settings window. On Linux the developer source-build script can also
-register a desktop entry, so the game shows up in your applications menu; it asks first, and
-removing that one file unregisters it.
+Windows opens the settings launcher by default; `GETV_LAUNCHER=0` is the explicit bypass for a
+scripted direct start. Add `--launcher` to the Linux or plain macOS binary. On Linux the developer
+source-build script can also register a desktop entry, so the game shows up in your applications
+menu; it asks first, and removing that one file unregisters it.
 
 Settings live in a plain text file that the game writes on first run, and it prints the path it used.
 [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md) lists every key.

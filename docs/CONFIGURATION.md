@@ -464,9 +464,9 @@ not-implemented notice rather than silently doing nothing.
 
 ## The launcher
 
-`./getv/build-mac/goldeneye --launcher` (or `GETV_LAUNCHER=1`) opens a window for choosing a
-level, a ruleset, cheats and video settings before the game starts. On macOS the desktop
-script `GoldenEye.command` uses it.
+Double-clicking the Windows `goldeneye.exe` opens a window for choosing a level, a ruleset, cheats
+and video settings before the game starts, matching the Mac app. Plain macOS and Linux binaries
+use `--launcher` (or `GETV_LAUNCHER=1`).
 
 It is a user interface over the existing surface, not new capability: every control resolves
 to a `GETV_*` gate that already worked from a shell, and each one opens showing the value the
@@ -477,8 +477,12 @@ with it. It does not write the config file.
 are read once into a `static` on first use, so a setting changed after the game has started
 does nothing for most of the surface -- silently. The launcher therefore sets the environment
 and re-executes the binary with `--launcher` removed, so the game begins in a process where
-nothing has been read yet. `GETV_LAUNCHER` and `GETV_LAUNCHER_AUTOPLAY` are cleared before
-that exec, or a `launcher = 1` left in a config would reopen the launcher forever.
+nothing has been read yet. `GETV_LAUNCHER_AUTOPLAY` is cleared before that exec. On Windows,
+`GETV_LAUNCHER` is set to 0 for the child; elsewhere it is cleared. That one-shot bypass prevents
+the default Windows launcher or a `launcher = 1` config value from reopening forever.
+
+Set `GETV_LAUNCHER=0` for an intentional direct Windows start, such as an automated run. Passing
+gameplay arguments also remains a direct start; `--launcher` always requests the UI explicitly.
 
 Cheats cross that boundary through **`GETV_CHEATS`**, a comma-separated list using the same
 names as the `cheats` key. It exists because cheats are the one part of the config that is not

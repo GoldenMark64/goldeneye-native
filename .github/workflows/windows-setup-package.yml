@@ -1,0 +1,56 @@
+name: Package Windows setup
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-setup-package.yml"
+      - "getv/build_wizard.ps1"
+      - "getv/patches/**"
+      - "getv/wizard/**"
+      - "getv/port/src/ge_icon_apply.c"
+      - "Play GoldenEye.cmd"
+      - "tools/fetch_deps_windows.ps1"
+      - "tools/install.ps1"
+      - "tools/package_windows_wizard.ps1"
+      - "tools/setup-windows.sh"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: windows-setup-package
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python for package safety checks
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.x"
+
+      - name: Reject ROMs, saves, and non-public artifacts
+        run: python tools/check_no_game_data.py --tracked
+
+      - name: Cache Windows wizard toolchain
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            C:\mingw64
+            ~\.n64tvos\imgui-win
+          key: windows-wizard-${{ hashFiles('tools/fetch_deps_windows.ps1') }}
+
+      - name: Build and test the ROM-free package
+        shell: powershell
+        env:
+          GETV_PACKAGE_REPO_URL: ${{ github.event.pull_request.head.repo.clone_url || format('{0}/{1}.git', github.server_url, github.repository) }}
+          GETV_PACKAGE_REPO_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+        run: >-
+          .\tools\package_windows_wizard.ps1
+          -RepoUrl $env:GETV_PACKAGE_REPO_URL
+          -RepoRef $env:GETV_PACKAGE_REPO_REF

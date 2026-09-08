@@ -1,15 +1,21 @@
 # Documentation
 
-Choose the path that matches what you are trying to do.
+Choose the path that matches what you are trying to do. On Windows, use
+[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) to play without development tools. Contributors should
+start with [`BUILDING.md`](BUILDING.md).
 
 ## Play and configure
 
 | Guide | Use it for |
 |---|---|
 | [`GETTING_STARTED.md`](GETTING_STARTED.md) | Install, launch, configure, update, and run a first check on macOS, Linux, or Windows. |
+| [`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) | No-code Windows setup: download, install, play, and report failures safely. |
+| [`BUILDING.md`](BUILDING.md) | Developer source builds on Windows, macOS, and Linux. |
 | [`CONTROLS.md`](CONTROLS.md) | Complete keyboard/mouse map, gamepad defaults, rebinding, control styles, and live shortcuts. |
 | [`CONFIGURATION.md`](CONFIGURATION.md) | Full config-file, command-line, environment-gate, and launcher reference. |
 | [`SETUP.md`](SETUP.md) | Detailed manual macOS pipeline and deep build troubleshooting. |
+| [`WINDOWS_PACKAGING.md`](WINDOWS_PACKAGING.md) | Maintainer guide for producing and testing the ROM-free Windows setup package. |
+| [`RELEASING.md`](RELEASING.md) | Review the gates and security requirements for future coordinated, ROM-free player packages. |
 | [`FAQ.md`](FAQ.md) | Common player and project questions. |
 | [`CHEATS.md`](CHEATS.md) | GoldenEye's built-in named cheat system. |
 

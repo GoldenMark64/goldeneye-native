@@ -3,8 +3,9 @@
 
   One script for everything the Windows build needs, because the alternative is a README
   section that says "download six things and put them in the right places" and is wrong
-  within a month. Everything lands in C:\mingw64 (the toolchain) or %USERPROFILE%\.n64tvos
-  (the optional libraries), matching where build_windows.ps1 looks.
+  within a month. The toolchain lands at -Mingw (C:\mingw64 for a manual developer run; a
+  user-writable LocalAppData path when launched by the setup app) and optional libraries land
+  under %USERPROFILE%\.n64tvos.
 
   Deliberately does NOT use MSYS2. Its fork emulation is unreliable -- see the header of
   getv/build_windows.ps1 for the measured failure -- and none of this needs a POSIX layer:
@@ -19,7 +20,11 @@
 param(
   [string]$Mingw   = 'C:\mingw64',
   [string]$Prefix  = (Join-Path $env:USERPROFILE '.n64tvos'),
-  [switch]$SkipToolchain
+  [switch]$SkipToolchain,
+  # setup_wizard.exe needs SDL2, GLEW and Dear ImGui, but not the two libraries linked only
+  # into goldeneye.exe. CI packaging uses this to avoid downloading and compiling Lua + Tracy
+  # before it can produce the small, ROM-free bootstrapper.
+  [switch]$WizardOnly
 )
 
 $ErrorActionPreference = 'Continue'
@@ -28,17 +33,36 @@ $tmp = $env:TEMP
 
 function Step($msg) { Write-Output "==> $msg" }
 
+function Get-VerifiedFile($Uri, $Sha256, $Destination) {
+  Invoke-WebRequest -Uri $Uri -OutFile $Destination -UseBasicParsing
+  $got = (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant()
+  if ($got -ne $Sha256) {
+    Remove-Item -LiteralPath $Destination -Force -ErrorAction SilentlyContinue
+    throw "download checksum mismatch for $Uri`n  expected $Sha256`n  got      $got"
+  }
+}
+
 # ---------------------------------------------------------------- 1. toolchain
 # WinLibs is a plain zip of mingw-w64: no installer, no registry, no runtime. Pinned by URL
 # rather than tracking "latest", because a compiler version change is exactly the kind of
 # thing that should be a deliberate edit -- GCC 15 moving the default to C23 broke this tree
 # once already.
 $gccUrl = 'https://github.com/brechtsanders/winlibs_mingw/releases/download/16.2.0posix-14.0.0-ucrt-r1/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1.zip'
+$gccSha256 = 'c1f52294597c0b73786b2a78eb5d176d89226d2f21875eab75e783a8b1cefcc4'
 if (-not $SkipToolchain -and -not (Test-Path "$Mingw\bin\gcc.exe")) {
   Step "mingw-w64 (gcc 16.2, ~260 MB)"
-  Invoke-WebRequest -Uri $gccUrl -OutFile "$tmp\winlibs.zip" -UseBasicParsing
-  Expand-Archive -Path "$tmp\winlibs.zip" -DestinationPath 'C:\' -Force
-  Remove-Item "$tmp\winlibs.zip" -ErrorAction SilentlyContinue
+  $toolchainArchive = Join-Path $tmp 'winlibs.zip'
+  Get-VerifiedFile $gccUrl $gccSha256 $toolchainArchive
+  $toolchainStage = Join-Path $tmp 'goldeneye-native-winlibs'
+  Remove-Item $toolchainStage -Recurse -Force -ErrorAction SilentlyContinue
+  Expand-Archive -Path $toolchainArchive -DestinationPath $toolchainStage -Force
+  $toolchainSource = Join-Path $toolchainStage 'mingw64'
+  if (-not (Test-Path (Join-Path $toolchainSource 'bin\gcc.exe'))) {
+    throw "WinLibs archive did not contain mingw64\bin\gcc.exe"
+  }
+  New-Item -ItemType Directory -Force -Path $Mingw | Out-Null
+  Copy-Item (Join-Path $toolchainSource '*') $Mingw -Recurse -Force
+  Remove-Item $toolchainArchive,$toolchainStage -Recurse -Force -ErrorAction SilentlyContinue
 }
 if (-not (Test-Path "$Mingw\bin\gcc.exe")) { throw "no gcc at $Mingw\bin -- toolchain step failed" }
 $gcc = "$Mingw\bin\gcc.exe"; $gxx = "$Mingw\bin\g++.exe"; $ar = "$Mingw\bin\ar.exe"
@@ -66,7 +90,7 @@ if ((Test-Path $mingwMake) -and (-not (Test-Path $plainMake))) {
 if (-not (Test-Path "$Mingw\include\SDL2\SDL.h")) {
   Step "SDL2 2.30.9"
   $u = 'https://github.com/libsdl-org/SDL/releases/download/release-2.30.9/SDL2-devel-2.30.9-mingw.zip'
-  Invoke-WebRequest -Uri $u -OutFile "$tmp\sdl2.zip" -UseBasicParsing
+  Get-VerifiedFile $u '492abbc78bbcad000d224cc56a200938f8be09a4a9aae253defa6035cbf68d9d' "$tmp\sdl2.zip"
   Expand-Archive -Path "$tmp\sdl2.zip" -DestinationPath "$tmp\sdl2" -Force
   $s = Join-Path "$tmp\sdl2" 'SDL2-2.30.9\x86_64-w64-mingw32'
   Copy-Item "$s\include\*" "$Mingw\include\" -Recurse -Force
@@ -80,10 +104,11 @@ if (-not (Test-Path "$Mingw\include\SDL2\SDL.h")) {
 # a loader every modern entry point is a null pointer. gfx_opengl.c already expects GLEW --
 # it sets FOR_WINDOWS on __MINGW32__ and includes <GL/glew.h>. macOS gets its entry points
 # from the OpenGL framework and Linux from libGL, which is why neither needs this.
-if (-not (Test-Path "$Mingw\lib\libglew32.a")) {
+if (-not (Test-Path "$Mingw\lib\libglew32.a") -or
+    -not (Test-Path "$Mingw\include\GL\glew.h")) {
   Step "GLEW 2.2.0 (built from source)"
   $u = 'https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip'
-  Invoke-WebRequest -Uri $u -OutFile "$tmp\glew.zip" -UseBasicParsing
+  Get-VerifiedFile $u 'a9046a913774395a095edcc0b0ac2d81c3aacca61787b39839b941e9be14e0d4' "$tmp\glew.zip"
   Expand-Archive -Path "$tmp\glew.zip" -DestinationPath "$tmp\glew" -Force
   $g = "$tmp\glew\glew-2.2.0"
   & $gcc -DGLEW_STATIC -DGLEW_NO_GLU -I"$g\include" -O2 -w -c "$g\src\glew.c" -o "$tmp\glew.o"
@@ -100,7 +125,9 @@ if (-not (Test-Path "$Mingw\lib\libglew32.a")) {
 # hooks compile to empty functions. The checksum is checked because this is compiled into
 # the game binary.
 $luaPrefix = Join-Path $Prefix 'lua-win'
-if (-not (Test-Path "$luaPrefix\lib\liblua.a")) {
+if ($WizardOnly) {
+  Step "Lua 5.4.7 skipped (not linked into the setup wizard)"
+} elseif (-not (Test-Path "$luaPrefix\lib\liblua.a")) {
   Step "Lua 5.4.7 (mod scripting)"
   $sha = '9fbf5e28ef86c69858f6d3d34eccc32e911c1a28b4120ff3e84aaa70cfbf1e30'
   Invoke-WebRequest -Uri 'https://www.lua.org/ftp/lua-5.4.7.tar.gz' -OutFile "$tmp\lua.tgz" -UseBasicParsing
@@ -135,7 +162,7 @@ $imguiPrefix = Join-Path $Prefix 'imgui-win'
 if (-not (Test-Path "$imguiPrefix\lib\libimgui.a")) {
   Step "Dear ImGui v1.91.9b (dev overlay + launcher)"
   $u = 'https://github.com/ocornut/imgui/archive/refs/tags/v1.91.9b.zip'
-  Invoke-WebRequest -Uri $u -OutFile "$tmp\imgui.zip" -UseBasicParsing
+  Get-VerifiedFile $u 'fd37507c8476a6d14cc7c4b352401f31bcbd0f0d995d35390811e968c466f46e' "$tmp\imgui.zip"
   Expand-Archive -Path "$tmp\imgui.zip" -DestinationPath "$tmp\imguisrc" -Force
   $i = "$tmp\imguisrc\imgui-1.91.9b"
   New-Item -ItemType Directory -Force -Path "$imguiPrefix\lib","$imguiPrefix\include" | Out-Null
@@ -146,8 +173,8 @@ if (-not (Test-Path "$imguiPrefix\lib\libimgui.a")) {
   # ImGui's IM_ASSERT expands __FILE__, so without this every assert string in libimgui.a
   # carries the absolute path it was compiled from -- and $tmp is $env:TEMP, which on a normal
   # Windows account is C:\Users\<name>\AppData\Local\Temp. That put the builder's account name
-  # into setup_wizard.exe, a file this project publishes as a release asset for other people to
-  # download. Measured: 12 such strings in the first wizard build. Mapping the prefix rewrites
+  # into setup_wizard.exe, a candidate release artifact other people may download. Measured: 12
+  # such strings in the first wizard build. Mapping the prefix rewrites
   # __FILE__ at compile time, so the strings read "imgui/imgui.cpp" and identify nobody.
   $imguiMap = "$tmp\imguisrc"
   $objs = @()
@@ -180,7 +207,9 @@ if (-not (Test-Path "$imguiPrefix\lib\libimgui.a")) {
 # includes it -- not just for TracyClient.cpp -- which is why build_windows.ps1 must add
 # -DTRACY_ENABLE to the game/port flags themselves, not only to this compile.
 $tracyPrefix = Join-Path $Prefix 'tracy-win'
-if (-not (Test-Path "$tracyPrefix\lib\libtracy.a")) {
+if ($WizardOnly) {
+  Step "Tracy 0.14.1 skipped (not linked into the setup wizard)"
+} elseif (-not (Test-Path "$tracyPrefix\lib\libtracy.a")) {
   Step "Tracy 0.14.1 (profiler client)"
   $sha = '908f3a2917fa86a247abfcf85dcf04bad1db6986a4d40f94b70512f3e9e98d5b'
   Invoke-WebRequest -Uri 'https://github.com/wolfpld/tracy/archive/refs/tags/v0.14.1.zip' -OutFile "$tmp\tracy.zip" -UseBasicParsing
@@ -207,9 +236,9 @@ if (-not (Test-Path "$tracyPrefix\lib\libtracy.a")) {
 Write-Output ""
 Write-Output "gcc        : $(if (Test-Path "$Mingw\bin\gcc.exe") { (& $gcc -dumpversion) } else { 'MISSING' })"
 Write-Output "SDL2       : $(if (Test-Path "$Mingw\include\SDL2\SDL.h") { 'ok' } else { 'MISSING' })"
-Write-Output "GLEW       : $(if (Test-Path "$Mingw\lib\libglew32.a") { 'ok' } else { 'MISSING' })"
-Write-Output "Lua        : $(if (Test-Path "$luaPrefix\lib\liblua.a") { 'ok (mods enabled)' } else { 'absent (mods disabled)' })"
+Write-Output "GLEW       : $(if ((Test-Path "$Mingw\lib\libglew32.a") -and (Test-Path "$Mingw\include\GL\glew.h")) { 'ok' } else { 'MISSING library or headers' })"
+Write-Output "Lua        : $(if ($WizardOnly) { 'skipped (wizard-only setup)' } elseif (Test-Path "$luaPrefix\lib\liblua.a") { 'ok (mods enabled)' } else { 'absent (mods disabled)' })"
 Write-Output "Dear ImGui : $(if (Test-Path "$imguiPrefix\lib\libimgui.a") { 'ok (overlay + launcher enabled)' } else { 'absent (overlay + launcher disabled)' })"
-Write-Output "Tracy      : $(if (Test-Path "$tracyPrefix\lib\libtracy.a") { 'ok (profiling enabled)' } else { 'absent (profiling disabled)' })"
+Write-Output "Tracy      : $(if ($WizardOnly) { 'skipped (wizard-only setup)' } elseif (Test-Path "$tracyPrefix\lib\libtracy.a") { 'ok (profiling enabled)' } else { 'absent (profiling disabled)' })"
 Write-Output ""
 Write-Output "next: powershell -NoProfile -ExecutionPolicy Bypass -File getv\build_windows.ps1 -Target all"

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# One-shot setup for a fresh Windows checkout, run from git-bash: fetch-thirdparty, fetch
-# the mingw toolchain + libraries, clone the decomp, apply patches, generate assets from
-# your ROM, namespace them, apply 0002, then build.
+# One-shot setup for a fresh Windows checkout: fetch-thirdparty, fetch the mingw toolchain +
+# libraries, clone the decomp, apply patches, generate assets from your ROM, namespace them,
+# apply 0002, then build. The packaged setup app runs this with private portable Git/Python;
+# developers can still run it from their own git-bash installation.
 #
 # This automates docs/SETUP.md sections 2-4 for Windows, mirroring tools/setup-mac.sh. Read
 # that document if any step here fails, since it explains why each one exists.
@@ -9,29 +10,93 @@
 # Two things differ from the Mac script, both because tools/fetch_deps_windows.ps1 covers a
 # different slice of section 2 than build_mac.sh's SDL2-from-source step does:
 #   - no SDL2-source step -- fetch_deps_windows.ps1 installs the official prebuilt mingw
-#     package instead, into the same C:\mingw64 that -Mingw below points builds at.
-#   - the ROM is copied into the decomp checkout, not symlinked -- creating a symlink on
-#     Windows needs Developer Mode or an elevated prompt, and most machines this script
-#     runs on will have neither.
+#     package instead, into the same private -Mingw directory the build below uses.
+#   - the extractor reads the verified ROM from its existing local path -- no symlink,
+#     administrator privilege, Developer Mode, or second checkout-local ROM copy is needed.
 #
 # What it cannot do: the ROM is yours to supply (README's "bring your own" rules). If it is
 # missing this exits with the same instructions SETUP.md gives.
 #
-# usage (from git-bash): tools/setup-windows.sh
+# usage (from git-bash): tools/setup-windows.sh /path/to/your/rom.z64
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DECOMP="$HERE/vendor/ge-decomp"
-ROM="$HERE/roms/ge007.u.z64"
-MINGW='C:\mingw64'
+ROM="${1:-}"
+MINGW="${GETV_MINGW:-C:\mingw64}"
 
 die() { echo "setup-windows: $*" >&2; exit 1; }
 step() { echo; echo "== $* =="; }
 
 # ---------------------------------------------------------------------- 0. tools on PATH
 step "checking for python3"
-command -v python3 >/dev/null 2>&1 \
-  || die "python3 not found on PATH -- install it from python.org (check \"Add to PATH\" in the installer) and re-run"
+# python.org's Windows installer commonly exposes `python.exe` (and the `py.exe` launcher),
+# while Unix-oriented setup instructions call `python3`. Treat all three as the same Python 3
+# prerequisite. Requiring the literal `python3.exe` made a correct default Windows install
+# look missing.
+#
+# A file on PATH rather than `export -f python3`, which is what this used to do. An exported
+# bash function reaches a child bash and nothing else: mingw32-make picks its own shell for
+# recipe lines, and the decomp's makefiles and generator scripts call `python3` from inside
+# make. tools/install.ps1 shims the same two names for the same reason -- see the toolshim
+# block there -- and this script is the one the setup app actually runs.
+TOOLSHIM="$HERE/build/toolshim"
+mkdir -p "$TOOLSHIM" || die "could not create the tool shim directory $TOOLSHIM"
+
+PYTHON_ARGS=''
+if [ -n "${GETV_PORTABLE_PYTHON:-}" ]; then
+  PYTHON_EXE="$GETV_PORTABLE_PYTHON"
+elif command -v python3 >/dev/null 2>&1; then
+  PYTHON_EXE="$(command -v python3)"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON_EXE="$(command -v python)"
+elif command -v py.exe >/dev/null 2>&1; then
+  PYTHON_EXE="$(command -v py.exe)"
+  PYTHON_ARGS='-3'
+else
+  die "Python 3 not found -- rerun the setup app so it can repair its private Python download"
+fi
+# The setup app hands this over as a Windows path. Same conversion, and same reason, as $MINGW
+# below: a backslash path is usable by CreateProcess but not by the shells that run the shim.
+PYTHON_POSIX="$(cygpath -u "$PYTHON_EXE" 2>/dev/null \
+  || printf '%s' "$PYTHON_EXE" | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\1|')"
+# `command -v` may preserve a relative PATH entry. The setup changes directory repeatedly after
+# this point, so freeze the selected interpreter to an absolute path while it is still resolvable.
+case "$PYTHON_POSIX" in
+  /*) ;;
+  *)
+    PYTHON_DIR="$(cd "$(dirname "$PYTHON_POSIX")" 2>/dev/null && pwd -P)" \
+      || die "could not resolve the selected Python path: $PYTHON_EXE"
+    PYTHON_POSIX="$PYTHON_DIR/$(basename "$PYTHON_POSIX")"
+    ;;
+esac
+[ -x "$PYTHON_POSIX" ] || die "the selected Python is not executable: $PYTHON_EXE"
+
+# Keep the interpreter path in the environment instead of interpolating it into shell source.
+# Windows permits $, backticks and apostrophes in a path; embedding one verbatim in the generated
+# script would make /bin/sh expand it again. The controlled launcher argument is separate so the
+# py.exe branch still receives exactly one `-3` argument.
+export GETV_PYTHON_SHIM_TARGET="$PYTHON_POSIX"
+export GETV_PYTHON_SHIM_ARG="$PYTHON_ARGS"
+printf '%s\n' \
+  '#!/bin/sh' \
+  'if [ -n "${GETV_PYTHON_SHIM_ARG:-}" ]; then' \
+  '  exec "$GETV_PYTHON_SHIM_TARGET" "$GETV_PYTHON_SHIM_ARG" "$@"' \
+  'fi' \
+  'exec "$GETV_PYTHON_SHIM_TARGET" "$@"' > "$TOOLSHIM/python3" \
+  || die "could not write the python3 shim to $TOOLSHIM"
+chmod +x "$TOOLSHIM/python3" || die "could not make the python3 shim executable"
+export PATH="$TOOLSHIM:$PATH"
+
+# 0027-external-rom-path.patch reads this variable directly rather than resolving `python3`.
+# Point it at the shim, not at the raw interpreter: the py.exe branch needs its -3 argument,
+# and only the shim carries it. Exporting it in every branch also means a developer's own
+# python3 reaches the decomp the same way the setup app's private copy does.
+export GETV_PORTABLE_PYTHON="$TOOLSHIM/python3"
+
+python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 8) else 1)' \
+  || die "Python 3.8 or newer is required -- rerun the setup app so it can repair its private Python download"
+echo "python3 -> $PYTHON_POSIX${PYTHON_ARGS:+ $PYTHON_ARGS}"
 
 # Python on Windows encodes stdout as cp1252 once it is redirected rather than attached to a
 # console, and several of the decomp's generators print non-ASCII status glyphs. generate_chr_c.py
@@ -65,7 +130,7 @@ step "mingw toolchain, SDL2, GLEW, Lua, Dear ImGui, Tracy"
 if [ -f "$MINGW/bin/gcc.exe" ] && [ -f "$MINGW/include/SDL2/SDL.h" ] && [ -f "$MINGW/lib/libglew32.a" ]; then
   echo "already present at $MINGW"
 else
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HERE/tools/fetch_deps_windows.ps1" \
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HERE/tools/fetch_deps_windows.ps1" -Mingw "$MINGW" \
     || die "fetch_deps_windows.ps1 failed"
 fi
 # $MINGW is a Windows path, and a Windows path in PATH is silently unusable from git-bash:
@@ -106,7 +171,7 @@ for p in 0001-source 0006-fov-live-setter 0007-load-trace \
          0016-freecam 0017-coop-friendly-fire \
          0018-coop-one-death-is-not-the-team 0019-coop-respawn 0020-kill-selftest 0021-stan-pointer-return-decls \
          0022-lockstep-stop-shuffling-every-frame 0023-enemy-gibs 0024-multi-ammo-endianness \
-         0025-cuff-native-pointer-stride 0026-bloodier-gibs; do
+         0025-cuff-native-pointer-stride 0026-bloodier-gibs 0027-external-rom-path; do
   if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/$p.patch" ) 2>/dev/null; then
     echo "$p.patch: already applied"
   else
@@ -156,7 +221,8 @@ ge_rom_sha1_certutil() {
 
 # ---------------------------------------------------------------------- 4. the ROM
 step "ROM"
-[ -f "$ROM" ] || die "no ROM at $ROM -- see README.md 'Bring your own ROM'. Not something this script can fetch for you."
+[ -n "$ROM" ] || die "no ROM path was supplied -- select your own .z64 file in the setup app. Nothing here can fetch one for you."
+[ -f "$ROM" ] || die "no ROM at the selected path -- choose the file again. Nothing here can fetch one for you."
 SHA="$(ge_rom_sha1 "$ROM")"
 # Empty means the hashing tool failed, not that the ROM is wrong. Fall back before judging it.
 if [ -z "$SHA" ]; then
@@ -168,8 +234,7 @@ fi
 [ -n "$SHA" ] || die "could not compute the ROM's SHA-1 on this machine -- no working sha1sum, shasum, openssl, python3 or certutil. The ROM itself has not been checked and may well be fine."
 WANT="abe01e4aeb033b6c0836819f549c791b26cfde83"
 [ "$SHA" = "$WANT" ] || die "ROM SHA-1 $SHA does not match $WANT -- see docs/SETUP.md 3.4"
-cp -f "$ROM" "$DECOMP/baserom.u.z64"
-echo "ROM ok, copied into $DECOMP/baserom.u.z64"
+echo "ROM ok; the extractor will read it in place"
 
 # ---------------------------------------------------------------------- 5. asset pipeline
 step "asset generation (docs/SETUP.md 3.5)"
@@ -179,7 +244,7 @@ else
   (
     cd "$DECOMP"
     python3 "$HERE/tools/enable_bg_extraction.py"
-    bash scripts/extract_baserom.u.sh
+    bash scripts/extract_baserom.u.sh "$ROM"
     # The extractor is what reads the ROM, and its build is the one step above that can fail
     # without failing the script. Everything after this point consumes what it produced, so a
     # missing binary here is worth one line now rather than a link error later.

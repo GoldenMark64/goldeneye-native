@@ -1,8 +1,9 @@
 # Getting started
 
-This is the shortest path from a fresh checkout to playing GoldenEye-Native. The installer fetches
-the open-source dependencies, prepares the decompilation, extracts assets from your own ROM, and
-builds the native executable. Re-running it is safe and resumes completed work.
+This is the shortest path from a fresh computer or source checkout to playing GoldenEye-Native.
+The installer fetches the open-source dependencies, prepares the decompilation, extracts assets
+from your own ROM, and builds the native executable. Re-running it is safe and resumes completed
+work.
 
 You need:
 
@@ -68,28 +69,25 @@ bash tools/install.sh --rom /path/to/your/rom.z64 --desktop
 
 ### Windows
 
-1. Install [Git for Windows](https://git-scm.com/download/win) with its default options.
-2. Install [Python](https://www.python.org/downloads/windows/). Enable **Add python.exe to PATH**
-   on the first installer screen.
-3. Put your legally dumped GoldenEye 007 ROM on your **Desktop**.
-4. On [the project page](https://github.com/seb-patron/goldeneye-native), click the green
-   **Code** button, then **Download ZIP**. Double-click the downloaded file to unzip it.
-5. Open PowerShell in that folder and run:
+The no-code Windows setup is still a release candidate. There is no official Windows download or
+release automation yet; the current GitHub Actions workflow validates the package but does not
+upload it. Publishing will be added in a focused follow-up after coordinated macOS launcher work,
+clean-machine Windows acceptance, and licensing and code-signing review.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\install.ps1
-```
+When this repository's Releases page lists an official coordinated package:
 
-The original repository's `setup_wizard.exe` release was not preserved, so PowerShell is currently
-the supported install path. The installer asks where to install and which file is your ROM. To
-skip the ROM picker, add an explicit file:
+1. Have your supported US big-endian `.z64` dump ready. The setup app recognizes `.v64` and
+   `.n64` byte orders but refuses them because the no-copy installer does not create a converted
+   second file.
+2. Download and extract the ROM-free Windows setup ZIP for the stable version you want.
+3. Double-click `GoldenEye-Native-Setup.exe`, choose an empty installation folder, and select your
+   ROM in the normal file picker.
+4. Leave setup open for the first local build. When it finishes, double-click the locally built
+   **GoldenEye** executable in the folder you chose; it opens the custom launcher.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\install.ps1 -Rom C:\path\to\rom.z64
-```
-
-It downloads its build toolchain into user-controlled directories and does not alter the
-system-wide `PATH`.
+You do not install Git, Python, a compiler, or the source repository. Setup downloads verified
+portable tools privately under your Windows profile and does not need administrator access. See
+[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) for current availability and SmartScreen details.
 
 ## Run
 
@@ -101,7 +99,7 @@ The normal OpenGL executables are:
 ```
 
 ```powershell
-.\getv\build-windows\goldeneye.exe --launcher
+.\getv\build-windows\goldeneye.exe              # opens the Windows launcher
 ```
 
 On macOS the normal build also creates **GoldenEye.app** beside the executable. Double-click
@@ -117,6 +115,10 @@ For an existing build, create the app without recompiling the game:
 
 Keep the app and executable together, including when moving the build folder. The app uses
 the adjacent executable and its existing settings; it does not contain a separate game copy.
+
+On Windows, double-click the game executable to open the custom launcher. Set
+`GETV_LAUNCHER=0` only when a scripted Windows run needs to bypass it; `--launcher` remains
+available on every desktop platform.
 
 The application logs its selected renderer, config path, save path, controllers, and resolved
 bindings at startup. Those lines are useful when troubleshooting.

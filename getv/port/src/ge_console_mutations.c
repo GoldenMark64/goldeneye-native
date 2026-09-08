@@ -8,6 +8,13 @@
 #include "ge_console_mutations.h"
 #include "ge_gibs.h"
 
+/* See ge_win_compat.h: Windows uses the CRT accessor after the global errno macro is removed. */
+#if defined(_WIN32)
+#define ge_errno (*_errno())
+#else
+#define ge_errno errno
+#endif
+
 static GeConsoleMutationProvider ge_mutation_provider;
 
 #define GE_MUTATION_MAX_AMMO 1000
@@ -84,9 +91,9 @@ static const GeConsoleWeaponName *ge_mutation_weapon(const char *token)
     size_t i;
 
     if (token == NULL) { return NULL; }
-    errno = 0;
+    ge_errno = 0;
     id = strtol(token, &end, 10);
-    if (token[0] != '\0' && end != NULL && *end == '\0' && errno != ERANGE &&
+    if (token[0] != '\0' && end != NULL && *end == '\0' && ge_errno != ERANGE &&
         id >= 1 && id <= 32) {
         return ge_mutation_weapon_by_id((int)id);
     }
@@ -266,12 +273,12 @@ static GeConsoleStatus ge_mutation_ammo_value(const char *token, int *amount, in
         *full = 1;
         return GE_CONSOLE_STATUS_OK;
     }
-    errno = 0;
+    ge_errno = 0;
     value = strtol(token, &end, 10);
     if (token[0] == '\0' || end == NULL || *end != '\0') {
         return GE_CONSOLE_STATUS_ARGUMENT_TYPE;
     }
-    if (errno == ERANGE || value < 0 || value > GE_MUTATION_MAX_AMMO) {
+    if (ge_errno == ERANGE || value < 0 || value > GE_MUTATION_MAX_AMMO) {
         return GE_CONSOLE_STATUS_ARGUMENT_RANGE;
     }
     *amount = (int)value;

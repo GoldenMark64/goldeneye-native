@@ -6,10 +6,12 @@ is meant to be pasted as written. Where a step exists for a non-obvious reason, 
 given, because the two most surprising parts of this build - you supply the ROM, and you supply
 the renderer sources - are both things you would otherwise assume were a mistake.
 
-Use [`GETTING_STARTED.md`](GETTING_STARTED.md) for the concise macOS, Linux, and Windows paths.
-This document is the exhaustive explanation of the manual macOS pipeline and its failure modes.
+Developers on Windows, macOS, or Linux should begin with [`BUILDING.md`](BUILDING.md). Players can
+use [`GETTING_STARTED.md`](GETTING_STARTED.md), or [`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) for
+the no-code Windows path. This document is the exhaustive explanation of the manual macOS pipeline
+and its failure modes.
 
-## If you just want it built
+## Automated developer builds
 
 ```bash
 bash tools/install.sh
@@ -24,10 +26,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\install.ps1
 Each installer runs the equivalent platform pipeline in the order it has to happen and skips any
 step already done, so re-running is how you resume. It never downloads a ROM. The macOS/Linux
 script never runs `sudo`; when a system package is missing it prints the command for your package
-manager and stops.
+manager and stops. See [`BUILDING.md`](BUILDING.md) for prerequisites and explicit ROM-path
+examples.
 
-Read the rest of this document when the installer stops on something, or when you want to know
-why a step is where it is. Every ordering constraint the installer encodes is explained below,
+Read the rest of this document when a source-build script stops on something, or when you want to
+know why a step is where it is. Every ordering constraint the scripts encode is explained below,
 and several of them are the kind that fail silently rather than loudly: the namespacing pass in
 3.6 corrupts the tree if it runs twice, `enable_bg_extraction.py` must run before extraction
 rather than after, the logo byte-order transform runs only after local extraction, and
@@ -1598,7 +1601,9 @@ log show how far the boot got. Compare against section 5.1 and work back through
 - [`THIRD_PARTY.md`](THIRD_PARTY.md) - the fifteen fetched files, in full.
 - [`CHEATS.md`](CHEATS.md) - the named cheat system.
 - [`MODDING.md`](MODDING.md) - changing the game rather than playing it.
-- [`PORTING.md`](PORTING.md) - what a Windows, Linux or tvOS target would take.
+- [`BUILDING.md`](BUILDING.md) - supported developer entry points for Windows, macOS and Linux.
+- [`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) - the no-code Windows player path.
+- [`PORTING.md`](PORTING.md) - the platform-layer architecture and remaining port work.
 - [`ROADMAP.md`](ROADMAP.md) - the detailed open-problem list.
 - [`LICENSING.md`](LICENSING.md) - provenance for the repository as a whole.
 - [`../getv/port/PROVENANCE.md`](../getv/port/PROVENANCE.md) - file-level origin record for the

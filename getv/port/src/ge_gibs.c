@@ -12,6 +12,13 @@
 
 #include "ge_gibs.h"
 
+/* See ge_win_compat.h: Windows uses the CRT accessor after the global errno macro is removed. */
+#if defined(_WIN32)
+#define ge_errno (*_errno())
+#else
+#define ge_errno errno
+#endif
+
 static int ge_gibs_mode = -1;
 static int ge_base_game = -1;
 static int ge_blood_mode = -1;
@@ -46,9 +53,9 @@ int gePortBloodLimit(void)
         char *end;
         long n = 128;
         if (v != NULL) {
-            errno = 0;
+            ge_errno = 0;
             n = strtol(v, &end, 10);
-            if (end == v || *end != '\0' || errno == ERANGE) n = 128;
+            if (end == v || *end != '\0' || ge_errno == ERANGE) n = 128;
         }
         ge_blood_limit = n < 16 ? 16 : n > 512 ? 512 : (int)n;
     }

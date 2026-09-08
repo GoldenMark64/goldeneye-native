@@ -679,8 +679,8 @@ cat <<DONE
 DONE
 if [ "$DO_BUILD" = 1 ]; then
     if [ "$PLATFORM" = mac ]; then
-        echo "  run it:      ./getv/build_mac.sh run"
-        echo "  or launcher: ./getv/build-mac/goldeneye --launcher"
+        echo "  play:        open ./getv/build-mac/GoldenEye.app"
+        echo "  or double-click GoldenEye.app in getv/build-mac (keep it beside goldeneye)."
     else
         echo "  run it:      ./getv/build-linux/goldeneye"
     fi

@@ -8,6 +8,14 @@
 #include "ge_console.h"
 #include "ge_console_pause.h"
 
+/* ge_win_compat.h deliberately undefines errno so the decomp's struct fields named errno
+ * remain legal. Use the CRT accessor explicitly in native Windows port code. */
+#if defined(_WIN32)
+#define ge_errno (*_errno())
+#else
+#define ge_errno errno
+#endif
+
 typedef struct GeConsoleRegisteredCommand {
     GeConsoleCommandSpec spec;
     GeConsoleHandler handler;
@@ -398,12 +406,12 @@ static GeConsoleStatus ge_console_parse_integer(const char *token,
 {
     char *end = NULL;
     long long parsed;
-    errno = 0;
+    ge_errno = 0;
     parsed = strtoll(token, &end, 10);
     if (token[0] == '\0' || end == NULL || *end != '\0') {
         return GE_CONSOLE_STATUS_ARGUMENT_TYPE;
     }
-    if (errno == ERANGE || parsed < schema->minimum || parsed > schema->maximum) {
+    if (ge_errno == ERANGE || parsed < schema->minimum || parsed > schema->maximum) {
         return GE_CONSOLE_STATUS_ARGUMENT_RANGE;
     }
     value->integer = (int64_t)parsed;

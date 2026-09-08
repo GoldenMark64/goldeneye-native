@@ -1,8 +1,9 @@
 # Getting started
 
-This is the shortest path from a fresh checkout to playing GoldenEye-Native. The installer fetches
-the open-source dependencies, prepares the decompilation, extracts assets from your own ROM, and
-builds the native executable. Re-running it is safe and resumes completed work.
+This is the shortest path from a fresh computer or source checkout to playing GoldenEye-Native.
+The installer fetches the open-source dependencies, prepares the decompilation, extracts assets
+from your own ROM, and builds the native executable. Re-running it is safe and resumes completed
+work.
 
 You need:
 
@@ -21,7 +22,11 @@ No ROM or extracted game data is downloaded, bundled, or uploaded by this projec
    **Code** button, then **Download ZIP**. Double-click the downloaded file to unzip it.
 3. Open the folder and double-click **Install on Mac**. If Gatekeeper blocks it, right-click the
    file, choose **Open**, and confirm once.
-4. When installation finishes, double-click **Play GoldenEye** in the same folder.
+4. When installation finishes, open `getv/build-mac` and double-click **GoldenEye.app**.
+   It opens the custom launcher so you can choose a mission and settings before playing.
+
+Keep the app beside the `goldeneye` executable. You can drag the app to the Dock for quick
+access. **Play GoldenEye** in the repository folder also opens the launcher.
 
 The first install takes about 10 to 40 minutes. Re-running the installer resumes completed work.
 
@@ -64,28 +69,25 @@ bash tools/install.sh --rom /path/to/your/rom.z64 --desktop
 
 ### Windows
 
-1. Install [Git for Windows](https://git-scm.com/download/win) with its default options.
-2. Install [Python](https://www.python.org/downloads/windows/). Enable **Add python.exe to PATH**
-   on the first installer screen.
-3. Put your legally dumped GoldenEye 007 ROM on your **Desktop**.
-4. On [the project page](https://github.com/seb-patron/goldeneye-native), click the green
-   **Code** button, then **Download ZIP**. Double-click the downloaded file to unzip it.
-5. Open PowerShell in that folder and run:
+The no-code Windows setup is still a release candidate. There is no official Windows download or
+release automation yet; the current GitHub Actions workflow validates the package but does not
+upload it. Publishing will be added in a focused follow-up after coordinated macOS launcher work,
+clean-machine Windows acceptance, and licensing and code-signing review.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\install.ps1
-```
+When this repository's Releases page lists an official coordinated package:
 
-The original repository's `setup_wizard.exe` release was not preserved, so PowerShell is currently
-the supported install path. The installer asks where to install and which file is your ROM. To
-skip the ROM picker, add an explicit file:
+1. Have your supported US big-endian `.z64` dump ready. The setup app recognizes `.v64` and
+   `.n64` byte orders but refuses them because the no-copy installer does not create a converted
+   second file.
+2. Download and extract the ROM-free Windows setup ZIP for the stable version you want.
+3. Double-click `GoldenEye-Native-Setup.exe`, choose an empty installation folder, and select your
+   ROM in the normal file picker.
+4. Leave setup open for the first local build. When it finishes, double-click the locally built
+   **GoldenEye** executable in the folder you chose; it opens the custom launcher.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\install.ps1 -Rom C:\path\to\rom.z64
-```
-
-It downloads its build toolchain into user-controlled directories and does not alter the
-system-wide `PATH`.
+You do not install Git, Python, a compiler, or the source repository. Setup downloads verified
+portable tools privately under your Windows profile and does not need administrator access. See
+[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) for current availability and SmartScreen details.
 
 ## Run
 
@@ -97,11 +99,26 @@ The normal OpenGL executables are:
 ```
 
 ```powershell
-.\getv\build-windows\goldeneye.exe --launcher
+.\getv\build-windows\goldeneye.exe              # opens the Windows launcher
 ```
 
-On macOS you can instead double-click **Play GoldenEye**. `--launcher` opens the settings window;
-omit it to boot directly with the current configuration.
+On macOS the normal build also creates **GoldenEye.app** beside the executable. Double-click
+the app to open the settings window, or use **Play GoldenEye** in the repository folder.
+The bare executable remains available for terminal use: `--launcher` opens settings; omit
+it to boot directly with the current configuration.
+
+For an existing build, create the app without recompiling the game:
+
+```bash
+./getv/build_mac.sh bundle
+```
+
+Keep the app and executable together, including when moving the build folder. The app uses
+the adjacent executable and its existing settings; it does not contain a separate game copy.
+
+On Windows, double-click the game executable to open the custom launcher. Set
+`GETV_LAUNCHER=0` only when a scripted Windows run needs to bypass it; `--launcher` remains
+available on every desktop platform.
 
 The application logs its selected renderer, config path, save path, controllers, and resolved
 bindings at startup. Those lines are useful when troubleshooting.
@@ -114,6 +131,10 @@ The standard installer builds OpenGL. To build the separate Metal executable aft
 GETV_RENDERER=metal ./getv/build_mac.sh all
 ./getv/build-mac-metal/goldeneye-metal --launcher
 ```
+
+The Metal build also creates **GoldenEye Metal.app** in `getv/build-mac-metal`. It opens the
+same launcher using Metal. Use `GETV_RENDERER=metal ./getv/build_mac.sh bundle` for an existing
+Metal build.
 
 OpenGL and Metal use separate build directories, so the two builds do not overwrite each other.
 

@@ -3,9 +3,11 @@
 Patches are welcome. This file covers the handful of things that are specific to this project and
 easy to get wrong; everything else is ordinary.
 
-For a first checkout, use [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md). A working build is
-a prerequisite for code changes; [`docs/SETUP.md`](docs/SETUP.md) covers the manual macOS pipeline
-and deep troubleshooting.
+For a first checkout, use [`docs/BUILDING.md`](docs/BUILDING.md). A working build is a prerequisite
+for code changes; [`docs/SETUP.md`](docs/SETUP.md) covers the manual macOS pipeline and deep
+troubleshooting. Players who are not contributing should start with
+[`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md), or the no-code
+[`docs/WINDOWS_INSTALL.md`](docs/WINDOWS_INSTALL.md) path on Windows.
 
 Read [`docs/CODEBASE.md`](docs/CODEBASE.md) before deciding where a change belongs and
 [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for the edit/build/test loop.

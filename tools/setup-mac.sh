@@ -212,11 +212,18 @@ else
     || die "0026-bloodier-gibs.patch failed to apply"
 fi
 
-if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0027-prop-allocator-telemetry.patch" ) 2>/dev/null; then
-  echo "0027-prop-allocator-telemetry.patch: already applied"
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0027-external-rom-path.patch" ) 2>/dev/null; then
+  echo "0027-external-rom-path.patch: already applied"
 else
-  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0027-prop-allocator-telemetry.patch" ) \
-    || die "0027-prop-allocator-telemetry.patch failed to apply"
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0027-external-rom-path.patch" ) \
+    || die "0027-external-rom-path.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0028-prop-allocator-telemetry.patch" ) 2>/dev/null; then
+  echo "0028-prop-allocator-telemetry.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0028-prop-allocator-telemetry.patch" ) \
+    || die "0028-prop-allocator-telemetry.patch failed to apply"
 fi
 
 # The ROM's SHA-1, from whichever tool this machine actually has.

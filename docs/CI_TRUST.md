@@ -32,14 +32,17 @@ scripts, rather than assuming every native test includes production code.
 |---|---|
 | `collision-hull.yml` | Checks out `n64decomp/007` at `c4356466796c697dfd298010b9bed261f9ed8c6a`; applies top-level `getv/patches/0*.patch` except `0002-*`; installs Clang and sanitizer runtime through apt. `tools/tests/test_collision_hull.py` extracts a function from patched `src/game/chrprop.c` and compiles it with synthetic declarations/stubs. |
 | `cuff-switch-regression.yml` | `getv/port/tests/run_tests.sh cuff` compiles `test_cuff_switch.c`, whose includes are only standard-library headers. Then the workflow fetches the same pinned decomp and applies the same top-level patch selection. `tools/tests/test_cuff_switch.py --cc gcc` extracts the production function from patched `src/game/bondview2.c` and compiles it with synthetic declarations. |
+| `launcher-policy-regression.yml` | `getv/port/tests/run_tests.sh launcher_policy` compiles and executes the header-only Windows startup policy test. It uses only standard-library headers and does not fetch a decompilation, ROM, generated assets, SDL, or ImGui. |
 | `mouse-capture-regression.yml` | Installs SDL2 headers and GCC through apt. `tools/fetch-thirdparty.sh` fetches sm64ex at `d7ca2c04364a6dd0dac58b47151e04e26887e6f0` and reconstructs its fifteen manifest paths using `getv/patches/thirdparty/0001-getv-port-layer.patch`. `tools/tests/test_mouse_capture.py` extracts the production mouse section and SDL event handler, compiling `getv/port/tests/mouse_capture_harness.c` against those sections, real SDL headers, port input/accumulator headers and console ownership code. SDL device state and unrelated window callbacks are simulated; no SDL library, window, decomp, ROM or generated assets are used. |
 | `multi-ammo-regression.yml` | `tools/test_multi_ammo.py` fetches the pinned decomp's source, headers and committed `assets/images.def` identifier list; applies only source/header hunks from top-level `0*.patch`, excluding `0002-*`. It compiles `getv/port/tests/game/test_multi_ammo_layout.c` against patched `bondtypes.h` and its header dependencies. Windows downloads a pinned WinLibs archive and verifies its SHA-256. |
 | `prop-allocator-telemetry.yml` | Requires and runs the ROM-free `test_prop_allocator_telemetry.c` group, which includes the production telemetry module and fails on silent or zero-check execution. It checks out `n64decomp/007` at `c4356466796c697dfd298010b9bed261f9ed8c6a`; `tools/check_patches.sh` clones that committed source, applies every top-level source patch except generated-asset patch `0002-*`, and verifies registration in all setup scripts. |
-| `public-artifact-safety.yml` | Runs `tools/check_no_game_data.py --tracked` and `tools/tests/test_agent_tools.py` via unittest discovery. Tests import `check_no_game_data`, `collect_bug_report`, and `compare_render_fingerprints`, which transitively imports `render_refs`. |
+| `public-artifact-safety.yml` | Runs `tools/check_no_game_data.py --tracked` and `tools/tests/test_agent_tools.py` via unittest discovery. Tests import `check_no_game_data`, `collect_bug_report`, and `compare_render_fingerprints`, which transitively imports `render_refs`. Also runs `tools/tests/test_macos_launcher_app.py` directly: seven required packaging tests execute `getv/build_mac.sh` and `tools/make_macos_launcher_app.py` in synthetic build folders with stub compiler commands and an inert executable. No game data, compiler download or macOS window is needed. |
 | `pages.yml` | Pinned configure/upload/deploy Pages actions publish `site/`. No game build or asset extraction runs. |
+| `windows-setup-package.yml` | Pull requests and manual dispatches build and test the ROM-free setup wizard with `contents: read`. The workflow has no automatic tag trigger, uploads no artifact, and has no publishing job or write permission. A manual dispatch may target any selected ref but still only validates inside the runner workspace. `tools/fetch_deps_windows.ps1 -WizardOnly` downloads SHA-256-pinned WinLibs, SDL2, GLEW, and Dear ImGui archives; it does not fetch the decompilation or a ROM. Validation runs the tracked-game-data guard, byte-order self-test, embedded-bootstrap syntax check, import inspection, and forbidden-string scan. |
 
-Only the mouse-capture regression applies `getv/patches/thirdparty/*`. CI does not invoke
-`tools/fetch_deps_windows.ps1`; it shares the WinLibs release pin with the Windows job.
+Only the mouse-capture regression applies `getv/patches/thirdparty/*`. The ROM-free Windows
+packaging workflow invokes `tools/fetch_deps_windows.ps1` in `-WizardOnly` mode; the separate
+multi-ammo Windows regression shares its WinLibs release pin.
 There are currently no local composite/reusable actions, PR artifact handoffs to a privileged
 job, shared PR/deployment caches, or `pull_request_target` workflows.
 
@@ -71,6 +74,7 @@ Require these exact check-run names in **A**, with the expected **GitHub Actions
 
 - `collision-hull-linux`
 - `cuff-switch-linux`
+- `launcher-policy-linux`
 - `multi-ammo-linux`
 - `multi-ammo-windows`
 - `public-artifact-safety-linux`
@@ -118,7 +122,7 @@ commit SHAs, check names/apps, expected/actual outcomes and PR/rule-history link
   unresolved conversations prevent an ordinary merge.
 - Direct push, force push and branch deletion are rejected. Use safe disposable equivalent-rule
   targets for potentially destructive probes; do not risk `main` to demonstrate a rejection.
-- Real runs report all five exact required names from `github-actions` on the expected revision.
+- Real runs report all six exact required names from `github-actions` on the expected revision.
 - An ordinary returning-contributor fork PR automatically executes the existing tests, documenting
   the residual exposure under the current approval policy.
 - Manual Pages dispatch on a non-main branch produces no deployment; verify the YAML guard and

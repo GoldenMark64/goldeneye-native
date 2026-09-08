@@ -8,18 +8,22 @@
 
   This is a developer-facing script, not something an end user runs. A developer with the same
   toolchain build_windows.ps1 already needs (mingw, SDL2, GLEW, Dear ImGui -- all from
-  tools/fetch_deps_windows.ps1) runs this once; the resulting setup_wizard.exe is what actually
-  gets distributed. It contains no ROM-derived or decomp-derived code, which is what makes
-  shipping the binary itself fine where shipping goldeneye.exe is not (docs/LICENSING.md
-  section 5).
+  tools/fetch_deps_windows.ps1) runs this once; the resulting setup_wizard.exe is the candidate
+  artifact. It contains no ROM-derived or decomp-derived code, which is the package's technical
+  boundary. That check does not resolve or supersede the licensing review recorded in
+  docs/LICENSING.md.
 
   USAGE
       powershell -NoProfile -File getv\build_wizard.ps1
-      -Mingw : toolchain root (default C:\msys64\mingw64, matching build_windows.ps1)
+      -Mingw : toolchain root (default C:\mingw64, matching fetch_deps_windows.ps1 and the
+               first-run setup pipeline)
+      -RepoUrl / -RepoRef : source repository and branch/tag the packaged wizard will install
 #>
 [CmdletBinding()]
 param(
-  [string]$Mingw = 'C:\msys64\mingw64'
+  [string]$Mingw = 'C:\mingw64',
+  [string]$RepoUrl = 'https://github.com/seb-patron/goldeneye-native.git',
+  [string]$RepoRef = 'main'
 )
 
 $ErrorActionPreference = 'Continue'
@@ -31,12 +35,35 @@ $imgui = Join-Path $env:USERPROFILE '.n64tvos\imgui-win'
 
 $gcc = Join-Path $Mingw 'bin\gcc.exe'
 $gxx = Join-Path $Mingw 'bin\g++.exe'
+$windres = Join-Path $Mingw 'bin\windres.exe'
 if (-not (Test-Path $gcc)) { throw "no gcc at $gcc -- run tools\fetch_deps_windows.ps1 first" }
+if (-not (Test-Path $windres)) { throw "no windres at $windres -- run tools\fetch_deps_windows.ps1 first" }
 if (-not (Test-Path (Join-Path $imgui 'lib\libimgui.a'))) {
   throw "no Dear ImGui at $imgui -- run tools\fetch_deps_windows.ps1 first"
 }
+if (-not (Test-Path (Join-Path $Mingw 'include\GL\glew.h'))) {
+  throw "no GLEW headers under $Mingw -- run tools\fetch_deps_windows.ps1 first"
+}
 
 New-Item -ItemType Directory -Force -Path $build | Out-Null
+
+# A branch package must clone the branch containing its matching setup pipeline, not whatever main
+# happens to contain when a tester double-clicks it. Generate a tiny ignored header rather than
+# fighting three layers of PowerShell/GCC quote removal on -D strings. Restrict the values before
+# placing them in C source so neither a quote nor an option can escape the define.
+if ($RepoUrl -notmatch '^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:\.git)?$') {
+  throw "unsupported wizard repository URL: $RepoUrl"
+}
+if ($RepoRef -notmatch '^[\p{L}\p{M}\p{N}][\p{L}\p{M}\p{N}._/+@-]*$' -or
+    $RepoRef -match '\.\.' -or $RepoRef -match '@\{' -or $RepoRef.EndsWith('/')) {
+  throw "unsupported wizard repository ref: $RepoRef"
+}
+$packageConfig = Join-Path $build 'package_config.h'
+$packageConfigLines = @(
+  "#define GETV_WIZARD_REPO_URL `"$RepoUrl`"",
+  "#define GETV_WIZARD_REPO_REF `"$RepoRef`""
+)
+[IO.File]::WriteAllLines($packageConfig, $packageConfigLines, [Text.UTF8Encoding]::new($false))
 
 # Same reason as the ImGui block in tools/fetch_deps_windows.ps1: assert and __FILE__ strings
 # otherwise carry the absolute path this was built from, and the resulting binary is published
@@ -49,7 +76,13 @@ $cflags = @(
   "-I$wiz",
   "-I$root\getv\port\src",
   "-I$imgui\include",
-  "-I$Mingw\include\SDL2"
+  # WinLibs does not treat <toolchain-root>/include as a default search directory. The local
+  # development toolchain happened to, which hid this until the first clean hosted build:
+  # fetch_deps_windows.ps1 installed GL/glew.h correctly, but setup_wizard.cpp still could not
+  # include it without an explicit root. SDL already has its narrower include below.
+  "-I$Mingw\include",
+  "-I$Mingw\include\SDL2",
+  '-include', $packageConfig
 )
 
 Write-Output "== compiling =="
@@ -71,13 +104,44 @@ foreach ($s in $sources) {
   $objs += $o
 }
 
+# The wizard still uses narrow-character Win32 and CRT APIs. Windows 10 version 1903 and newer
+# can make those APIs consume UTF-8 when the process opts in through an application manifest,
+# which keeps non-ASCII install and selected-file paths intact. Compile the manifest as a resource
+# rather than leaving it beside the executable, so the one-file setup contract remains true.
+$resourceSource = Join-Path $wiz 'setup_wizard.rc'
+$resourceObject = Join-Path $build 'setup_wizard_resource.o'
+$out = & $windres --include-dir $wiz --input $resourceSource --output $resourceObject 2>&1
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $resourceObject)) {
+  $out | ForEach-Object { Write-Output $_ }
+  throw "resource compile failed: $resourceSource"
+}
+Write-Output "  setup_wizard.rc"
+$objs += $resourceObject
+
+# GCC's Windows specs append a fallback `default-manifest.o` to every executable. Leaving that in
+# place beside our manifest creates two resources with the same RT_MANIFEST/name/language tuple,
+# and the loader's choice would be ambiguous. Derive link-only specs from this pinned toolchain and
+# remove that one fallback entry so the executable has exactly one authoritative manifest.
+$defaultManifestSpec = '%{!shared:%:if-exists(default-manifest.o%s)}'
+$toolchainSpecsOutput = @(& $gxx -dumpspecs 2>&1)
+if ($LASTEXITCODE -ne 0) {
+  $toolchainSpecsOutput | ForEach-Object { Write-Output $_ }
+  throw 'could not read GCC specs while preparing the wizard manifest'
+}
+$toolchainSpecs = $toolchainSpecsOutput -join "`n"
+if (-not $toolchainSpecs.Contains($defaultManifestSpec)) {
+  throw 'GCC specs no longer contain the expected default-manifest entry'
+}
+$linkSpecs = Join-Path $build 'setup_wizard_link.specs'
+Set-Content -LiteralPath $linkSpecs -Encoding ASCII -Value $toolchainSpecs.Replace($defaultManifestSpec, '')
+
 Write-Output "== linking =="
 $bin = Join-Path $build 'setup_wizard.exe'
 Remove-Item $bin -Force -ErrorAction SilentlyContinue
 # -s strips the symbol table. Nothing here is debugged from a shipped binary, and a symbol
 # table is another place build paths survive.
-# -static, not just -static-libgcc/-static-libstdc++. README.md step 4 tells a Windows user to
-# download setup_wizard.exe and double-click it -- one file, nothing else. The first build of
+# -static, not just -static-libgcc/-static-libstdc++. The README's Windows instructions tell a user
+# to download the setup executable and double-click it -- one file, nothing else. The first build of
 # this did not honour that: it imported SDL2.dll, libstdc++-6.dll and libwinpthread-1.dll, and a
 # Windows program that cannot find a DLL does not say so. It exits with 0xC0000135, prints
 # nothing, and leaves someone staring at a file that appears to do nothing when double-clicked.
@@ -89,7 +153,7 @@ Remove-Item $bin -Force -ErrorAction SilentlyContinue
 # The extra -l flags after SDL2 are what libSDL2.a itself needs once it is no longer a DLL
 # (setupapi/version/uuid/cfgmgr32/hid for device enumeration, ole32/oleaut32/shell32 for COM and
 # drag-drop, winmm for timers). The DLL copy that used to sit below this is gone with them.
-$linkArgs = @('-o', $bin, '-s', '-static') + $objs + @(
+$linkArgs = @("-specs=$linkSpecs", '-o', $bin, '-s', '-static') + $objs + @(
   (Join-Path $imgui 'lib\libimgui.a'),
   '-lglew32', '-lmingw32', '-lSDL2',
   '-lopengl32', '-lgdi32', '-limm32', '-ldbghelp', '-lcomdlg32', '-lole32',
@@ -120,7 +184,7 @@ if (Test-Path $objdump) {
   }
   if ($bad.Count -gt 0) {
     Write-Output ("NOT STANDALONE -- still imports: " + ($bad -join ', '))
-    throw "setup_wizard.exe is not self-contained; README step 4 promises a single file"
+    throw "setup_wizard.exe is not self-contained; the Windows setup flow promises a single file"
   }
   Write-Output "imports: Windows system DLLs only, so the .exe ships on its own"
 }

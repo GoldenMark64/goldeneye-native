@@ -2,6 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
 
 #include "ge_prop_allocator_telemetry.h"
 
@@ -60,6 +68,95 @@ static GePropAllocatorTelemetryState ge_prop_telemetry;
 /* Tests replace this with a private temporary stream. Production always leaves it NULL. */
 static FILE *ge_prop_telemetry_output;
 
+/* Separate report streams contain only telemetry, never the surrounding runtime log. */
+static FILE *ge_prop_report;
+static FILE *ge_prop_summary;
+
+static FILE *ge_prop_create_report(const char *path)
+{
+    int fd;
+    FILE *stream;
+#ifdef _WIN32
+    wchar_t wide_path[4096];
+    if (!MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, path, -1,
+                             wide_path, (int)(sizeof wide_path / sizeof wide_path[0]))) return NULL;
+    fd = _wopen(wide_path, _O_WRONLY | _O_CREAT | _O_EXCL | _O_BINARY, _S_IREAD | _S_IWRITE);
+    if (fd < 0) return NULL;
+    stream = _fdopen(fd, "wb");
+    if (!stream) _close(fd);
+#else
+    fd = open(path, O_WRONLY | O_CREAT | O_EXCL, 0600);
+    if (fd < 0) return NULL;
+    stream = fdopen(fd, "w");
+    if (!stream) close(fd);
+#endif
+    return stream;
+}
+
+static void ge_prop_open_reports(void)
+{
+    const char *path = getenv("GETV_PROP_TELEMETRY_FILE");
+    char summary[4096];
+    int n;
+    if (!path || !*path) return;
+    ge_prop_report = ge_prop_create_report(path);
+    if (!ge_prop_report) {
+        fputs("[getv][prop-allocator] cannot create report; stdout telemetry remains active\n", stderr);
+        return;
+    }
+    n = snprintf(summary, sizeof summary, "%s.txt", path);
+    if (n < 0 || (size_t)n >= sizeof summary ||
+        !(ge_prop_summary = ge_prop_create_report(summary))) {
+        fputs("[getv][prop-allocator] cannot create summary; JSONL report remains active\n", stderr);
+        return;
+    }
+    fputs("Prop allocator recording started.\n"
+          "Incomplete until a timed run-final record is written.\n", ge_prop_summary);
+    fflush(ge_prop_summary);
+}
+
+static int ge_prop_accounting_valid(void)
+{
+    return
+        ge_prop_telemetry.accounting_consistent &&
+        ge_prop_telemetry.current_allocated <= ge_prop_telemetry.capacity &&
+        ge_prop_telemetry.free_slots ==
+            ge_prop_telemetry.capacity - ge_prop_telemetry.current_allocated &&
+        ge_prop_telemetry.allocation_successes >= ge_prop_telemetry.free_calls &&
+        ge_prop_telemetry.allocation_successes - ge_prop_telemetry.free_calls ==
+            ge_prop_telemetry.current_allocated;
+}
+
+static void ge_prop_write_summary(const GePropAllocatorIdentity *identity)
+{
+    if (!ge_prop_summary) return;
+    fprintf(ge_prop_summary,
+        "\n%s | run %s | pool %llu | stage %d | frame %llu\n"
+        "Slots occupied: %u / %u; free: %u; peak occupied: %u\n"
+        "Allocations since stage ready: %llu; frees: %llu; allocation failures: %llu\n"
+        "On-screen count: %u; peak: %u; array capacity: %u\n"
+        "Accounting: %s; slot tracking: %s; on-screen bounds: %s\n",
+        identity->phase, ge_prop_telemetry.run_id,
+        (unsigned long long)ge_prop_telemetry.pool_epoch, identity->stage_id,
+        (unsigned long long)identity->render_frame,
+        ge_prop_telemetry.current_allocated, ge_prop_telemetry.capacity,
+        ge_prop_telemetry.free_slots, ge_prop_telemetry.high_water_allocated,
+        (unsigned long long)ge_prop_telemetry.post_stage_ready_allocation_successes,
+        (unsigned long long)ge_prop_telemetry.post_stage_ready_free_calls,
+        (unsigned long long)ge_prop_telemetry.post_stage_ready_allocation_failures,
+        ge_prop_telemetry.onscreen_current, ge_prop_telemetry.onscreen_high_water,
+        ge_prop_telemetry.onscreen_capacity,
+        ge_prop_accounting_valid() ? "consistent" : "FAILED",
+        ge_prop_telemetry.slot_tracking_consistent ? "consistent" : "FAILED",
+        ge_prop_telemetry.onscreen_within_capacity ? "within capacity" : "FAILED");
+    if (strcmp(identity->phase, "run-final") == 0)
+        fputs("\nTimed recording complete. These observations describe this run only;\n"
+              "they do not establish a safe mission size or test other resource pools.\n",
+              ge_prop_summary);
+    if (fflush(ge_prop_summary) != 0)
+        fputs("[getv][prop-allocator] summary write failed\n", stderr);
+}
+
 static int ge_prop_token_is_valid(const char *text)
 {
     size_t i;
@@ -102,6 +199,7 @@ static void ge_prop_configure(void)
     ge_prop_copy_token(ge_prop_telemetry.run_id, run_id, "invalid");
     ge_prop_copy_token(ge_prop_telemetry.build_variant, "unknown", "unknown");
     ge_prop_telemetry.enabled = 1;
+    ge_prop_open_reports();
 }
 
 static const char *ge_prop_platform(void)
@@ -151,14 +249,7 @@ static const char *ge_prop_json_bool(int value)
 static int ge_prop_format(char *buffer, size_t size, uint64_t sequence,
                           const GePropAllocatorIdentity *identity)
 {
-    const int accounting =
-        ge_prop_telemetry.accounting_consistent &&
-        ge_prop_telemetry.current_allocated <= ge_prop_telemetry.capacity &&
-        ge_prop_telemetry.free_slots ==
-            ge_prop_telemetry.capacity - ge_prop_telemetry.current_allocated &&
-        ge_prop_telemetry.allocation_successes >= ge_prop_telemetry.free_calls &&
-        ge_prop_telemetry.allocation_successes - ge_prop_telemetry.free_calls ==
-            ge_prop_telemetry.current_allocated;
+    const int accounting = ge_prop_accounting_valid();
     int written;
 
     written = snprintf(
@@ -223,6 +314,11 @@ static void ge_prop_emit(const GePropAllocatorIdentity *identity)
     fputs(output, stream);
     fflush(stream);
     ge_prop_telemetry.sequence = sequence;
+    if (ge_prop_report) {
+        if (fputs(output, ge_prop_report) == EOF || fflush(ge_prop_report) != 0)
+            fputs("[getv][prop-allocator] JSONL report write failed\n", stderr);
+    }
+    ge_prop_write_summary(identity);
 }
 
 void gePortPropAllocatorReset(unsigned int capacity, unsigned int onscreen_capacity)

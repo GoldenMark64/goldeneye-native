@@ -25,7 +25,13 @@ performs the conversion only after the user extracts the source locally.
 
 The publication guard now rejects suspicious high-density hexadecimal arrays in text and patch
 files, in addition to the existing filename, header, archive, binary, and encoded-payload checks.
-Synthetic fixtures exercise the guard and the local transformer without using game data.
+It measures both complete brace-delimited initializers and runs of hexadecimal data lines, so a
+diff hunk that begins partway through an array, or a nested table whose innermost braces are each
+small, is still rejected. Two reviewed port-owned files are exempt by exact path only:
+`getv/port/src/ge_icon.h`, the launcher icon, and `getv/port/ge_mixer.c`, whose `resample_table`
+is the stock libultra resampler coefficient table carried in from sm64ex. A renamed or copied
+dense array is still rejected. Synthetic fixtures exercise the guard and the local transformer
+without using game data.
 
 A complete advertised-ref rewrite must still be reviewed and explicitly approved before it is
 pushed. Until that happens, remote branch or tag history can continue to expose the old objects;

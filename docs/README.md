@@ -79,3 +79,5 @@ start with [`BUILDING.md`](BUILDING.md).
 
 If two documents disagree about a command or setting, treat the executable/script help and current
 source as authoritative, then fix the stale document. Documentation changes are welcome.
+
+- [Developer Tools guide and FAQ](DEVELOPER_TOOLS.md) — launcher diagnostics, local reports and recording walkthrough.

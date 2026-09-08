@@ -61,7 +61,8 @@ upstream-replay process.
 Agent-assisted bug reports and patches are welcome. Read
 [`docs/AGENTIC_CONTRIBUTING.md`](docs/AGENTIC_CONTRIBUTING.md); compatible coding agents also load
 the repository policy in [`AGENTS.md`](AGENTS.md) and can use the checked-in workflows under
-`.agents/skills/`.
+`.agents/skills/`. Claude Code reads [`CLAUDE.md`](CLAUDE.md) and the standard `SKILL.md`
+entrypoints under `.claude/skills/`, which link to those shared workflows.
 
 The contributor remains responsible for provenance, reviewing the complete diff and artifacts,
 and verifying every reported test result. Disclose material agent assistance briefly in the pull

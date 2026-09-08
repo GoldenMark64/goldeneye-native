@@ -63,6 +63,26 @@ The two optional repository skills are:
 The skills call repository tools for fragile operations instead of asking an agent to recreate
 sanitization or comparison code from memory.
 
+### Skill format and Claude Code
+
+The workflows use the [Agent Skills format](https://agentskills.io/specification): `SKILL.md`
+contains `name` and `description` in YAML frontmatter followed by Markdown instructions.
+The optional `agents/openai.yaml` supplies OpenAI interface metadata; it is not a second workflow.
+
+Claude Code discovers the standard `SKILL.md` entrypoints under `.claude/skills/`. Each links to
+its shared instructions under `.agents/skills/`, using ordinary relative Markdown references.
+This works on Windows without symlink privileges. Edit the shared workflow in `.agents/skills/`;
+if its name or description changes, update the small Claude entrypoint as well. No generator,
+`targets/` overlays or vendor-specific YAML format is required. See the official
+[Claude skill documentation](https://code.claude.com/docs/en/skills) and
+[OpenAI skill documentation](https://learn.chatgpt.com/docs/build-skills).
+
+`CLAUDE.md` imports `AGENTS.md` and documents CLI usage. `.claude/settings.json` uses Claude's
+[native permission rules](https://code.claude.com/docs/en/permissions) for pushes and GitHub
+operations. Broad command-group rules can also prompt for reads; there are no custom approval
+grants or shell-parsing hooks. Human review and the existing game-data checker remain required.
+The `--staged` check reads index blobs, including when a working copy has changed or been removed.
+
 ## Reporting a bug with an agent
 
 1. Read the known limitations and search existing issues.

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git * push *)",
+      "Bash(gh *)"
+    ],
+    "deny": [
+      "Read(**/*.z64)",
+      "Read(**/*.n64)",
+      "Read(**/*.v64)",
+      "Read(**/base.zip)",
+      "Read(**/eeprom.bin)"
+    ]
+  }
+}

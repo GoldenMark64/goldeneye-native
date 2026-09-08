@@ -668,6 +668,10 @@ and other moving objects do not receive blood decals.
 
 ## Developer overlay and console
 
+The desktop launcher groups the overlay, console hotkey, telemetry recording and debug logging
+on its **Developer Tools** page. See the [guide and FAQ](DEVELOPER_TOOLS.md).
+
+
 When the ImGui dependency is present, press backquote/grave to open the command console on either
 OpenGL or Metal. The console hotkey is always available; it does not depend on developer mode.
 

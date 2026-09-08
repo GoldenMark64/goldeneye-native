@@ -60,11 +60,30 @@ fi
 # below: a backslash path is usable by CreateProcess but not by the shells that run the shim.
 PYTHON_POSIX="$(cygpath -u "$PYTHON_EXE" 2>/dev/null \
   || printf '%s' "$PYTHON_EXE" | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\1|')"
+# `command -v` may preserve a relative PATH entry. The setup changes directory repeatedly after
+# this point, so freeze the selected interpreter to an absolute path while it is still resolvable.
+case "$PYTHON_POSIX" in
+  /*) ;;
+  *)
+    PYTHON_DIR="$(cd "$(dirname "$PYTHON_POSIX")" 2>/dev/null && pwd -P)" \
+      || die "could not resolve the selected Python path: $PYTHON_EXE"
+    PYTHON_POSIX="$PYTHON_DIR/$(basename "$PYTHON_POSIX")"
+    ;;
+esac
 [ -x "$PYTHON_POSIX" ] || die "the selected Python is not executable: $PYTHON_EXE"
 
-# The shim names the interpreter by absolute path on purpose. Calling `python3` from inside a
-# file named python3, with $TOOLSHIM prepended to PATH below, would re-enter the shim forever.
-printf '#!/bin/sh\nexec "%s" %s "$@"\n' "$PYTHON_POSIX" "$PYTHON_ARGS" > "$TOOLSHIM/python3" \
+# Keep the interpreter path in the environment instead of interpolating it into shell source.
+# Windows permits $, backticks and apostrophes in a path; embedding one verbatim in the generated
+# script would make /bin/sh expand it again. The controlled launcher argument is separate so the
+# py.exe branch still receives exactly one `-3` argument.
+export GETV_PYTHON_SHIM_TARGET="$PYTHON_POSIX"
+export GETV_PYTHON_SHIM_ARG="$PYTHON_ARGS"
+printf '%s\n' \
+  '#!/bin/sh' \
+  'if [ -n "${GETV_PYTHON_SHIM_ARG:-}" ]; then' \
+  '  exec "$GETV_PYTHON_SHIM_TARGET" "$GETV_PYTHON_SHIM_ARG" "$@"' \
+  'fi' \
+  'exec "$GETV_PYTHON_SHIM_TARGET" "$@"' > "$TOOLSHIM/python3" \
   || die "could not write the python3 shim to $TOOLSHIM"
 chmod +x "$TOOLSHIM/python3" || die "could not make the python3 shim executable"
 export PATH="$TOOLSHIM:$PATH"

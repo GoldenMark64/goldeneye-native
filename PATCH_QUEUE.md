@@ -28,6 +28,8 @@ Historical original-upstream anchor:
 | Add controlled developer-console mission transitions | [#24](https://github.com/seb-patron/goldeneye-native/pull/24), open | `3596c8bd4bec476eb520091cc3715d17ece799eb`, then `692c846980ff2ba77438705a594133f4eab1f891` | developer-console player mutations (#23) and its dependencies | pending after #7, #16, #17, #19, #20, #21, #22 and #23 |
 | Add bounded content-free synchronized semantic-row export | [#29](https://github.com/seb-patron/goldeneye-native/pull/29), draft | `d9a6c4a7cdf64cff1e4c1c613e8cc8475bf01c04` | player-input, netplay-admission, console-admission and rendered-frame seams on community `main` | pending after its native-seam dependencies |
 | Add textured blood effects for gibs and Base Game controls | [#45](https://github.com/seb-patron/goldeneye-native/pull/45), open | `265544d93536806f25e0a211e75ac61bad157c39` | existing gib, configuration and launcher infrastructure on community main (`450683b`); historical upstream replay not audited | pending |
+| Emit versioned PropRecord allocator telemetry | [#55](https://github.com/seb-patron/goldeneye-native/pull/55), open | `6ce130494982e61494958b4b43d53564fcb11934` | community main port, bounded-exit and patch-stack infrastructure (`640213d`); historical upstream replay not audited | pending |
+| Add launcher Developer Tools and local telemetry reports | [#58](https://github.com/seb-patron/goldeneye-native/pull/58), open | `e1f50f7` | prop allocator telemetry (#55), community main `26d4564`; historical upstream replay not audited | pending |
 
 ## Replay audit
 

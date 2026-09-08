@@ -27,6 +27,7 @@
 #include "ge_sky_rdp.h"
 #include "ge_gpu_timer.h"   /* GETV_GPUTIME=1: GPU busy time vs CPU time in the present */
 #include "ge_gl_debug.h"    /* GETV_GLDEBUG=1: who raises the GL_INVALID_OPERATION, and when */
+#include "ge_prop_allocator_telemetry.h"
 #include "ge_semantic_row.h"
 
 /* ---- GETV_SKYDUMP: prove the sky RDP triangles are recoverable -----------------
@@ -225,6 +226,10 @@ void gePortRenderDisplayList(void *firstGdl)
     ge_rendered_frames++;
     geSemanticRowEnd();
     rendered = (int)ge_rendered_frames;
+    {
+        extern s32 g_OnScreenPropCount;
+        gePortPropAllocatorFrame((int)g_OnScreenPropCount);
+    }
 
     /* ---- GETV_PACETRACE=1: the two frame deltas, side by side, per frame -----------
      *
@@ -490,6 +495,16 @@ void gePortRenderDisplayList(void *firstGdl)
             }
         }
         if (limit > 0 && rendered >= limit) {
+            {
+                extern s32 g_GlobalTimer;
+                extern s32 getPlayerCount(void);
+                extern s32 lvlGetCurrentStageToLoad(void);
+                extern s32 lvlGetSelectedDifficulty(void);
+                gePortPropAllocatorRunFinal(
+                    (int)lvlGetCurrentStageToLoad(), (int)lvlGetSelectedDifficulty(),
+                    (int)getPlayerCount(), (unsigned long long)(unsigned int)g_GlobalTimer,
+                    (unsigned long long)ge_rendered_frames);
+            }
             { extern unsigned long ge_mipcrop_hits, ge_mipcrop_seen;
               extern unsigned long ge_paloff_applied, ge_paloff_last;
               extern unsigned long ge_tex4b_clamped;

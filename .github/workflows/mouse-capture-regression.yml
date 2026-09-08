@@ -23,5 +23,5 @@ jobs:
           sudo apt-get install --yes libsdl2-dev gcc
       - name: Reconstruct pinned SDL window source (no ROM or game assets)
         run: bash tools/fetch-thirdparty.sh
-      - name: Run production mouse event and polling regression (missing or empty tests fail)
+      - name: Run mouse capture and controller coexistence regression (missing or empty tests fail)
         run: python3 tools/tests/test_mouse_capture.py --cc gcc

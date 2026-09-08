@@ -668,6 +668,10 @@ and other moving objects do not receive blood decals.
 
 ## Developer overlay and console
 
+The desktop launcher groups the overlay, console hotkey, telemetry recording and debug logging
+on its **Developer Tools** page. See the [guide and FAQ](DEVELOPER_TOOLS.md).
+
+
 When the ImGui dependency is present, press backquote/grave to open the command console on either
 OpenGL or Metal. The console hotkey is always available; it does not depend on developer mode.
 
@@ -720,6 +724,14 @@ GETV_EXIT_FRAME = 61
 
 Raw names are matched before friendly ones, so a friendly key can never shadow a gate. There are
 around 250 of them; [`MODDING.md`](MODDING.md) covers the useful ones.
+
+### `GETV_PROP_TELEMETRY` -- correlated allocator observations
+
+`GETV_PROP_TELEMETRY=1` together with a bounded, path-free
+`GETV_PROP_TELEMETRY_RUN_ID=<token>` emits versioned JSON Lines from the real `PropRecord`
+allocator. It is a diagnostic gate, not a capacity setting, and remains silent by default. See
+[`PROP_ALLOCATOR_TELEMETRY.md`](PROP_ALLOCATOR_TELEMETRY.md) for the exact schema, lifecycle
+boundaries, and evidence limits.
 
 ### `aim_toggle` -- press to aim, instead of holding
 

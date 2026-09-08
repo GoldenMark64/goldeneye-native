@@ -133,7 +133,11 @@ bash getv/port/tests/run_tests.sh mouse
 Then run the complete suite before handoff.
 
 The desktop mouse-capture regression exercises the actual SDL event-handler and mouse-polling
-source sections with simulated device state and real SDL2 headers. It needs a C compiler, Python,
+source sections and the controller/no-controller polling branch with simulated device state
+and real SDL2 headers. It covers simultaneous controller movement and mouse look/buttons,
+controller detach/reconnect, player isolation and script priority, as well as capture recovery
+with and without a controller. Discovery and script adapters are simulated; this does
+not test physical USB hot-plug or device-specific mappings. It needs a C compiler, Python,
 SDL2 headers and the reconstructed third-party window source, but no SDL library, game source,
 ROM, generated assets or live window:
 
@@ -145,6 +149,14 @@ python3 tools/tests/test_mouse_capture.py
 Use `--sdl-include /path/to/SDL2` for headers outside the usual install prefixes. Missing source,
 headers, compiler, skipped scenarios or zero checks are failures. The dedicated Linux CI job runs
 this command; OS focus and windowed/fullscreen capture still need interactive platform checks.
+
+The same ROM-free regression runs on Windows with the standalone MinGW toolchain and SDL2
+headers. The runner supplies the Windows environment compatibility header and keeps SDL's
+main wrapper disabled, so it needs no SDL library:
+
+```powershell
+python tools/tests/test_mouse_capture.py --cc C:\mingw64\bin\gcc.exe --sdl-include C:\mingw64\include\SDL2
+```
 
 The game-header multi-ammo regression has a separate source-only runner. From a fresh
 checkout, with Git, Python 3 and a C compiler installed:

@@ -1,0 +1,52 @@
+name: Prop allocator telemetry
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/prop-allocator-telemetry.yml'
+      - 'getv/port/src/ge_prop_allocator_telemetry.c'
+      - 'getv/port/src/ge_prop_allocator_telemetry.h'
+      - 'getv/port/src/port_render.c'
+      - 'getv/port/tests/test_prop_allocator_telemetry.c'
+      - 'getv/patches/0027-prop-allocator-telemetry.patch'
+      - 'tools/setup.sh'
+      - 'tools/setup-mac.sh'
+      - 'tools/setup-windows.sh'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/prop-allocator-telemetry.yml'
+      - 'getv/port/src/ge_prop_allocator_telemetry.c'
+      - 'getv/port/src/ge_prop_allocator_telemetry.h'
+      - 'getv/port/src/port_render.c'
+      - 'getv/port/tests/test_prop_allocator_telemetry.c'
+      - 'getv/patches/0027-prop-allocator-telemetry.patch'
+      - 'tools/setup.sh'
+      - 'tools/setup-mac.sh'
+      - 'tools/setup-windows.sh'
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: prop-allocator-telemetry-linux
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Run the required ROM-free producer checks
+        shell: bash
+        run: |
+          test -f getv/port/tests/test_prop_allocator_telemetry.c
+          bash getv/port/tests/run_tests.sh prop_allocator
+      - name: Fetch pinned decomp source (no ROM or generated runtime data)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: n64decomp/007
+          ref: c4356466796c697dfd298010b9bed261f9ed8c6a
+          path: vendor/ge-decomp
+          persist-credentials: false
+      - name: Prove the complete source patch stack round-trips
+        run: bash tools/check_patches.sh

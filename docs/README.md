@@ -50,6 +50,7 @@ Choose the path that matches what you are trying to do.
 | [`asset-converter-spec.md`](asset-converter-spec.md) | Asset converter contract. |
 | [`PORTING.md`](PORTING.md) | Platform-port history, constraints, and build baselines. |
 | [`WINDOWS_STAN_ORDERING.md`](WINDOWS_STAN_ORDERING.md) | Windows geometry-ordering root cause and fix. |
+| [`PROP_ALLOCATOR_TELEMETRY.md`](PROP_ALLOCATOR_TELEMETRY.md) | Versioned, content-free runtime prop-pool observations. |
 | [`PERFECT_DARK.md`](PERFECT_DARK.md) | Audited opportunities from the MIT-licensed Perfect Dark port. |
 
 ## Direction and maintenance

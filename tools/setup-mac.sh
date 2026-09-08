@@ -212,6 +212,13 @@ else
     || die "0026-bloodier-gibs.patch failed to apply"
 fi
 
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0027-prop-allocator-telemetry.patch" ) 2>/dev/null; then
+  echo "0027-prop-allocator-telemetry.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0027-prop-allocator-telemetry.patch" ) \
+    || die "0027-prop-allocator-telemetry.patch failed to apply"
+fi
+
 # The ROM's SHA-1, from whichever tool this machine actually has.
 #
 # sha1sum on its own is not enough. Under the setup wizard, which runs this script with its output

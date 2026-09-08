@@ -715,6 +715,14 @@ GETV_EXIT_FRAME = 61
 Raw names are matched before friendly ones, so a friendly key can never shadow a gate. There are
 around 250 of them; [`MODDING.md`](MODDING.md) covers the useful ones.
 
+### `GETV_PROP_TELEMETRY` -- correlated allocator observations
+
+`GETV_PROP_TELEMETRY=1` together with a bounded, path-free
+`GETV_PROP_TELEMETRY_RUN_ID=<token>` emits versioned JSON Lines from the real `PropRecord`
+allocator. It is a diagnostic gate, not a capacity setting, and remains silent by default. See
+[`PROP_ALLOCATOR_TELEMETRY.md`](PROP_ALLOCATOR_TELEMETRY.md) for the exact schema, lifecycle
+boundaries, and evidence limits.
+
 ### `aim_toggle` -- press to aim, instead of holding
 
 `0` or `1`. Default `0`, which is the retail hold. `aim_toggle = 1` makes aim a toggle: press

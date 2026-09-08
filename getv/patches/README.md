@@ -33,6 +33,7 @@ Split by *when* they can be applied rather than by subject.
 | `0024-multi-ammo-endianness.patch` | 2 files | `src/bondtypes.h`, `src/game/propobj.c` | after `0023` |
 | `0025-cuff-native-pointer-stride.patch` | 1 file | `src/game/bondview2.c` | after `0024` |
 | `0026-bloodier-gibs.patch` | 4 files | `explosion.c`, `explosion.h`, `initexplosioncasing.c`, `chr.c`: blood, reset and visible self-test | after `0025` |
+| `0027-prop-allocator-telemetry.patch` | 3 files | `chrprop.c`, `lv.c`, `ge_port_decls.h`: allocator/lifecycle callbacks | after `0026` |
 
 ## The gap at 0003, 0004 and 0005 is deliberate
 
@@ -125,6 +126,7 @@ git apply ../../getv/patches/0023-enemy-gibs.patch
 git apply ../../getv/patches/0024-multi-ammo-endianness.patch
 git apply ../../getv/patches/0025-cuff-native-pointer-stride.patch
 git apply ../../getv/patches/0026-bloodier-gibs.patch
+git apply ../../getv/patches/0027-prop-allocator-telemetry.patch
 # ... run the asset pipeline (docs/SETUP.md 3.5) and the namespacing pass (3.6) ...
 python3 ../../tools/transform_rarewarelogo.py
 git apply ../../getv/patches/0002-assets.patch

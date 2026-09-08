@@ -10,4 +10,6 @@ if not exist "%GAME%" (
   exit /b 1
 )
 
+rem Keep this shortcut's promise even if the executable's plain-start default changes later.
+set "GETV_LAUNCHER=1"
 start "" /d "%GAME_DIR%" "%GAME%"

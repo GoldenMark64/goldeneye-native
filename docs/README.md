@@ -15,7 +15,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | [`CONFIGURATION.md`](CONFIGURATION.md) | Full config-file, command-line, environment-gate, and launcher reference. |
 | [`SETUP.md`](SETUP.md) | Detailed manual macOS pipeline and deep build troubleshooting. |
 | [`WINDOWS_PACKAGING.md`](WINDOWS_PACKAGING.md) | Maintainer guide for producing and testing the ROM-free Windows setup package. |
-| [`RELEASING.md`](RELEASING.md) | Publish coordinated, ROM-free player packages from reviewed stable tags. |
+| [`RELEASING.md`](RELEASING.md) | Review the gates and security requirements for future coordinated, ROM-free player packages. |
 | [`FAQ.md`](FAQ.md) | Common player and project questions. |
 | [`CHEATS.md`](CHEATS.md) | GoldenEye's built-in named cheat system. |
 

@@ -60,7 +60,6 @@ if (-not (Test-Path $Bash)) { $Bash = 'bash' }
 # patched here; setting the encoding for the children is what survives a fresh clone.
 $env:PYTHONIOENCODING = 'utf-8'
 $env:PYTHONUTF8       = '1'
-$env:GETV_PORTABLE_PYTHON = (Get-Command python -ErrorAction SilentlyContinue).Source
 
 $script:step = 0
 function Say  ($m) { $script:step++; Write-Output ""; Write-Output "== $($script:step). $m" }
@@ -89,7 +88,8 @@ if ($missing.Count -gt 0) {
   Die "install the above and run this again"
 }
 Info "git and python are present"
-$env:GETV_PORTABLE_PYTHON = (Get-Command python).Source
+$pythonExe = (Get-Command python).Source
+$env:GETV_PORTABLE_PYTHON = $pythonExe
 
 if ($SkipDeps) {
   Info "-SkipDeps given; not running fetch_deps_windows.ps1"
@@ -251,8 +251,8 @@ if (-not $cand) {
    No ROM found, and nothing here will download one.
 
    Supply your own copy of GoldenEye 007 (USA), 12,582,912 bytes. Any byte order
-   works; this converts a temporary local copy when needed. Put it on your Desktop
-   or pass -Rom <path>, then
+   works; this converts a temporary local copy when needed. Put it on your Desktop,
+   at roms\ge007.u.z64, or pass -Rom <path>, then
    run this again. docs/SETUP.md section 3 covers what a correct dump looks like.
 '@
   Die "no ROM"
@@ -265,6 +265,7 @@ if (-not $magic -or $magic -notin @('80371240','37804012','40123780')) {
   Die "that file is not a recognisable N64 ROM"
 }
 
+try {
 if ($magic -eq '80371240') {
   $got = Get-Sha1 $cand
   if ($got -ne $romSha) {
@@ -414,16 +415,30 @@ function Invoke-AssetStep ($marker, $label, $exe, $argv, $validate) {
 # worse than unnecessary: a copy outside the toolchain directory ran and exited 0 while printing
 # nothing at all, which would have turned a missing extractor into a silent success.
 $toolshim = Join-Path $root 'build\toolshim'
-if (-not (Get-Command make -ErrorAction SilentlyContinue)) {
-  $mingwMake = Join-Path $Mingw 'bin\mingw32-make.exe'
-  if (-not (Test-Path $mingwMake)) { Die "no make: neither make on PATH nor $mingwMake" }
-  New-Item -ItemType Directory -Force -Path $toolshim | Out-Null
+New-Item -ItemType Directory -Force -Path $toolshim | Out-Null
+
+# Git Bash and the MinGW makefiles use the Unix spelling even when PowerShell found python.exe.
+# A PATH shim is inherited by bash, make and every child shell; an exported bash function is not
+# uniformly inherited when another shell implementation is selected by a makefile.
+$pythonShim = "#!/bin/sh`nexec `"`$GETV_PORTABLE_PYTHON`" `"`$@`"`n"
+[IO.File]::WriteAllText((Join-Path $toolshim 'python3'), $pythonShim)
+Info "python3: shimmed to $pythonExe"
+
+$makeShimPath = Join-Path $toolshim 'make'
+$mingwMake = Join-Path $Mingw 'bin\mingw32-make.exe'
+if (Test-Path $mingwMake) {
   $shimBody = "#!/bin/sh`nexec '$($mingwMake -replace '\\','/')' `"`$@`"`n"
-  [IO.File]::WriteAllText((Join-Path $toolshim 'make'), $shimBody)
-  $env:PATH = "$toolshim;$env:PATH"
+  [IO.File]::WriteAllText($makeShimPath, $shimBody)
   Info "make: shimmed to $mingwMake"
+} elseif (Get-Command make -ErrorAction SilentlyContinue) {
+  # Never let a shim left by an earlier -Mingw selection override the make now on PATH.
+  Remove-Item -LiteralPath $makeShimPath -Force -ErrorAction SilentlyContinue
+  Info "make: using the executable already on PATH"
+} else {
+  Die "no make: neither make on PATH nor $mingwMake"
 }
 if (Test-Path "$Mingw\bin\gcc.exe") { $env:PATH = "$Mingw\bin;$env:PATH" }
+$env:PATH = "$toolshim;$env:PATH"
 
 # Must run BEFORE extraction. The decomp ships 25 of the 34 bg rows with their extract flag at 0
 # because upstream builds those from checked-in .c files; this port compiles the blobs, so
@@ -443,13 +458,15 @@ try {
   if ($rc -ne 0) { $out | Select-Object -Last 20 | ForEach-Object { Write-Output "      $_" }; Die "enabling background extraction failed" }
 } finally { Pop-Location }
 
-try {
-  # Use a late image as the resume marker. A background file is produced early in extraction, so
-  # treating it as completion let a failed image pass be skipped forever on the next run.
-  Invoke-AssetStep 'assets\images\split\2697.bin'        'extracting from the ROM' $Bash @('scripts/extract_baserom.u.sh', $romForBuild)
+# Use a late image as the resume marker. A background file is produced early in extraction, so
+# treating it as completion let a failed image pass be skipped forever on the next run. Replacing
+# this with a content-bound completion record remains a separate hardening task; a stamp based on
+# generated manifests can bless partial outputs and is worse than this known, deterministic marker.
+Invoke-AssetStep 'assets\images\split\2697.bin' 'extracting from the ROM' $Bash @('scripts/extract_baserom.u.sh', $romForBuild)
 } finally {
   if ($temporaryRom -and (Test-Path -LiteralPath $temporaryRom)) {
     Remove-Item -LiteralPath $temporaryRom -Force
+    $temporaryRom = $null
     Info "removed temporary normalized ROM copy"
   }
 }

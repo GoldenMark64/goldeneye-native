@@ -64,8 +64,9 @@ From a clean source checkout in PowerShell:
 ```
 
 The script fetches only the wizard dependencies, builds a statically linked executable, runs its
-ROM-verification self-test, checks that it imports only Windows system DLLs, scans for representative
-game/asset/renderer markers and ROM-copy paths, and writes the package under `dist\windows\`.
+ROM-verification self-test, verifies that its embedded application manifest enables UTF-8 paths,
+checks that it imports only Windows system DLLs, scans for representative game/asset/renderer
+markers and ROM-copy paths, and writes the package under `dist\windows\`.
 
 To rebuild after the dependencies are already present:
 
@@ -75,23 +76,25 @@ To rebuild after the dependencies are already present:
 
 No ROM is used by either command.
 
-## CI and official releases
+## CI validation and future releases
 
 The **Package Windows setup** GitHub Actions workflow runs the same packaging command on a native
-Windows runner. Pull requests that change the setup surface build and test it with a read-only
-token, but do not upload a player download. Only a pushed, stable `vMAJOR.MINOR.PATCH` tag stages
-the package for publication.
+Windows runner. Pull requests that change the setup surface and manual dispatches build and test
+it with a read-only token. The workflow does not upload an artifact, has no automatic tag trigger,
+and does not publish a GitHub Release. A manual dispatch may target a selected ref, but its output
+exists only in the runner workspace, so it is validation evidence, not a player download.
 
-After every safety and package check passes, the tag job creates a draft GitHub Release, attaches
-`GoldenEye-Native-Windows-Setup-<tag>.zip` and the ZIP's SHA-256 file, then publishes the release.
-The ZIP contains all four package files; the bare setup executable is not separated from its
-instructions and third-party notices. The embedded repository ref is the same immutable tag, so a
-released setup app cannot silently install a later branch.
+There is no official Windows release automation yet. Add it in a focused follow-up after the
+macOS launcher packaging is coordinated, this checklist passes on a clean Windows machine, and
+the licensing and code-signing questions have been reviewed. That follow-up must package all four
+files together, bind the installer to the exact immutable release commit, skip prerelease tags
+without a failed run, and fetch and verify the release toolchain without restoring it from the
+pull-request cache.
 
 The setup app is not Authenticode-signed yet, so SmartScreen may call it an unrecognized app.
-Testers should obtain it only from this repository's Releases page and compare the ZIP checksum as
-well as the executable checksum inside it. See [`RELEASING.md`](RELEASING.md) for the version and
-publication process. A broad public release still needs an explicit code-signing decision.
+Until that follow-up lands, no Windows setup download should be described as official. See
+[`RELEASING.md`](RELEASING.md) for the release-readiness requirements. A broad public release
+still needs an explicit code-signing decision.
 
 ## First Windows test pass
 

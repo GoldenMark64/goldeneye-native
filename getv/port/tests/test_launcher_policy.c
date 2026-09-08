@@ -21,11 +21,11 @@ int main(void)
             geLauncherPolicyWantsWindow(1, plain, 0, 0, 0, 1), 1);
     check_i("explicit GETV_LAUNCHER=0 bypasses launcher",
             geLauncherPolicyWantsWindow(1, plain, 1, 0, 0, 1), 0);
-    check_i("launcher child does not reopen launcher",
-            geLauncherPolicyWantsWindow(1, plain, 1, 0, 0, 1), 0);
+    check_i("launcher child keeps forwarded gameplay arguments direct",
+            geLauncherPolicyWantsWindow(3, direct, 1, 0, 0, 1), 0);
     check_i("command-line gameplay remains direct",
             geLauncherPolicyWantsWindow(3, direct, 0, 0, 0, 1), 0);
-    check_i("--launcher remains explicit",
+    check_i("--launcher overrides GETV_LAUNCHER=0",
             geLauncherPolicyWantsWindow(2, explicit_launcher, 1, 0, 0, 1), 1);
     check_i("GETV_LAUNCHER=1 opens launcher",
             geLauncherPolicyWantsWindow(1, plain, 1, 1, 0, 0), 1);

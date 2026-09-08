@@ -13,9 +13,7 @@ on:
       - "tools/install.ps1"
       - "tools/package_windows_wizard.ps1"
       - "tools/setup-windows.sh"
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -29,27 +27,15 @@ jobs:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
-      - name: Set up Python for publication checks
+      - name: Set up Python for package safety checks
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.x"
 
       - name: Reject ROMs, saves, and non-public artifacts
         run: python tools/check_no_game_data.py --tracked
-
-      - name: Require a stable semantic release tag
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: powershell
-        env:
-          GETV_RELEASE_TAG: ${{ github.ref_name }}
-        run: >-
-          if ($env:GETV_RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
-            throw "official releases require a stable vMAJOR.MINOR.PATCH tag"
-          }
 
       - name: Cache Windows wizard toolchain
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -68,74 +54,3 @@ jobs:
           .\tools\package_windows_wizard.ps1
           -RepoUrl $env:GETV_PACKAGE_REPO_URL
           -RepoRef $env:GETV_PACKAGE_REPO_REF
-
-      - name: Stage official Windows release assets
-        if: startsWith(github.ref, 'refs/tags/')
-        shell: powershell
-        env:
-          GETV_RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          $releaseDirectory = Join-Path $PWD 'dist\release'
-          New-Item -ItemType Directory -Force -Path $releaseDirectory | Out-Null
-
-          $archiveName = "GoldenEye-Native-Windows-Setup-$env:GETV_RELEASE_TAG.zip"
-          $archivePath = Join-Path $releaseDirectory $archiveName
-          $packageFiles = @(Get-ChildItem -LiteralPath 'dist\windows' -File)
-          if ($packageFiles.Count -ne 4) {
-            throw "expected exactly four Windows setup package files, found $($packageFiles.Count)"
-          }
-          Compress-Archive -LiteralPath $packageFiles.FullName -DestinationPath $archivePath
-
-          $digest = (Get-FileHash -Algorithm SHA256 -LiteralPath $archivePath).Hash.ToLowerInvariant()
-          $checksumPath = "$archivePath.sha256"
-          Set-Content -LiteralPath $checksumPath -Encoding ASCII -Value "$digest  $archiveName"
-
-      - name: Hand official assets to the release job
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: windows-release-assets-${{ github.sha }}
-          path: dist/release/*
-          if-no-files-found: error
-          retention-days: 1
-
-  publish:
-    name: publish-tagged-release
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: package
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download verified Windows release assets
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: windows-release-assets-${{ github.sha }}
-          path: release-assets
-
-      - name: Create the official release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          GETV_RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          mapfile -t assets < <(find release-assets -maxdepth 1 -type f -print | sort)
-          if [[ ${#assets[@]} -ne 2 ]]; then
-            echo "expected the Windows setup ZIP and its checksum, found ${#assets[@]} files" >&2
-            exit 1
-          fi
-
-          if gh release view "$GETV_RELEASE_TAG" --json isDraft --jq .isDraft >draft-state 2>/dev/null; then
-            if [[ $(<draft-state) != true ]]; then
-              echo "release $GETV_RELEASE_TAG is already published; refusing to replace its assets" >&2
-              exit 1
-            fi
-          else
-            gh release create "$GETV_RELEASE_TAG" --verify-tag --draft --generate-notes \
-              --title "GoldenEye-Native $GETV_RELEASE_TAG"
-          fi
-
-          gh release upload "$GETV_RELEASE_TAG" "${assets[@]}" --clobber
-          gh release edit "$GETV_RELEASE_TAG" --draft=false

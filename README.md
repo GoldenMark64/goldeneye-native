@@ -69,10 +69,10 @@ bash tools/install.sh --rom /path/to/your/rom.z64
 verifies it locally and reads it from the path you select without copying or uploading it. The
 project does not supply ROMs or instructions for acquiring one.
 
-**2.** Download the versioned Windows setup ZIP from this project's **Releases** page. Only a
-reviewed stable version tag publishes that ROM-free package; development branches do not publish
-player downloads. The setup app opens a normal ROM file picker, builds everything on your
-computer, and never uploads your dump. See
+**2.** The no-code Windows package is still a release candidate; there is no official download or
+release automation yet. When this project's **Releases** page lists a coordinated Windows package,
+download that versioned ROM-free setup ZIP there. The setup app opens a normal ROM file picker,
+builds everything on your computer, and never uploads your dump. See
 [`docs/WINDOWS_PACKAGING.md`](docs/WINDOWS_PACKAGING.md) for the package and test process.
 
 **3.** Extract the ZIP and double-click `GoldenEye-Native-Setup.exe`. Choose an installation folder

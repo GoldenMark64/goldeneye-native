@@ -5,12 +5,13 @@ edit the project or build from a source checkout, use [`BUILDING.md`](BUILDING.m
 
 ## Current status
 
-The Windows setup app is an unsigned release candidate for 64-bit Windows 10 and 11. Official
-downloads are published only from this repository's stable tagged Releases; do not use an
-executable reposted elsewhere. If the Releases page has no Windows setup ZIP yet, there is no
-official public candidate yet.
+The Windows setup app is an unsigned release candidate for 64-bit Windows 10 and 11. There is no
+official Windows setup download or release automation yet. The current GitHub Actions workflow
+only validates the candidate and does not upload it. Release automation will be a focused
+follow-up after the macOS launcher package is coordinated, clean-machine Windows acceptance is
+complete, and licensing and code-signing have been reviewed.
 
-The downloaded setup package is not the game and cannot play without a ROM. It contains no ROM,
+The setup candidate is not the game and cannot play without a ROM. It contains no ROM,
 extracted game assets, decompiled game source, or playable `goldeneye.exe`. The playable program
 is built only on your computer after you select your own supported cartridge dump.
 Every fresh installation stops at the ROM picker and cannot build the game until that local file
@@ -31,7 +32,13 @@ You do **not** need to install Git, Python, a compiler, or this source repositor
 private, checksum-verified portable tools under your Windows user profile and does not need
 administrator access.
 
-## Download an official version
+## When an official version is available
+
+Do not download a setup executable from an Actions run or a third-party repost. Until this
+repository's Releases page lists a coordinated Windows package, the no-code Windows distribution
+is not available yet.
+
+Once an official package is published:
 
 1. Open this repository's **Releases** page and choose the version you want.
 2. Download `GoldenEye-Native-Windows-Setup-<version>.zip` and its `.sha256` file.
@@ -59,9 +66,9 @@ resume a stopped build; verified downloads and completed steps are reused.
 ## Windows SmartScreen
 
 The setup app is not Authenticode-signed, so SmartScreen may identify it as an unrecognized app.
-Confirm that it came from this repository's Releases page and compare both supplied SHA-256 files
-before choosing **More info** and **Run anyway**. Do not bypass a warning for a copy obtained from
-somewhere else.
+Only after an official package is available, confirm that it came from this repository's Releases
+page and compare both supplied SHA-256 files before choosing **More info** and **Run anyway**. Do
+not bypass a warning for a copy obtained from somewhere else.
 
 ## If setup fails
 

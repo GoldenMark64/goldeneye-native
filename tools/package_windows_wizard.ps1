@@ -62,8 +62,9 @@ if ($size -ge 8MB) {
 }
 
 # Scan printable strings for representative symbols unique to the decompilation, generated assets,
-# and Fast3D. build_wizard.ps1 also has a fixed three-source allowlist and checks DLL imports; these
-# checks make an accidental redistribution fail in CI instead of relying on a reviewer noticing it.
+# and Fast3D. build_wizard.ps1 also has a fixed three-translation-unit allowlist, one manifest
+# resource, and checks DLL imports; these checks make an accidental redistribution fail in CI
+# instead of relying on a reviewer noticing it.
 $stringsExe = Join-Path $Mingw 'bin\strings.exe'
 if (-not (Test-Path $stringsExe)) { throw "no strings.exe at $stringsExe" }
 $binaryStrings = @(& $stringsExe -a $built)
@@ -79,6 +80,41 @@ foreach ($needle in $forbidden) {
   if ($binaryStrings -contains $needle -or ($binaryStrings -match [regex]::Escape($needle))) {
     throw "setup_wizard.exe contains forbidden game/renderer marker: $needle"
   }
+}
+
+# Check the resource table itself, not just arbitrary printable strings in the executable. This
+# proves the one-file setup app carries an RT_MANIFEST resource and that Windows will opt its
+# narrow-character APIs into UTF-8 on supported Windows 10/11 versions.
+$objdumpExe = Join-Path $Mingw 'bin\objdump.exe'
+$objcopyExe = Join-Path $Mingw 'bin\objcopy.exe'
+if (-not (Test-Path $objdumpExe)) { throw "no objdump.exe at $objdumpExe" }
+if (-not (Test-Path $objcopyExe)) { throw "no objcopy.exe at $objcopyExe" }
+$resourceTable = @(& $objdumpExe -p $built 2>&1)
+$resourceTableText = $resourceTable -join "`n"
+$manifestTypes = [regex]::Matches($resourceTableText, 'Entry:\s+ID:\s+0x0*18\b').Count
+$manifestNames = [regex]::Matches($resourceTableText, 'Entry:\s+ID:\s+0x0*1\b').Count
+if ($LASTEXITCODE -ne 0 -or $manifestTypes -ne 1 -or $manifestNames -ne 1) {
+  throw "setup_wizard.exe must contain exactly one RT_MANIFEST resource (types=$manifestTypes, names=$manifestNames)"
+}
+$resourceProbe = Join-Path $env:TEMP ("goldeneye-native-wizard-resources-{0}.bin" -f [guid]::NewGuid())
+try {
+  & $objcopyExe --dump-section ".rsrc=$resourceProbe" $built 2>&1 | ForEach-Object { Write-Output $_ }
+  if ($LASTEXITCODE -ne 0 -or -not (Test-Path $resourceProbe)) {
+    throw 'could not inspect setup_wizard.exe resources'
+  }
+  $resourceStrings = ((@(& $stringsExe -a $resourceProbe)) -join "`n")
+  foreach ($needle in @(
+    '<requestedExecutionLevel level="asInvoker" uiAccess="false"/>',
+    '<longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>',
+    '<activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>'
+  )) {
+    if (-not $resourceStrings.Contains($needle)) {
+      throw "setup_wizard.exe embedded manifest is missing: $needle"
+    }
+  }
+  Write-Output 'application manifest: embedded RT_MANIFEST enables UTF-8 paths on Windows 10/11'
+} finally {
+  Remove-Item -LiteralPath $resourceProbe -Force -ErrorAction SilentlyContinue
 }
 
 # The player must select a ROM on every fresh setup. Keep that path external all the way into the
@@ -131,9 +167,10 @@ the playable binary is built only on your computer from the ROM you select.
 This technical separation is not legal advice or a conclusion that public distribution is
 permitted. Review docs\LICENSING.md and resolve the recorded licensing questions before release.
 
-This test package is not code-signed yet, so Windows SmartScreen may identify it as an unrecognized
-app. Verify that it came from the Actions run for the repository above and that its SHA-256 matches
-SHA256SUMS.txt. Broad release should wait for the Windows test pass and code-signing plan.
+This locally built test package is not code-signed yet, so Windows SmartScreen may identify it as
+an unrecognized app. It is for maintainer validation, not an official player download. Confirm its
+SHA-256 against SHA256SUMS.txt. Broad release should wait for the Windows test pass and
+code-signing plan.
 
 If setup fails, use Copy the log and report it at:
 https://github.com/seb-patron/goldeneye-native/issues

@@ -366,11 +366,12 @@ repository has no root licence for its own code and the upstream decompilation h
 Those questions require maintainer and, where appropriate, legal review before public release.
 
 That is checked rather than asserted. `getv/build_wizard.ps1` links exactly three of this
-project's own sources -- `setup_wizard.cpp`, `sha1.c` and `ge_icon_apply.c` -- against Dear ImGui
-(MIT), SDL2 (zlib) and GLEW. `tools/package_windows_wizard.ps1` then runs the verification self-test,
-checks the DLL imports and binary size, and scans representative generated-asset, decompilation,
-and Fast3D markers before it stages the package. The package includes their complete notices from
-`getv/wizard/THIRD_PARTY_NOTICES.txt`. A ROM alone is 12 MB.
+project's own compilation units -- `setup_wizard.cpp`, `sha1.c` and `ge_icon_apply.c` -- plus its
+application-manifest resource against Dear ImGui (MIT), SDL2 (zlib) and GLEW.
+`tools/package_windows_wizard.ps1` then runs the verification self-test, proves the UTF-8 manifest
+is embedded, checks the DLL imports and binary size, and scans representative generated-asset,
+decompilation, and Fast3D markers before it stages the package. The package includes their complete
+notices from `getv/wizard/THIRD_PARTY_NOTICES.txt`. A ROM alone is 12 MB.
 
 **This project must not publish `goldeneye.exe` under the current packaging model.** That has not
 changed. If the wizard ever grows a dependency on the port layer proper, the technical boundary

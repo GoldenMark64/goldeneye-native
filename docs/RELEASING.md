@@ -1,11 +1,13 @@
-# Official releases
+# Release readiness
 
-Official player downloads are produced only from reviewed stable tags. Day-to-day branches and
-pull requests can build and test a setup package, but they do not publish one.
+There is no official Windows release automation yet. The current Windows workflow has read-only
+repository permissions for pull requests and manual dispatches: it builds and tests a setup
+candidate inside the runner workspace but does not upload an artifact or publish a GitHub Release.
+Pushing a tag does not automatically run that workflow.
 
 ## What may be released
 
-The Windows release asset is
+The future Windows release asset should be
 `GoldenEye-Native-Windows-Setup-vMAJOR.MINOR.PATCH.zip`. It contains the ROM-free setup app, its
 checksum, first-run instructions, and required third-party notices. The setup app is not the game:
 it asks the player for their own supported cartridge dump and creates the playable
@@ -17,23 +19,26 @@ boundary applies to future macOS release packaging: a Mac download may contain o
 client/setup surface and reviewed redistributable dependencies; its locally generated playable
 game remains private.
 
-## Release flow
+## Required follow-up
 
-1. Merge the reviewed release changes to `main` and confirm all required checks pass.
-2. Choose a stable semantic version such as `v0.1.0`. The automated release accepts exactly
-   `vMAJOR.MINOR.PATCH`; prerelease suffixes do not publish an official package.
-3. Create an annotated tag on the reviewed `main` commit and push that tag. Do not move or reuse a
-   published version tag.
-4. **Package Windows setup** builds the package on a clean Windows runner, runs the tracked-data
-   guard, ROM-format self-test, bootstrap syntax test, import inspection, and forbidden-string
-   scan, then creates a draft GitHub Release.
-5. The workflow attaches the versioned ZIP and its SHA-256 file before publishing the release. If
-   any build or safety check fails, no official release is published.
-6. Download the published ZIP from GitHub Releases and complete the clean-machine checklist in
-   [`WINDOWS_PACKAGING.md`](WINDOWS_PACKAGING.md). Never substitute a file from an unrelated
-   workflow run or repost.
+Implement publishing in a focused pull request only after all of these gates are complete:
 
-The release job alone receives `contents: write`; pull-request builds remain read-only. Official
-Actions are pinned to full commit SHAs. When the ROM-free macOS packaging update is ready, add its
-build as another release asset producer and make the final publish job depend on both platforms,
-so one version tag produces one coordinated Windows/macOS release.
+1. Coordinate the macOS launcher package so one version has matching Windows and macOS client
+   behavior and both platform assets can pass before publication.
+2. Complete the clean-machine Windows checklist in
+   [`WINDOWS_PACKAGING.md`](WINDOWS_PACKAGING.md) and record the exact candidate commit.
+3. Review the unresolved licensing questions and make an explicit code-signing decision.
+4. Give the release workflow the minimum write permission only in the final publishing job;
+   validation jobs must remain read-only and must not hand privileged jobs mutable PR output.
+5. Trigger official publication only for exact stable `vMAJOR.MINOR.PATCH` tags. Other `v*` tags,
+   including prereleases, must skip cleanly rather than make the workflow fail red.
+6. Build every setup client from the exact immutable commit selected by the tag and embed that
+   commit identity as its source ref. Do not embed a mutable branch name or rely on a moving tag
+   name when cloning the source.
+7. Fetch and verify the release toolchain from its pinned sources instead of restoring the
+   pull-request toolchain cache for a release build.
+8. Publish the platform packages and their checksums only after every build and safety check
+   succeeds. Do not move or reuse a published version tag.
+
+Official Actions must remain pinned to full commit SHAs. The follow-up should document the exact
+artifact handoff and permission boundary in [`CI_TRUST.md`](CI_TRUST.md) before it is enabled.

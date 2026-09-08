@@ -35,7 +35,9 @@ $imgui = Join-Path $env:USERPROFILE '.n64tvos\imgui-win'
 
 $gcc = Join-Path $Mingw 'bin\gcc.exe'
 $gxx = Join-Path $Mingw 'bin\g++.exe'
+$windres = Join-Path $Mingw 'bin\windres.exe'
 if (-not (Test-Path $gcc)) { throw "no gcc at $gcc -- run tools\fetch_deps_windows.ps1 first" }
+if (-not (Test-Path $windres)) { throw "no windres at $windres -- run tools\fetch_deps_windows.ps1 first" }
 if (-not (Test-Path (Join-Path $imgui 'lib\libimgui.a'))) {
   throw "no Dear ImGui at $imgui -- run tools\fetch_deps_windows.ps1 first"
 }
@@ -52,14 +54,16 @@ New-Item -ItemType Directory -Force -Path $build | Out-Null
 if ($RepoUrl -notmatch '^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:\.git)?$') {
   throw "unsupported wizard repository URL: $RepoUrl"
 }
-if ($RepoRef -notmatch '^[A-Za-z0-9][A-Za-z0-9._/-]*$' -or $RepoRef -match '\.\.' -or $RepoRef.EndsWith('/')) {
+if ($RepoRef -notmatch '^[\p{L}\p{M}\p{N}][\p{L}\p{M}\p{N}._/+@-]*$' -or
+    $RepoRef -match '\.\.' -or $RepoRef -match '@\{' -or $RepoRef.EndsWith('/')) {
   throw "unsupported wizard repository ref: $RepoRef"
 }
 $packageConfig = Join-Path $build 'package_config.h'
-Set-Content -LiteralPath $packageConfig -Encoding ASCII -Value @(
+$packageConfigLines = @(
   "#define GETV_WIZARD_REPO_URL `"$RepoUrl`"",
   "#define GETV_WIZARD_REPO_REF `"$RepoRef`""
 )
+[IO.File]::WriteAllLines($packageConfig, $packageConfigLines, [Text.UTF8Encoding]::new($false))
 
 # Same reason as the ImGui block in tools/fetch_deps_windows.ps1: assert and __FILE__ strings
 # otherwise carry the absolute path this was built from, and the resulting binary is published
@@ -100,6 +104,37 @@ foreach ($s in $sources) {
   $objs += $o
 }
 
+# The wizard still uses narrow-character Win32 and CRT APIs. Windows 10 version 1903 and newer
+# can make those APIs consume UTF-8 when the process opts in through an application manifest,
+# which keeps non-ASCII install and selected-file paths intact. Compile the manifest as a resource
+# rather than leaving it beside the executable, so the one-file setup contract remains true.
+$resourceSource = Join-Path $wiz 'setup_wizard.rc'
+$resourceObject = Join-Path $build 'setup_wizard_resource.o'
+$out = & $windres --include-dir $wiz --input $resourceSource --output $resourceObject 2>&1
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $resourceObject)) {
+  $out | ForEach-Object { Write-Output $_ }
+  throw "resource compile failed: $resourceSource"
+}
+Write-Output "  setup_wizard.rc"
+$objs += $resourceObject
+
+# GCC's Windows specs append a fallback `default-manifest.o` to every executable. Leaving that in
+# place beside our manifest creates two resources with the same RT_MANIFEST/name/language tuple,
+# and the loader's choice would be ambiguous. Derive link-only specs from this pinned toolchain and
+# remove that one fallback entry so the executable has exactly one authoritative manifest.
+$defaultManifestSpec = '%{!shared:%:if-exists(default-manifest.o%s)}'
+$toolchainSpecsOutput = @(& $gxx -dumpspecs 2>&1)
+if ($LASTEXITCODE -ne 0) {
+  $toolchainSpecsOutput | ForEach-Object { Write-Output $_ }
+  throw 'could not read GCC specs while preparing the wizard manifest'
+}
+$toolchainSpecs = $toolchainSpecsOutput -join "`n"
+if (-not $toolchainSpecs.Contains($defaultManifestSpec)) {
+  throw 'GCC specs no longer contain the expected default-manifest entry'
+}
+$linkSpecs = Join-Path $build 'setup_wizard_link.specs'
+Set-Content -LiteralPath $linkSpecs -Encoding ASCII -Value $toolchainSpecs.Replace($defaultManifestSpec, '')
+
 Write-Output "== linking =="
 $bin = Join-Path $build 'setup_wizard.exe'
 Remove-Item $bin -Force -ErrorAction SilentlyContinue
@@ -118,7 +153,7 @@ Remove-Item $bin -Force -ErrorAction SilentlyContinue
 # The extra -l flags after SDL2 are what libSDL2.a itself needs once it is no longer a DLL
 # (setupapi/version/uuid/cfgmgr32/hid for device enumeration, ole32/oleaut32/shell32 for COM and
 # drag-drop, winmm for timers). The DLL copy that used to sit below this is gone with them.
-$linkArgs = @('-o', $bin, '-s', '-static') + $objs + @(
+$linkArgs = @("-specs=$linkSpecs", '-o', $bin, '-s', '-static') + $objs + @(
   (Join-Path $imgui 'lib\libimgui.a'),
   '-lglew32', '-lmingw32', '-lSDL2',
   '-lopengl32', '-lgdi32', '-limm32', '-ldbghelp', '-lcomdlg32', '-lole32',

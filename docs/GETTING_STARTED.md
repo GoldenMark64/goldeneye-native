@@ -65,9 +65,17 @@ bash tools/install.sh --rom /path/to/your/rom.z64 --desktop
 
 ### Windows
 
-1. Have your legally dumped GoldenEye 007 ROM ready. `.z64`, `.v64`, and `.n64` are accepted.
-2. From this repository's **Releases** page, download and extract the ROM-free Windows setup ZIP
-   for the stable version you want. If no Windows ZIP is listed, no official package exists yet.
+The no-code Windows setup is still a release candidate. There is no official Windows download or
+release automation yet; the current GitHub Actions workflow validates the package but does not
+upload it. Publishing will be added in a focused follow-up after coordinated macOS launcher work,
+clean-machine Windows acceptance, and licensing and code-signing review.
+
+When this repository's Releases page lists an official coordinated package:
+
+1. Have your supported US big-endian `.z64` dump ready. The setup app recognizes `.v64` and
+   `.n64` byte orders but refuses them because the no-copy installer does not create a converted
+   second file.
+2. Download and extract the ROM-free Windows setup ZIP for the stable version you want.
 3. Double-click `GoldenEye-Native-Setup.exe`, choose an empty installation folder, and select your
    ROM in the normal file picker.
 4. Leave setup open for the first local build. When it finishes, double-click the locally built
@@ -75,7 +83,7 @@ bash tools/install.sh --rom /path/to/your/rom.z64 --desktop
 
 You do not install Git, Python, a compiler, or the source repository. Setup downloads verified
 portable tools privately under your Windows profile and does not need administrator access. See
-[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) for release download and SmartScreen details.
+[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) for current availability and SmartScreen details.
 
 ## Run
 

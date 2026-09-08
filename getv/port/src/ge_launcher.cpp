@@ -41,6 +41,8 @@
 #include <ctype.h>
 #include <errno.h>
 #include "ge_launcher_policy.h"
+#include "ge_developer_tools.h"
+#include <time.h>
 /* The headers ge_lua.c uses to walk the mods directory, and for the same reason: the launcher
  * has to discover exactly what the loader would.
  *
@@ -368,6 +370,10 @@ struct Model {
     /* misc */
     bool cheat_on[kCheatCount];
     bool dev_overlay;
+    bool record_telemetry;
+    int record_frames;
+    int input_debug;
+    bool pace_trace;
     char console_key[32];
     char moddir[512];
 };
@@ -671,6 +677,11 @@ void model_load(Model &m)
     m.net_delay   = env_int("GETV_NET_DELAY", 0);
 
     m.dev_overlay = env_bool("GETV_IMGUI", false);
+    m.record_telemetry = env_bool("GETV_DEV_RECORD", false);
+    m.record_frames = geDeveloperRecordingFrames(env_int("GETV_DEV_RECORD_FRAMES", 10800));
+    m.input_debug = env_int("GETV_INPUT_DEBUG", 0);
+    if (m.input_debug < 0 || m.input_debug > 2) m.input_debug = 0;
+    m.pace_trace = env_bool("GETV_PACETRACE", false);
     env_str("GETV_CONSOLE_KEY", m.console_key, sizeof m.console_key, "grave");
     env_str("GETV_MODDIR", m.moddir, sizeof m.moddir, "");
     /* After moddir is known: the scan needs it to decide where to look. */
@@ -833,6 +844,8 @@ void model_store(const Model &m)
     else                                     unsetenv("GETV_NET_DELAY");
 
     setenv("GETV_IMGUI", m.dev_overlay ? "1" : "0", 1);
+    put_int("GETV_INPUT_DEBUG", m.input_debug);
+    setenv("GETV_PACETRACE", m.pace_trace ? "1" : "0", 1);
     if (strcmp(m.console_key, "grave") == 0 || m.console_key[0] == '\0')
         unsetenv("GETV_CONSOLE_KEY");
     else
@@ -926,6 +939,114 @@ void apply_profile(Model &m)
         m.rs_custom = false;
         m.horde = false;
     }
+}
+
+/* SDL owns the per-user reports directory; nothing is saved beside game assets. */
+static char *developer_reports_dir(void)
+{
+    return SDL_GetPrefPath("goldeneyenative", "developer-tools");
+}
+
+static bool developer_prepare_recording(const Model &m)
+{
+    if (!m.record_telemetry) return true;
+    char *dir = developer_reports_dir();
+    if (!dir) return false;
+    char id[128], path[4096];
+    snprintf(id, sizeof id, "run-%llu-%llu", (unsigned long long)time(NULL),
+             (unsigned long long)SDL_GetPerformanceCounter());
+    int n = snprintf(path, sizeof path, "%s%s.jsonl", dir, id);
+    SDL_free(dir);
+    if (n < 0 || (size_t)n >= sizeof path) return false;
+    geDeveloperStartRecording(m.record_frames, id, path);
+    return true;
+}
+
+/* Percent-encode local paths rather than treating spaces, # or % as URL syntax. */
+static bool developer_open_path(const char *path)
+{
+    char url[12296];
+    size_t n = 0;
+#ifdef _WIN32
+    const char *prefix = "file:///";
+#else
+    const char *prefix = "file://";
+#endif
+    n = strlen(prefix);
+    memcpy(url, prefix, n);
+    for (const unsigned char *p = (const unsigned char *)path; *p; p++) {
+        unsigned char c = *p;
+#ifdef _WIN32
+        if (c == '\\') c = '/';
+#endif
+        if (n + 4 >= sizeof url) return false;
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+            (c >= '0' && c <= '9') || c == '/' || c == ':' || c == '-' || c == '_' || c == '.')
+            url[n++] = (char)c;
+        else { snprintf(url + n, 4, "%%%02X", c); n += 3; }
+    }
+    url[n] = '\0';
+    return SDL_OpenURL(url) == 0;
+}
+
+static bool developer_open_reports(bool latest)
+{
+    char *dir = developer_reports_dir();
+    if (!dir) return false;
+    char path[4096];
+    snprintf(path, sizeof path, "%s", dir);
+    bool found = !latest;
+    if (latest) {
+#ifdef _WIN32
+        wchar_t pattern[4096];
+        char search[4096];
+        int n = snprintf(search, sizeof search, "%srun-*.jsonl.txt", dir);
+        if (n > 0 && (size_t)n < sizeof search &&
+            MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, search, -1, pattern, 4096)) {
+            WIN32_FIND_DATAW entry;
+            HANDLE d = FindFirstFileW(pattern, &entry);
+            FILETIME newest = { 0, 0 };
+            if (d != INVALID_HANDLE_VALUE) {
+                do {
+                    if (entry.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) continue;
+                    char name[4096], candidate[4096];
+                    if (!WideCharToMultiByte(CP_UTF8, 0, entry.cFileName, -1, name, sizeof name, NULL, NULL)) continue;
+                    n = snprintf(candidate, sizeof candidate, "%s%s", dir, name);
+                    if (n > 0 && (size_t)n < sizeof candidate &&
+                        (!found || CompareFileTime(&entry.ftLastWriteTime, &newest) >= 0)) {
+                        newest = entry.ftLastWriteTime;
+                        snprintf(path, sizeof path, "%s", candidate);
+                        found = true;
+                    }
+                } while (FindNextFileW(d, &entry));
+                FindClose(d);
+            }
+        }
+#else
+        DIR *d = opendir(dir);
+        struct dirent *entry;
+        time_t newest = 0;
+        if (d) {
+            while ((entry = readdir(d)) != NULL) {
+                size_t len = strlen(entry->d_name);
+                if (strncmp(entry->d_name, "run-", 4) != 0 || len < 10 ||
+                    strcmp(entry->d_name + len - 10, ".jsonl.txt") != 0) continue;
+                char candidate[4096];
+                struct stat st;
+                int n = snprintf(candidate, sizeof candidate, "%s%s", dir, entry->d_name);
+                if (n > 0 && (size_t)n < sizeof candidate && lstat(candidate, &st) == 0 &&
+                    S_ISREG(st.st_mode) && (!found || st.st_mtime >= newest)) {
+                    newest = st.st_mtime;
+                    snprintf(path, sizeof path, "%s", candidate);
+                    found = true;
+                }
+            }
+            closedir(d);
+        }
+#endif
+    }
+    SDL_free(dir);
+    return found && developer_open_path(path);
 }
 
 /* ---------------------------------------------------------------- Swift bridge
@@ -1637,6 +1758,10 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
          * Choosing the profile is the whole reason to set that variable, so acting on it is
          * what "autoplay takes the launcher's path" has to mean. */
         if (am.profile == 1) { apply_profile(am); }
+        if (!developer_prepare_recording(am)) {
+            fputs("[getv][launcher] cannot prepare telemetry reports directory\n", stderr);
+            return 1;
+        }
         model_store(am);
         printf("[getv][launcher] autoplay: profile=%s ruleset=%s%s\n",
                am.profile ? "goldeneye+" : "97-console",
@@ -1829,11 +1954,11 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
 
     bool running = true;
     bool launch  = false;
-    /* GETV_LAUNCHER_PAGE=<0..6> opens on that page. It exists so the pages the probe
+    /* GETV_LAUNCHER_PAGE=<0..7> opens on that page. It exists so the pages the probe
      * cannot reach -- the probe never clicks anything -- can each be rendered and looked at
      * without a human driving the mouse. */
     int  page    = env_int("GETV_LAUNCHER_PAGE", 0);
-    if (page < 0 || page > 6) page = 0;
+    if (page < 0 || page > 7) page = 0;
     const int probe_frames = env_int("GETV_LAUNCHER_PROBE", 0);
     int probe_seen = 0;
 
@@ -1948,7 +2073,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             dl->AddLine(ImVec2(navW, headerH), ImVec2(navW, H - footerH), kLine, 1.0f);
 
             static const char *const kPages[] =
-                { "MISSION", "CO-OP", "RULES", "CONTROLS", "CHEATS", "VIDEO", "MODS" };
+                { "MISSION", "CO-OP", "RULES", "CONTROLS", "CHEATS", "VIDEO", "MODS", "DEVELOPER TOOLS" };
             const int kPageCount = (int)(sizeof kPages / sizeof kPages[0]);
             ImGui::SetCursorScreenPos(ImVec2(0, headerH + 20));
             ImGui::PushStyleColor(ImGuiCol_ChildBg, v4(kPanel));
@@ -2417,12 +2542,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                          "high-refresh setting.");
                 }
 
-                Section("DEVELOPER");
-                ImGui::Checkbox("Show the developer overlay in game", &m.dev_overlay);
-                ImGui::SetNextItemWidth(220.0f);
-                ImGui::InputText("Console hotkey", m.console_key, sizeof m.console_key);
-                Hint("SDL scancode name; grave/backquote is the default. The console owns "
-                     "keyboard and mouse input while open.");
+
             }
 
             else if (page == 6) {
@@ -2520,6 +2640,47 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                 }
             }
 
+            else if (page == 7) {
+                static const char *notice = "";
+                Section("RECORD PROP USAGE");
+                ImGui::Checkbox("Record telemetry for this launch", &m.record_telemetry);
+                Hint("Measure occupied object slots, peak usage and allocation failures. "
+                     "Saves a local JSONL report and a readable summary. Nothing is uploaded.");
+                const char *durations[] = { "3,600 frames (~1 minute at 60 FPS)",
+                    "10,800 frames (~3 minutes at 60 FPS)", "18,000 frames (~5 minutes at 60 FPS)" };
+                int duration = m.record_frames == 3600 ? 0 : m.record_frames == 18000 ? 2 : 1;
+                ImGui::BeginDisabled(!m.record_telemetry);
+                ImGui::SetNextItemWidth(360);
+                if (ImGui::Combo("Recording length", &duration, durations, 3))
+                    m.record_frames = duration == 0 ? 3600 : duration == 2 ? 18000 : 10800;
+                ImGui::EndDisabled();
+                Hint("The game closes automatically at the frame limit. Keyboard and mouse stay "
+                     "active. Closing early leaves an incomplete report. Choose a mission before starting.");
+                if (Btn("OPEN REPORTS", ImVec2(180, 32), false))
+                    notice = developer_open_reports(false) ? "" : "Could not open the reports folder.";
+                ImGui::SameLine();
+                if (Btn("LATEST SUMMARY", ImVec2(200, 32), false))
+                    notice = developer_open_reports(true) ? "" : "No summary found, or the file could not be opened.";
+                if (*notice) Hint(notice);
+
+                Section("DEBUGGING");
+                ImGui::Checkbox("Show the developer overlay in game", &m.dev_overlay);
+                ImGui::SetNextItemWidth(220);
+                ImGui::InputText("Console hotkey", m.console_key, sizeof m.console_key);
+                Hint("Default: grave/backquote. Close the console to return keyboard and mouse to the game.");
+                const char *levels[] = { "Off", "Device diagnostics", "Detailed input diagnostics" };
+                ImGui::SetNextItemWidth(280);
+                ImGui::Combo("Input logging", &m.input_debug, levels, 3);
+                ImGui::Checkbox("Log frame pacing", &m.pace_trace);
+                Hint("Debug logs go to standard output, separate from saved telemetry reports. "
+                     "Detailed logging can affect performance. These choices apply to this launch.");
+
+                Section("HELP");
+                if (Btn("GUIDE / FAQ ON GITHUB", ImVec2(280, 32), false))
+                    notice = SDL_OpenURL("https://github.com/seb-patron/goldeneye-native/blob/main/docs/DEVELOPER_TOOLS.md") == 0
+                        ? "" : "Could not open the browser.";
+            }
+
             ImGui::EndChild();
             ImGui::PopStyleColor();
 
@@ -2561,7 +2722,11 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             ImGui::SetCursorScreenPos(ImVec2(W - 358, H - footerH + 21));
             if (Btn("QUIT", ImVec2(120, 36), false)) { running = false; }
             ImGui::SetCursorScreenPos(ImVec2(W - 222, H - footerH + 21));
-            if (Btn("START MISSION", ImVec2(188, 36), true)) { launch = true; running = false; }
+            if (Btn("START MISSION", ImVec2(188, 36), true)) {
+                if (developer_prepare_recording(m)) { launch = true; running = false; }
+                else SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cannot start recording",
+                    "The reports directory could not be prepared. Turn recording off or check folder access.", win);
+            }
 
             ImGui::End();
         }

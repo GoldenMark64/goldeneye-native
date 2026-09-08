@@ -12,6 +12,9 @@ The language-neutral schema is also the legacy boundary for a future Rust capabi
 does not compute editor evidence keys: the caller binds a report to its measured executable,
 materialized source, patch, profile, and configuration fingerprints.
 
+For a graphical setup, use the desktop launcher’s **Developer Tools** page. See the
+[guide and FAQ](DEVELOPER_TOOLS.md) for manual recording, report locations and interpretation.
+
 ## Enable a bounded run
 
 Supply both raw diagnostic gates:
@@ -19,6 +22,7 @@ Supply both raw diagnostic gates:
 ```bash
 GETV_PROP_TELEMETRY=1 \
 GETV_PROP_TELEMETRY_RUN_ID=01936f5d-2417-7a10-8650-47a691999a71 \
+GETV_KEYBOARD_IDLE=0 \
 GETV_STAGE=34 GETV_INTROCAM=0 GETV_EXIT_FRAME=301 \
 ./getv/build-mac/goldeneye
 ```
@@ -31,6 +35,15 @@ run ID disables telemetry and writes one diagnostic to stderr.
 With valid input, one `stage-ready` record is emitted after stage setup and one `run-final` record
 is emitted immediately before `GETV_EXIT_FRAME` uses its bounded `_exit` path. With telemetry
 disabled, the hooks do no accounting and ordinary stdout is unchanged.
+
+## Optional local files
+
+`GETV_PROP_TELEMETRY_FILE` specifies a new JSONL file in an existing local directory. When
+telemetry is enabled, the producer also creates a readable `<file>.txt` summary. Both files
+use exclusive creation: existing files are never overwritten. Each observation is flushed;
+only a timed `run-final` marks completion. Files contain telemetry only, not surrounding logs.
+File errors are reported on stderr; stdout telemetry continues. Disabled telemetry creates no files.
+The destination path is never included in the records. The version 1 JSON schema is unchanged.
 
 ## Contract version 1
 

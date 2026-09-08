@@ -5,7 +5,8 @@ description: "Prepare a focused GoldenEye-Native pull request from reproduction 
 
 # Prepare a GoldenEye-Native pull request
 
-Read and follow the [shared skill instructions](../../../.agents/skills/prepare-goldeneye-pr/SKILL.md)
+Read and follow the shared skill instructions at `.agents/skills/prepare-goldeneye-pr/SKILL.md`,
+relative to the repository root ([link](../../../.agents/skills/prepare-goldeneye-pr/SKILL.md)),
 before taking action. That file contains the complete workflow, validation requirements,
 provenance rules and publication approval policy.
 

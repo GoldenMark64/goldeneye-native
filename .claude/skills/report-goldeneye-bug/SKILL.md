@@ -5,7 +5,8 @@ description: "Reproduce a GoldenEye-Native gameplay, configuration, rendering, b
 
 # Report a GoldenEye-Native bug
 
-Read and follow the [shared skill instructions](../../../.agents/skills/report-goldeneye-bug/SKILL.md)
+Read and follow the shared skill instructions at `.agents/skills/report-goldeneye-bug/SKILL.md`,
+relative to the repository root ([link](../../../.agents/skills/report-goldeneye-bug/SKILL.md)),
 before taking action. That file contains the complete workflow, validation requirements,
 provenance rules and publication approval policy.
 

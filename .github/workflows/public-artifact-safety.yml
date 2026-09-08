@@ -20,3 +20,5 @@ jobs:
         run: python3 tools/check_no_game_data.py --tracked
       - name: Test agent contribution tools
         run: python3 -m unittest discover -s tools/tests -p 'test_agent_tools.py'
+      - name: Test macOS launcher packaging without game data
+        run: python3 tools/tests/test_macos_launcher_app.py -v

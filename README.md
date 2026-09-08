@@ -48,7 +48,24 @@ You supply your own legally dumped cartridge. No game data ships here, and none 
 
 ## Install it
 
-That is it. Drag `Play GoldenEye` to your Dock if you want it there permanently.
+### On a Mac
+
+**1.** Get your own GoldenEye 007 ROM and leave it on your **Desktop**. Do not rename it.
+
+**2.** On [the project page](https://github.com/seb-patron/goldeneye-native), click the green
+**Code** button, then **Download ZIP**. Double-click the downloaded file to unzip it.
+
+**3.** Open the folder that appears and **double-click `Install on Mac`**.
+
+A window opens and does the rest. It takes 10 to 40 minutes the first time, almost all of it
+reading your cartridge, and you can leave it running. If macOS says the file is from an
+unidentified developer, right-click it and choose **Open** instead, then **Open** again.
+
+**4.** When it finishes, open `getv/build-mac` and **double-click `GoldenEye.app`** to choose
+a mission and settings in the custom launcher.
+
+Keep the app beside the `goldeneye` executable. Drag the app to your Dock for quick access.
+`Play GoldenEye` in the repository folder also opens the launcher.
 
 **Optional terminal install.** If you cloned the repository or prefer the terminal, run this from
 the repository root instead of step 3:
@@ -245,8 +262,12 @@ looks exactly like a preset that did not work.
 ## The launcher
 
 On Windows, double-clicking `goldeneye.exe` opens a window for choosing a level, a ruleset, cheats
-and video settings before the game starts. Other desktop binaries accept `--launcher`, so none of
-this needs a config file.
+and video settings before the game starts. On macOS, double-click
+`getv/build-mac/GoldenEye.app`; the normal build creates this app, and
+`./getv/build_mac.sh bundle` adds it to an existing build.
+
+`--launcher` opens a window for choosing a level, a ruleset, cheats and video settings before the
+game starts from the Linux or plain macOS executable, so none of this needs a config file.
 
 | | |
 |---|---|

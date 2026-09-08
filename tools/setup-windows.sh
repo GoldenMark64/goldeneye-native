@@ -32,24 +32,52 @@ step() { echo; echo "== $* =="; }
 step "checking for python3"
 # python.org's Windows installer commonly exposes `python.exe` (and the `py.exe` launcher),
 # while Unix-oriented setup instructions call `python3`. Treat all three as the same Python 3
-# prerequisite and export a function under the spelling the decomp's child bash script uses.
-# Requiring the literal `python3.exe` made a correct default Windows install look missing.
+# prerequisite. Requiring the literal `python3.exe` made a correct default Windows install
+# look missing.
+#
+# A file on PATH rather than `export -f python3`, which is what this used to do. An exported
+# bash function reaches a child bash and nothing else: mingw32-make picks its own shell for
+# recipe lines, and the decomp's makefiles and generator scripts call `python3` from inside
+# make. tools/install.ps1 shims the same two names for the same reason -- see the toolshim
+# block there -- and this script is the one the setup app actually runs.
+TOOLSHIM="$HERE/build/toolshim"
+mkdir -p "$TOOLSHIM" || die "could not create the tool shim directory $TOOLSHIM"
+
+PYTHON_ARGS=''
 if [ -n "${GETV_PORTABLE_PYTHON:-}" ]; then
-  python3() { command "${GETV_PORTABLE_PYTHON}" "$@"; }
-  export -f python3
+  PYTHON_EXE="$GETV_PORTABLE_PYTHON"
 elif command -v python3 >/dev/null 2>&1; then
-  :
+  PYTHON_EXE="$(command -v python3)"
 elif command -v python >/dev/null 2>&1; then
-  python3() { command python "$@"; }
-  export -f python3
+  PYTHON_EXE="$(command -v python)"
 elif command -v py.exe >/dev/null 2>&1; then
-  python3() { command py.exe -3 "$@"; }
-  export -f python3
+  PYTHON_EXE="$(command -v py.exe)"
+  PYTHON_ARGS='-3'
 else
   die "Python 3 not found -- rerun the setup app so it can repair its private Python download"
 fi
+# The setup app hands this over as a Windows path. Same conversion, and same reason, as $MINGW
+# below: a backslash path is usable by CreateProcess but not by the shells that run the shim.
+PYTHON_POSIX="$(cygpath -u "$PYTHON_EXE" 2>/dev/null \
+  || printf '%s' "$PYTHON_EXE" | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\1|')"
+[ -x "$PYTHON_POSIX" ] || die "the selected Python is not executable: $PYTHON_EXE"
+
+# The shim names the interpreter by absolute path on purpose. Calling `python3` from inside a
+# file named python3, with $TOOLSHIM prepended to PATH below, would re-enter the shim forever.
+printf '#!/bin/sh\nexec "%s" %s "$@"\n' "$PYTHON_POSIX" "$PYTHON_ARGS" > "$TOOLSHIM/python3" \
+  || die "could not write the python3 shim to $TOOLSHIM"
+chmod +x "$TOOLSHIM/python3" || die "could not make the python3 shim executable"
+export PATH="$TOOLSHIM:$PATH"
+
+# 0027-external-rom-path.patch reads this variable directly rather than resolving `python3`.
+# Point it at the shim, not at the raw interpreter: the py.exe branch needs its -3 argument,
+# and only the shim carries it. Exporting it in every branch also means a developer's own
+# python3 reaches the decomp the same way the setup app's private copy does.
+export GETV_PORTABLE_PYTHON="$TOOLSHIM/python3"
+
 python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 8) else 1)' \
   || die "Python 3.8 or newer is required -- rerun the setup app so it can repair its private Python download"
+echo "python3 -> $PYTHON_POSIX${PYTHON_ARGS:+ $PYTHON_ARGS}"
 
 # Python on Windows encodes stdout as cp1252 once it is redirected rather than attached to a
 # console, and several of the decomp's generators print non-ASCII status glyphs. generate_chr_c.py

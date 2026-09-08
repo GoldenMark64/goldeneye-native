@@ -3,8 +3,8 @@
 This work produces a **non-playable setup candidate**, not a prebuilt game. `goldeneye.exe`
 contains the assets extracted from the builder's ROM, so this project does not package or upload
 it. `GoldenEye-Native-Setup.exe` is deliberately different: it contains the setup UI and local ROM
-verifier/importer, then builds the playable executable on the user's own Windows computer from a
-ROM they supply.
+verifier, then builds the playable executable on the user's own Windows computer from a ROM they
+supply.
 
 The end-user download and first-run instructions are in
 [`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md). This document is for maintainers producing and testing
@@ -31,15 +31,15 @@ The setup application:
 1. downloads pinned PortableGit and embeddable Python archives into the current user's LocalAppData
    folder and verifies their upstream SHA-256 values before using them;
 2. asks for an installation folder and clones the public source there;
-3. opens a normal file picker for a user-supplied `.z64`, `.v64`, or `.n64` dump;
-4. detects the dump's byte order, normalizes it to z64 in a temporary local file, and verifies the
-   normalized US-ROM SHA-1;
-5. replaces the app-managed ROM copy only after that verification succeeds;
+3. opens a normal file picker for a user-supplied big-endian `.z64` dump;
+4. verifies the supported US-ROM SHA-1 without modifying the selected file;
+5. passes the selected path to the extractor, which reads the ROM in place;
 6. downloads the remaining build tools, extracts assets, and builds on that computer; and
 7. launches the game's settings window when setup completes.
 
-The selected ROM is never uploaded. The source file is opened read-only, and a failed conversion
-does not alter it or leave a partial file at the path trusted by the build.
+The selected ROM is never copied or uploaded. The source file is opened read-only. A valid v64 or
+n64 dump is identified accurately but refused with an explanation because accepting it would
+require conversion to a second ROM file under the current extractor.
 
 The user does not install Git, Python, or a compiler and does not use a terminal. The private Git
 and Python copies are not registered system-wide, do not need administrator privileges, and are
@@ -64,8 +64,8 @@ From a clean source checkout in PowerShell:
 ```
 
 The script fetches only the wizard dependencies, builds a statically linked executable, runs its
-ROM byte-order self-test, checks that it imports only Windows system DLLs, scans for representative
-game/asset/renderer markers, and writes the package under `dist\windows\`.
+ROM-verification self-test, checks that it imports only Windows system DLLs, scans for representative
+game/asset/renderer markers and ROM-copy paths, and writes the package under `dist\windows\`.
 
 To rebuild after the dependencies are already present:
 
@@ -102,9 +102,9 @@ Python, MinGW, or this repository installed:
 2. Choose a new, empty destination outside the source checkout.
 3. Confirm setup downloads and verifies its private PortableGit and Python copies without an admin
    prompt or a system-wide install.
-4. Complete one install using a supported US dump the tester is permitted to use. Record whether
-   it was z64, v64, or n64; do not record its path or attach it anywhere.
-5. Confirm the wizard says the format was recognized and, for v64/n64, converted locally.
+4. Complete one install using a supported US big-endian z64 dump the tester is permitted to use;
+   do not record its path or attach it anywhere.
+5. Confirm the wizard says the file was verified and will be read in place without being copied.
 6. Confirm all four build groups report `0 failed`, **Launch GoldenEye** opens the launcher, and a
    mission starts.
 7. Close the game and double-click the locally built `goldeneye.exe` in the installation folder.

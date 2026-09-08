@@ -354,8 +354,9 @@ work and is not currently planned.
 
 `GoldenEye-Native-Setup.exe` is a proposed first-run setup application for Windows, not a playable
 binary. It downloads private portable build tools and the public source, asks for a user-supplied
-ROM, normalizes z64/v64/n64 byte order, verifies the normalized SHA-1, and drives
-`tools/setup-windows.sh`. All ROM processing and the playable build happen on the user's machine.
+big-endian z64 ROM, verifies its SHA-1 in place, and passes its original path to
+`tools/setup-windows.sh`. The ROM is not copied or uploaded; extraction and the playable build
+happen on the user's machine.
 
 The wizard is deliberately designed to carry no ROM-derived or `assets/` data, decompilation code,
 or Fast3D renderer code. The renderer and ROM-derived assets are linked into the locally built
@@ -366,7 +367,7 @@ Those questions require maintainer and, where appropriate, legal review before p
 
 That is checked rather than asserted. `getv/build_wizard.ps1` links exactly three of this
 project's own sources -- `setup_wizard.cpp`, `sha1.c` and `ge_icon_apply.c` -- against Dear ImGui
-(MIT), SDL2 (zlib) and GLEW. `tools/package_windows_wizard.ps1` then runs the import self-test,
+(MIT), SDL2 (zlib) and GLEW. `tools/package_windows_wizard.ps1` then runs the verification self-test,
 checks the DLL imports and binary size, and scans representative generated-asset, decompilation,
 and Fast3D markers before it stages the package. The package includes their complete notices from
 `getv/wizard/THIRD_PARTY_NOTICES.txt`. A ROM alone is 12 MB.

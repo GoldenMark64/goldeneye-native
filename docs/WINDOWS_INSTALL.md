@@ -13,6 +13,8 @@ official public candidate yet.
 The downloaded setup package is not the game and cannot play without a ROM. It contains no ROM,
 extracted game assets, decompiled game source, or playable `goldeneye.exe`. The playable program
 is built only on your computer after you select your own supported cartridge dump.
+Every fresh installation stops at the ROM picker and cannot build the game until that local file
+has passed verification.
 
 That technical separation is not legal advice. You are responsible for using a ROM and the
 resulting local build in a way permitted where you live. See [`LICENSING.md`](LICENSING.md) for
@@ -21,8 +23,8 @@ the project's unresolved source-licensing questions.
 ## What you need
 
 - A Windows 10 or 11 x86-64 computer with internet access.
-- Your own supported US GoldenEye 007 cartridge dump that you are permitted to use. The file may
-  be in `.z64`, `.v64`, or `.n64` byte order.
+- Your own supported US GoldenEye 007 big-endian `.z64` cartridge dump that you are permitted to
+  use.
 - About 4 GB of free disk space and 10 to 40 minutes for the first build.
 
 You do **not** need to install Git, Python, a compiler, or this source repository. Setup uses
@@ -43,8 +45,8 @@ administrator access.
 1. Double-click `GoldenEye-Native-Setup.exe`.
 2. Choose a new, empty installation folder.
 3. Select your ROM when the normal Windows file picker opens.
-4. Confirm that setup recognizes and verifies the file. It normalizes v64/n64 byte order into a
-   separate local copy; it does not modify the file you selected.
+4. Confirm that setup recognizes and verifies the file. It reads your selected ROM in place and
+   does not copy, modify, or upload it.
 5. Leave setup open while it downloads the public source and build tools, extracts the required
    data locally, and builds the playable program.
 6. When all build groups report `0 failed`, click **Launch GoldenEye**.

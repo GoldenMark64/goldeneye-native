@@ -4,8 +4,8 @@
  * dependency on the decomp, the ROM, or the built game, because its whole job is to get from
  * "download one setup file" to "goldeneye.exe exists" for someone who does not want to install
  * developer tools or open a terminal. It downloads private, portable Git and Python copies,
- * picks the user's ROM, recognizes z64/v64/n64 byte order, verifies and imports a normalized
- * local copy, then runs tools/setup-windows.sh and shows its output live.
+ * picks the user's z64 ROM, verifies it without changing or copying it, then passes that original
+ * path to tools/setup-windows.sh and shows its output live.
  *
  * ---------------------------------------------------------------- why this is a second binary
  *
@@ -100,6 +100,11 @@ const char *rom_order_name(RomByteOrder order)
     }
 }
 
+bool rom_can_build_in_place(RomByteOrder order)
+{
+    return order == ROM_ORDER_Z64;
+}
+
 RomByteOrder detect_rom_order(const unsigned char header[4])
 {
     if (header[0] == 0x80 && header[1] == 0x37 &&
@@ -112,9 +117,9 @@ RomByteOrder detect_rom_order(const unsigned char header[4])
 }
 
 /* The extractor consumes big-endian z64 bytes. v64 swaps every adjacent pair and n64 reverses
- * each four-byte word; both operations are their own inverse. Buffers passed here are always a
- * multiple of four bytes except possibly the final buffer of a malformed file, which verify_rom
- * rejects on size before importing it. */
+ * each four-byte word; both operations are their own inverse. Verification normalizes one read
+ * buffer at a time only to identify an otherwise-correct byte-swapped dump. It never writes
+ * those normalized bytes anywhere. */
 void normalize_rom_bytes(unsigned char *bytes, size_t n, RomByteOrder order)
 {
     if (order == ROM_ORDER_V64) {
@@ -310,11 +315,12 @@ bool find_bash_exe(char *out, size_t n)
     return false;
 }
 
-/* ---------------------------------------------------------------- ROM verification + import
+/* ---------------------------------------------------------------- ROM verification
  *
- * Mirrors docs/SETUP.md 3.3/3.4 while accepting all three common cartridge-dump byte orders.
- * The expected digest is always computed over normalized big-endian z64 bytes, so a correct v64
- * or n64 dump gets the same verdict without asking the user to find a separate conversion tool. */
+ * Mirrors docs/SETUP.md 3.3/3.4 and recognizes all three common cartridge-dump byte orders.
+ * The expected digest is computed over normalized big-endian bytes so the error can distinguish
+ * an unsupported byte order from the wrong game. Only z64 is accepted for setup because the
+ * extractor can read that format directly from the selected path without creating another ROM. */
 struct RomCheck {
     bool ok;
     RomByteOrder order;
@@ -393,83 +399,22 @@ RomCheck verify_rom(const char *path)
         return r;
     }
 
-    r.ok = true;
-    if (r.order == ROM_ORDER_Z64) {
+    if (!rom_can_build_in_place(r.order)) {
         snprintf(r.message, sizeof r.message,
-                 "Verified: US GoldenEye 007 ROM in z64 byte order. It will be copied locally.");
-    } else {
-        snprintf(r.message, sizeof r.message,
-                 "Verified: US GoldenEye 007 ROM in %s byte order. It will be converted to z64 "
-                 "locally while it is imported.", rom_order_name(r.order));
+                 "This is the correct US ROM in %s byte order, but no-copy setup currently "
+                 "requires a big-endian .z64 dump. The selected file was not changed.",
+                 rom_order_name(r.order));
+        return r;
     }
+
+    r.ok = true;
+    snprintf(r.message, sizeof r.message,
+             "Verified: US GoldenEye 007 z64 ROM. Setup will read this file in place; it will "
+             "not copy or upload it.");
     return r;
 }
 
-/* Write through a sibling temporary file and replace the destination only after all bytes have
- * been normalized successfully. A failed or interrupted import therefore never leaves a partial
- * file at the exact path setup-windows.sh trusts. */
-bool import_rom(const char *src, const char *dst, RomByteOrder order, std::string *err)
-{
-    if (order == ROM_ORDER_UNKNOWN) {
-        *err = "The selected ROM's byte order was not verified; select and verify it again.";
-        return false;
-    }
-    char tmp[MAX_PATH];
-    int tmpLen = snprintf(tmp, sizeof tmp, "%s.importing", dst);
-    if (tmpLen < 0 || (size_t) tmpLen >= sizeof tmp) {
-        *err = "The installation path is too long for a safe ROM import. Choose a shorter folder.";
-        return false;
-    }
-    DeleteFileA(tmp);
-
-    FILE *in = fopen(src, "rb");
-    if (in == NULL) {
-        *err = "Could not reopen the selected ROM for importing.";
-        return false;
-    }
-    FILE *out = fopen(tmp, "wb");
-    if (out == NULL) {
-        fclose(in);
-        *err = "Could not create the local ROM file in the installation folder.";
-        return false;
-    }
-
-    bool ok = true;
-    unsigned char buf[65536];
-    size_t n;
-    while ((n = fread(buf, 1, sizeof buf, in)) > 0) {
-        normalize_rom_bytes(buf, n, order);
-        if (fwrite(buf, 1, n, out) != n) {
-            ok = false;
-            break;
-        }
-    }
-    if (ferror(in)) ok = false;
-    if (fflush(out) != 0) ok = false;
-    if (fclose(out) != 0) ok = false;
-    fclose(in);
-
-    if (!ok) {
-        DeleteFileA(tmp);
-        *err = "The ROM could not be imported completely. Check free disk space and try again.";
-        return false;
-    }
-
-    RomCheck written = verify_rom(tmp);
-    if (!written.ok || written.order != ROM_ORDER_Z64) {
-        DeleteFileA(tmp);
-        *err = "The locally imported copy did not pass verification; the original was not changed.";
-        return false;
-    }
-    if (!MoveFileExA(tmp, dst, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
-        DeleteFileA(tmp);
-        *err = "The verified ROM could not be moved into the installation folder.";
-        return false;
-    }
-    return true;
-}
-
-int rom_import_self_test()
+int rom_verification_self_test()
 {
     const unsigned char z64[] = {
         0x80, 0x37, 0x12, 0x40, 0xde, 0xad, 0xbe, 0xef,
@@ -485,16 +430,23 @@ int rom_import_self_test()
     if (detect_rom_order(z64) != ROM_ORDER_Z64 ||
         detect_rom_order(v64) != ROM_ORDER_V64 ||
         detect_rom_order(n64) != ROM_ORDER_N64) {
-        fprintf(stderr, "ROM import self-test failed: byte-order detection\n");
+        fprintf(stderr, "ROM verification self-test failed: byte-order detection\n");
+        return 1;
+    }
+    if (!rom_can_build_in_place(ROM_ORDER_Z64) ||
+        rom_can_build_in_place(ROM_ORDER_V64) ||
+        rom_can_build_in_place(ROM_ORDER_N64) ||
+        rom_can_build_in_place(ROM_ORDER_UNKNOWN)) {
+        fprintf(stderr, "ROM verification self-test failed: no-copy format policy\n");
         return 1;
     }
     normalize_rom_bytes(v64, sizeof v64, ROM_ORDER_V64);
     normalize_rom_bytes(n64, sizeof n64, ROM_ORDER_N64);
     if (memcmp(v64, z64, sizeof z64) != 0 || memcmp(n64, z64, sizeof z64) != 0) {
-        fprintf(stderr, "ROM import self-test failed: normalization\n");
+        fprintf(stderr, "ROM verification self-test failed: normalization\n");
         return 1;
     }
-    printf("ROM import self-test passed: z64, v64, and n64\n");
+    printf("ROM verification self-test passed: z64 accepted in place; v64/n64 detected\n");
     return 0;
 }
 
@@ -504,7 +456,7 @@ bool open_rom_dialog(char *out, size_t n)
     OPENFILENAMEA ofn;
     memset(&ofn, 0, sizeof ofn);
     ofn.lStructSize = sizeof ofn;
-    ofn.lpstrFilter = "N64 ROM (*.z64;*.v64;*.n64)\0*.z64;*.v64;*.n64\0All files\0*.*\0\0";
+    ofn.lpstrFilter = "Big-endian N64 ROM (*.z64)\0*.z64\0All files\0*.*\0\0";
     ofn.lpstrFile = buf;
     ofn.nMaxFile = sizeof buf;
     /* OFN_NOCHANGEDIR: GetOpenFileName's legacy side effect of changing the process's current
@@ -844,7 +796,7 @@ bool start_tool_bootstrap(Pipeline *p, std::string *err)
     return start_process(p, cmd, NULL, err);
 }
 
-bool start_pipeline(Pipeline *p, const char *repoRoot, std::string *err)
+bool start_pipeline(Pipeline *p, const char *repoRoot, const char *romPath, std::string *err)
 {
     char bash[MAX_PATH];
     if (!find_bash_exe(bash, sizeof bash)) {
@@ -864,9 +816,31 @@ bool start_pipeline(Pipeline *p, const char *repoRoot, std::string *err)
     } else {
         /* PortableGit's core Unix commands live in /usr/bin. They are added by its login
          * profile, not by launching bin/bash.exe directly; without -l setup stops at dirname. */
-        snprintf(cmd, sizeof cmd, "\"%s\" -lc \"tools/setup-windows.sh\"", bash);
+        /* Put the user-selected Windows path in the child environment rather than splicing it
+         * into shell source. Quoting filenames for both CreateProcess and bash is otherwise
+         * fragile for spaces, apostrophes, dollar signs, and other valid filename characters.
+         * CreateProcess snapshots the environment before returning, so it can be restored as
+         * soon as start_process returns. */
+        snprintf(cmd, sizeof cmd,
+                 "\"%s\" -lc \"tools/setup-windows.sh \\\"$GETV_WIZARD_ROM_PATH\\\"\"",
+                 bash);
     }
-    return start_process(p, cmd, repoRoot, err);
+
+    DWORD oldLength = GetEnvironmentVariableA("GETV_WIZARD_ROM_PATH", NULL, 0);
+    std::vector<char> oldValue(oldLength > 0 ? oldLength : 1, '\0');
+    bool hadOldValue = oldLength > 0;
+    if (hadOldValue) {
+        GetEnvironmentVariableA("GETV_WIZARD_ROM_PATH", oldValue.data(), oldLength);
+    }
+    if (!SetEnvironmentVariableA("GETV_WIZARD_ROM_PATH", romPath)) {
+        *err = "Windows would not pass the selected ROM path to the local build.";
+        return false;
+    }
+
+    bool started = start_process(p, cmd, repoRoot, err);
+    SetEnvironmentVariableA("GETV_WIZARD_ROM_PATH",
+                            hadOldValue ? oldValue.data() : NULL);
+    return started;
 }
 
 /* The package build embeds the source repository + branch/tag it belongs to. That matters for a
@@ -992,7 +966,7 @@ enum WizState {
 
 int main(int argc, char **argv)
 {
-    if (argc == 2 && strcmp(argv[1], "--self-test") == 0) return rom_import_self_test();
+    if (argc == 2 && strcmp(argv[1], "--self-test") == 0) return rom_verification_self_test();
     if (argc == 3 && strcmp(argv[1], "--write-bootstrap-script") == 0) {
         std::string err;
         if (!write_portable_tools_script(argv[2], &err)) {
@@ -1084,7 +1058,6 @@ int main(int argc, char **argv)
      * not a clean failure -- worth not having two initialization sites to keep in sync. */
     InitializeCriticalSection(&pipeline.lock);
     std::string startErr;
-    std::string copyErr;
     std::string cloneErr;
     std::string failureLabel = "Setup";
 
@@ -1119,7 +1092,7 @@ int main(int argc, char **argv)
             state = (WizState) want;
             if (state >= PICK_ROM) haveRepo = true;
             if (state == PICK_ROM || state == CONFIRM) {
-                snprintf(romPath, sizeof romPath, "C:\\roms\\ge007.u.z64");
+                snprintf(romPath, sizeof romPath, "C:\\Users\\Player\\GoldenEye 007 (USA).z64");
             }
             if (state == CONFIRM) {
                 romCheck.ok = true;
@@ -1152,7 +1125,7 @@ int main(int argc, char **argv)
                 /* Real process, real pipe, real reader thread -- against GETV_WIZARD_TEST_CMD
                  * rather than the real pipeline, so this exercises the actual plumbing without
                  * a ROM or a ten-minute build. */
-                if (!start_pipeline(&pipeline, repoRoot, &startErr)) {
+                if (!start_pipeline(&pipeline, repoRoot, romPath, &startErr)) {
                     pipeline.lines.push_back(startErr);
                     pipeline.finished = true;
                     pipeline.exitCode = 1;
@@ -1162,7 +1135,7 @@ int main(int argc, char **argv)
                 pipeline.lines.push_back("== decompiled game source ==");
                 pipeline.lines.push_back("already cloned at vendor/ge-decomp");
                 pipeline.lines.push_back("== ROM ==");
-                pipeline.lines.push_back("ROM ok, copied into vendor/ge-decomp/baserom.u.z64");
+                pipeline.lines.push_back("ROM ok; the extractor will read it in place");
                 pipeline.lines.push_back("== asset generation (docs/SETUP.md 3.5) ==");
                 pipeline.lines.push_back("Extracting compressed obseg/chr/00, 4096 bytes...");
             }
@@ -1205,9 +1178,9 @@ int main(int argc, char **argv)
                 "not need to install Git, Python, or work with source code yourself.");
             ImGui::Spacing();
             ImGui::TextUnformatted(
-                "You must provide your own lawfully obtained GoldenEye 007 (U) cartridge dump. "
-                "No ROM, game assets, or playable binary is included. .z64, .v64, and .n64 "
-                "files are supported; your selected file never leaves this computer.");
+                "You must provide your own lawfully obtained GoldenEye 007 (U) big-endian .z64 "
+                "cartridge dump. No ROM, game assets, or playable binary is included. Your "
+                "selected file is verified and read in place; it is not copied or uploaded.");
             ImGui::Spacing();
             ImGui::TextUnformatted(
                 "The first run downloads about 60-80 MB of private bootstrap tools, followed by "
@@ -1345,8 +1318,8 @@ int main(int argc, char **argv)
         case PICK_ROM: {
             ImGui::PushTextWrapPos(0.0f);
             ImGui::TextUnformatted(
-                "Select your own legally obtained GoldenEye 007 (U) ROM file. The wizard accepts "
-                ".z64, .v64, or .n64 byte order, verifies it locally, and never uploads it.");
+                "Select your own legally obtained GoldenEye 007 (U) big-endian .z64 ROM file. "
+                "The wizard verifies it locally, reads it in place, and never copies or uploads it.");
             ImGui::PopTextWrapPos();
             ImGui::Spacing();
             ImGui::PushItemWidth(-90.0f);
@@ -1379,30 +1352,17 @@ int main(int argc, char **argv)
                 "Next: this downloads roughly 300-400 MB of build tools and libraries (first "
                 "run only), then extracts and compiles the game. This can take several minutes "
                 "and needs an internet connection.");
-            if (copyErr.empty() && !startErr.empty()) {
+            if (!startErr.empty()) {
                 ImGui::Spacing();
                 ui_error(startErr.c_str());
-            }
-            if (!copyErr.empty()) {
-                ImGui::Spacing();
-                ui_error(copyErr.c_str());
             }
             ImGui::PopTextWrapPos();
             ImGui::Spacing();
             if (ImGui::Button("Back", ImVec2(100, 32))) state = PICK_ROM;
             ImGui::SameLine();
             if (ImGui::Button("Start setup", ImVec2(140, 32))) {
-                char romsDir[MAX_PATH], dest[MAX_PATH];
-                snprintf(romsDir, sizeof romsDir, "%s\\roms", repoRoot);
-                if (!CreateDirectoryA(romsDir, NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
-                    copyErr = "Could not create the local roms/ folder in the installation.";
-                    break;
-                }
-                snprintf(dest, sizeof dest, "%s\\roms\\ge007.u.z64", repoRoot);
-                copyErr.clear();
-                if (!import_rom(romPath, dest, romCheck.order, &copyErr)) {
-                    /* import_rom supplied a user-facing error and left the original untouched. */
-                } else if (start_pipeline(&pipeline, repoRoot, &startErr)) {
+                startErr.clear();
+                if (start_pipeline(&pipeline, repoRoot, romPath, &startErr)) {
                     failureLabel = "Setup";
                     state = RUNNING;
                 } /* else startErr is set; stay on this page and show it */

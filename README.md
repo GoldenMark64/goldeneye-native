@@ -65,9 +65,9 @@ bash tools/install.sh --rom /path/to/your/rom.z64
 
 ### On Windows
 
-**1.** Have your own supported GoldenEye 007 ROM dump ready. `.z64`, `.v64`, and `.n64` byte
-orders are accepted; the setup app verifies and normalizes the selected file locally. The project
-does not supply ROMs or instructions for acquiring one.
+**1.** Have your own supported GoldenEye 007 US big-endian `.z64` ROM dump ready. The setup app
+verifies it locally and reads it from the path you select without copying or uploading it. The
+project does not supply ROMs or instructions for acquiring one.
 
 **2.** Download the versioned Windows setup ZIP from this project's **Releases** page. Only a
 reviewed stable version tag publishes that ROM-free package; development branches do not publish
@@ -104,8 +104,8 @@ explicitly and `--desktop` to add a per-user applications-menu entry.
 Nothing here can break your computer or your ROM, and nothing is ever uploaded anywhere.
 
 - **It stopped partway.** Run it again. It picks up where it left off rather than starting over.
-- **It cannot find your ROM.** Put the file on your Desktop with a `.z64`, `.n64` or `.v64`
-  ending. Any of the three common formats works and it converts what it needs to.
+- **The Windows setup cannot use your ROM.** Select the supported US big-endian `.z64` dump.
+  The setup verifies and reads that file in place without converting or copying it.
 - **The Windows setup says a private tool is missing.** Run the setup app again so it can verify
   and repair its portable tool downloads.
 - **Anything else.** Open an issue with the last twenty lines it printed. Never attach your ROM
@@ -211,9 +211,9 @@ moved in 1997 and the picture is as smooth as your monitor can show.
 | Revision | US retail, SHA-1 `abe01e4aeb033b6c0836819f549c791b26cfde83` |
 | Status | The only revision built and tested |
 
-The installer converts a byte-swapped dump and then checks the result against that SHA-1, so a
-wrong or damaged file is refused with an explanation rather than producing a broken build twenty
-minutes later.
+The Windows setup verifies a big-endian z64 dump against that SHA-1 before building. A valid
+byte-swapped dump is recognized but refused because the no-copy setup does not create a converted
+ROM. A wrong or damaged file is refused before it can produce a broken build twenty minutes later.
 
 ## GoldenEye+ versus 97 Console
 

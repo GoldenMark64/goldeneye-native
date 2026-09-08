@@ -30,11 +30,11 @@ if (-not $SkipDeps) {
 $built = Join-Path $root 'getv\wizard\build\setup_wizard.exe'
 if (-not (Test-Path $built)) { throw "wizard build did not produce $built" }
 
-# Exercise the byte-order detector and normalizer in the actual Windows executable being shipped.
+# Exercise ROM verification policy in the actual Windows executable being shipped.
 $selfTest = @(& $built --self-test 2>&1)
 $selfTest | ForEach-Object { Write-Output $_ }
 if ($LASTEXITCODE -ne 0 -or ($selfTest -join "`n") -notmatch 'self-test passed') {
-  throw "setup_wizard.exe ROM import self-test failed (exit $LASTEXITCODE)"
+  throw "setup_wizard.exe ROM verification self-test failed (exit $LASTEXITCODE)"
 }
 
 # The portable-tool script is embedded in the executable so the user still downloads one file.
@@ -81,6 +81,25 @@ foreach ($needle in $forbidden) {
   }
 }
 
+# The player must select a ROM on every fresh setup. Keep that path external all the way into the
+# extractor: a hard-coded checkout ROM or an import routine would silently recreate the durable
+# copy this package promises not to make. These source checks complement the binary marker scan;
+# they are intentionally narrow enough that an explanatory README mention does not trip them.
+$wizardSource = Get-Content -LiteralPath (Join-Path $root 'getv\wizard\setup_wizard.cpp') -Raw
+$setupSource = Get-Content -LiteralPath (Join-Path $root 'tools\setup-windows.sh') -Raw
+foreach ($needle in @('import_rom(', 'roms\\ge007.u.z64', '.importing')) {
+  if ($wizardSource.Contains($needle)) {
+    throw "setup wizard contains a forbidden ROM-copy marker: $needle"
+  }
+}
+if (-not $setupSource.Contains('ROM="${1:-}"')) {
+  throw 'setup-windows.sh does not require the wizard-supplied ROM path'
+}
+if (-not $setupSource.Contains('bash scripts/extract_baserom.u.sh "$ROM"')) {
+  throw 'setup-windows.sh does not pass the selected ROM path to the extractor'
+}
+Write-Output 'ROM handling: selected z64 is required and read in place'
+
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 $packageExe = Join-Path $OutputDirectory 'GoldenEye-Native-Setup.exe'
 Copy-Item -LiteralPath $built -Destination $packageExe -Force
@@ -94,8 +113,8 @@ GoldenEye-Native setup for Windows
 
 1. Double-click GoldenEye-Native-Setup.exe.
 2. Choose an empty installation folder.
-3. Select your own supported US GoldenEye 007 cartridge dump that you are permitted to use.
-   .z64, .v64, and .n64 byte orders are accepted.
+3. Select your own supported US GoldenEye 007 big-endian .z64 cartridge dump that you are
+   permitted to use.
 4. Leave the setup window open while it builds, then click Launch GoldenEye.
 
 You do not need to install Git, Python, or a compiler. Setup downloads private portable copies,
@@ -105,9 +124,9 @@ This package installs source from:
 $RepoUrl
 ref: $RepoRef
 
-The ROM is checked, normalized, and copied locally. It is never uploaded. This package contains
-no ROM, extracted game assets, decompiled game code, or playable game binary; the playable binary
-is built only on your computer from the ROM you select.
+The ROM is verified and read from the location you selected. It is not copied or uploaded. This
+package contains no ROM, extracted game assets, decompiled game code, or playable game binary;
+the playable binary is built only on your computer from the ROM you select.
 
 This technical separation is not legal advice or a conclusion that public distribution is
 permitted. Review docs\LICENSING.md and resolve the recorded licensing questions before release.

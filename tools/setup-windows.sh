@@ -17,12 +17,12 @@
 # What it cannot do: the ROM is yours to supply (README's "bring your own" rules). If it is
 # missing this exits with the same instructions SETUP.md gives.
 #
-# usage (from git-bash): tools/setup-windows.sh
+# usage (from git-bash): tools/setup-windows.sh /path/to/your/rom.z64
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DECOMP="$HERE/vendor/ge-decomp"
-ROM="$HERE/roms/ge007.u.z64"
+ROM="${1:-}"
 MINGW="${GETV_MINGW:-C:\mingw64}"
 
 die() { echo "setup-windows: $*" >&2; exit 1; }
@@ -174,7 +174,8 @@ ge_rom_sha1_certutil() {
 
 # ---------------------------------------------------------------------- 4. the ROM
 step "ROM"
-[ -f "$ROM" ] || die "no ROM at $ROM -- see README.md 'Bring your own ROM'. Not something this script can fetch for you."
+[ -n "$ROM" ] || die "no ROM path was supplied -- select your own .z64 file in the setup app. Nothing here can fetch one for you."
+[ -f "$ROM" ] || die "no ROM at the selected path -- choose the file again. Nothing here can fetch one for you."
 SHA="$(ge_rom_sha1 "$ROM")"
 # Empty means the hashing tool failed, not that the ROM is wrong. Fall back before judging it.
 if [ -z "$SHA" ]; then

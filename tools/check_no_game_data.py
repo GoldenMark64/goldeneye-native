@@ -92,6 +92,15 @@ def inspect_path(path: Path, *, allow_native_bmp: bool = False) -> list[str]:
     if not path.is_file():
         return [f"{display}: not a regular file"]
 
+    with path.open("rb") as fh:
+        data = fh.read(SCAN_BYTES)
+    return inspect_content(path, data, allow_native_bmp=allow_native_bmp)
+
+
+def inspect_content(path: Path, data: bytes, *, allow_native_bmp: bool = False) -> list[str]:
+    """Scan the supplied version of a file, including an index blob at commit time."""
+    failures: list[str] = []
+    display = _display(path)
     lower_name = path.name.lower()
     lower_parts = {part.lower() for part in path.parts}
     suffix = path.suffix.lower()
@@ -103,9 +112,6 @@ def inspect_path(path: Path, *, allow_native_bmp: bool = False) -> list[str]:
         failures.append(f"{display}: files from a ROM directory may never be published")
     if suffix == ".bmp" and not allow_native_bmp:
         failures.append(f"{display}: rendered BMP captures must not be committed")
-
-    with path.open("rb") as fh:
-        data = fh.read(SCAN_BYTES)
 
     for magic, description in ROM_MAGICS.items():
         if magic in data:
@@ -130,6 +136,23 @@ def inspect_path(path: Path, *, allow_native_bmp: bool = False) -> list[str]:
     if not allowed_dense_array and _has_dense_hex_array(data):
         failures.append(f"{display}: contains a suspicious high-density hexadecimal array")
     return failures
+
+
+def inspect_staged(path: Path) -> list[str]:
+    """Inspect the index version even when the working copy differs or was removed."""
+    relative = path.relative_to(ROOT).as_posix()
+    entry = subprocess.run(
+        ["git", "ls-files", "--stage", "-z", "--", f":(literal){relative}"],
+        cwd=ROOT, capture_output=True, check=True,
+    ).stdout
+    mode, oid, _ = entry.split(b" ", 2)
+    data = subprocess.run(["git", "cat-file", "blob", oid.decode("ascii")],
+                          cwd=ROOT, capture_output=True, check=True).stdout[:SCAN_BYTES]
+    if mode == b"120000":
+        if any(os.fsdecode(data).lower().endswith(suffix) for suffix in FORBIDDEN_SUFFIXES):
+            return [f"{_display(path)}: symlink targets a forbidden game-data file"]
+        return []
+    return inspect_content(path, data)
 
 
 def _git_paths(args: list[str]) -> set[Path]:
@@ -181,6 +204,13 @@ def main(argv: list[str] | None = None) -> int:
     failures: list[str] = []
     checked = 0
     for path in sorted(paths, key=str):
+        if args.staged:
+            checked += 1
+            try:
+                failures.extend(inspect_staged(path))
+            except (ValueError, subprocess.CalledProcessError):
+                failures.append(f"{_display(path)}: cannot inspect staged version")
+            continue
         if not path.exists() and not path.is_symlink():
             continue
         checked += 1

@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import json
 import io
+import os
 import struct
+import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stdout, redirect_stderr
 from pathlib import Path
+from unittest.mock import patch
 
 
 TOOLS = Path(__file__).resolve().parents[1]
@@ -33,6 +36,25 @@ def write_bmp(path: Path, rgb: tuple[int, int, int], width: int = 32, height: in
 
 
 class PublicArtifactSafetyTests(unittest.TestCase):
+    def test_staged_check_reads_index_instead_of_working_copy(self) -> None:
+        # Synthetic content only. Keep temporary Git writes isolated even when run from a hook.
+        environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, environment, clear=True):
+            root = Path(directory)
+            path = root / "probe.txt"
+            path.write_bytes(b"invented test payload\x00")
+            for arguments in (["init", "-q"], ["add", "probe.txt"]):
+                subprocess.run(["git", *arguments], cwd=root, check=True, capture_output=True)
+            path.write_text("safe working copy\n", encoding="utf-8")
+            with patch.object(safety, "ROOT", root):
+                self.assertEqual(safety.inspect_path(path), [])
+                for removed in (False, True):
+                    if removed:
+                        path.unlink()
+                    with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()) as errors:
+                        self.assertEqual(safety.main(["--staged"]), 1)
+                    self.assertIn("unexpected binary content", errors.getvalue())
+
     def test_detects_renamed_rom_and_archive(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

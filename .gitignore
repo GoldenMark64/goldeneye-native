@@ -211,9 +211,9 @@ getv/build_mac_*.sh
 !getv/build_mac_app.sh
 getv/build_sim_*.sh
 
-# Screenshots used in the documentation. These are the one deliberate exception to the
-# no-game-data rule: they are captures of the running port, included because a port with
-# no screenshots is not a credible port. They are not assets and nothing reads them.
+# Preserve the documentation image paths for permitted non-capture artwork. These
+# patterns do not authorize committing runtime captures: AGENTS.md requires captures
+# outside Git, with reviewed attachments used for issues and pull requests.
 !docs/images/
 !docs/images/*.png
 !docs/images/*.jpg

@@ -1447,8 +1447,10 @@ HOME="$HOME" ./build_mac.sh run          # from an interactive shell
 GETV_SAVEDIR=/some/writable/dir ./build_mac.sh run
 ```
 
-`GETV_SAVEDIR` bypasses the home directory entirely and is the right answer for automated runs, so
-they never touch a real save.
+`GETV_SAVEDIR` with a nonempty value selects only that save directory, even when it has no
+`eeprom.bin`; pre-rename save discovery applies only to the default directory. Use a fresh,
+isolated directory for diagnostic runs so they do not touch existing saves. An unset or empty
+value retains the normal default-directory behavior.
 
 ### 7.8 Read-only or unwritable home directory
 
@@ -1486,11 +1488,15 @@ ls -ld ~/Library/"Application Support"
 mkdir -p ~/Library/"Application Support"/Goldeneye-Native
 ```
 
-or redirect both away from home:
+or redirect both away from home for a disposable diagnostic run:
 
 ```bash
 GETV_SAVEDIR=/tmp/ge-save ./build-mac/goldeneye --config=/tmp/ge/goldeneye.cfg
 ```
+
+The `/tmp/ge-save` directory is temporary diagnostic storage: the OS or cleanup tools may
+remove it. For progress you want to keep, choose a durable private save directory and retain it
+after the run. Never publish saves or include them in diagnostic bundles.
 
 Note that `--config=PATH` reads a file; it does not create one. Use `--write-config=/tmp/ge.cfg`
 first if you need a template there.

@@ -133,8 +133,9 @@ static int geSavePathInit(void)
      * the new one would present the player with an empty save slot and no explanation.
      * If the new directory has no save and the old one does, adopt the old path for this
      * run. Nothing is copied or deleted: the file keeps working where it is, and a user
-     * who wants the new location can move it themselves. */
-    {
+     * who wants the new location can move it themselves. An explicit save directory must
+     * remain isolated, even when it has no save yet. */
+    if (dir == NULL || *dir == '\0') {
         const char *home = getenv("HOME");
         char newfile[1024], oldbase[1024], oldfile[1024];
         struct stat st;

@@ -95,4 +95,7 @@ port 0 as look -- so neither can starve the other. Measured together over 260 fr
 ## Tuning
 
 `GETV_MOUSE_SENS` is a percentage of the above, 1..1000. `GETV_MOUSE_INVERT=1` inverts Y.
-`GETV_MOUSE=0` disables mouse look. ESC releases and recaptures the pointer.
+`GETV_MOUSE=0` disables mouse look. ESC releases and recaptures the pointer. Left-clicking inside
+the game also recaptures it after release or switching apps. That resume click is consumed until
+the mouse buttons are released, and stale motion is discarded so the handoff cannot fire a shot
+or jump the camera. The developer console retains ownership while open.

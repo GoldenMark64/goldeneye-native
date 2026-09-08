@@ -465,8 +465,10 @@ not-implemented notice rather than silently doing nothing.
 ## The launcher
 
 `./getv/build-mac/goldeneye --launcher` (or `GETV_LAUNCHER=1`) opens a window for choosing a
-level, a ruleset, cheats and video settings before the game starts. On macOS the desktop
-script `GoldenEye.command` uses it.
+level, a ruleset, cheats and video settings before the game starts. On macOS, double-click
+`getv/build-mac/GoldenEye.app` or the `Play GoldenEye.command` script to open it. The normal
+build generates the app beside the executable; `./getv/build_mac.sh bundle` adds it to an
+existing build.
 
 It is a user interface over the existing surface, not new capability: every control resolves
 to a `GETV_*` gate that already worked from a shell, and each one opens showing the value the

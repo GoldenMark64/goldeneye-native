@@ -45,7 +45,7 @@
 # docs/REUSE_AUDIT.md. It gets its own BUILD dir and binary name (build-mac-metal/,
 # goldeneye-metal) so it can never collide with or regress the gl path's objects.
 #
-# usage: GETV_RENDERER=metal ./build_mac.sh {sdl|lib|port|app|all|run|env}
+# usage: GETV_RENDERER=metal ./build_mac.sh {sdl|lib|port|app|bundle|all|run|env}
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -482,6 +482,11 @@ cmd_app() {
   else
     echo "LINK FAILED"; return 1
   fi
+  cmd_bundle
+}
+
+cmd_bundle() {
+  python3 "$HERE/../tools/make_macos_launcher_app.py" "$BIN"
 }
 
 cmd_run() {
@@ -496,14 +501,16 @@ case "${1:-}" in
   lib)  cmd_lib ;;
   port) cmd_port ;;
   app)  cmd_app ;;
+  bundle) cmd_bundle ;;
   all)  cmd_lib && cmd_app ;;
   run)  shift; cmd_run "$@" ;;
   env)  echo "SDK=$SDK"; echo "SDL=$SDL"; echo "TARGET=$TARGET"; echo "BUILD=$BUILD"
         echo "BIN=$BIN"; echo "RENDERER=$RENDERER" ;;
-  *)    echo "usage: GETV_RENDERER=gl|metal $0 {sdl|lib|port|app|all|run|env}  (default gl)"
+  *)    echo "usage: GETV_RENDERER=gl|metal $0 {sdl|lib|port|app|bundle|all|run|env}  (default gl)"
         echo "  sdl  = build SDL2 2.30.9 $MACARCH from deps/ into $SDL (once, shared by both renderers)"
         echo "  lib  = compile game + assets + audio + port layer for $MACARCH macOS"
         echo "  port = recompile getv/port/** and the harness only (seconds)"
-        echo "  app  = link $BIN"
-        echo "  run  = launch it" ;;
+        echo "  app  = link $BIN and create its Finder launcher app"
+        echo "  bundle = create the Finder launcher app for an existing binary"
+        echo "  run  = start the binary directly (add --launcher for settings)" ;;
 esac

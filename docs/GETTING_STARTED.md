@@ -21,7 +21,11 @@ No ROM or extracted game data is downloaded, bundled, or uploaded by this projec
    **Code** button, then **Download ZIP**. Double-click the downloaded file to unzip it.
 3. Open the folder and double-click **Install on Mac**. If Gatekeeper blocks it, right-click the
    file, choose **Open**, and confirm once.
-4. When installation finishes, double-click **Play GoldenEye** in the same folder.
+4. When installation finishes, open `getv/build-mac` and double-click **GoldenEye.app**.
+   It opens the custom launcher so you can choose a mission and settings before playing.
+
+Keep the app beside the `goldeneye` executable. You can drag the app to the Dock for quick
+access. **Play GoldenEye** in the repository folder also opens the launcher.
 
 The first install takes about 10 to 40 minutes. Re-running the installer resumes completed work.
 
@@ -100,8 +104,19 @@ The normal OpenGL executables are:
 .\getv\build-windows\goldeneye.exe --launcher
 ```
 
-On macOS you can instead double-click **Play GoldenEye**. `--launcher` opens the settings window;
-omit it to boot directly with the current configuration.
+On macOS the normal build also creates **GoldenEye.app** beside the executable. Double-click
+the app to open the settings window, or use **Play GoldenEye** in the repository folder.
+The bare executable remains available for terminal use: `--launcher` opens settings; omit
+it to boot directly with the current configuration.
+
+For an existing build, create the app without recompiling the game:
+
+```bash
+./getv/build_mac.sh bundle
+```
+
+Keep the app and executable together, including when moving the build folder. The app uses
+the adjacent executable and its existing settings; it does not contain a separate game copy.
 
 The application logs its selected renderer, config path, save path, controllers, and resolved
 bindings at startup. Those lines are useful when troubleshooting.
@@ -114,6 +129,10 @@ The standard installer builds OpenGL. To build the separate Metal executable aft
 GETV_RENDERER=metal ./getv/build_mac.sh all
 ./getv/build-mac-metal/goldeneye-metal --launcher
 ```
+
+The Metal build also creates **GoldenEye Metal.app** in `getv/build-mac-metal`. It opens the
+same launcher using Metal. Use `GETV_RENDERER=metal ./getv/build_mac.sh bundle` for an existing
+Metal build.
 
 OpenGL and Metal use separate build directories, so the two builds do not overwrite each other.
 

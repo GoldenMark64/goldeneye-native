@@ -1646,13 +1646,17 @@ static void gePortInputPollPortInner(int port, struct GePadState *out)
  out->rx        = SDL_GameControllerGetAxis(gc, SDL_CONTROLLER_AXIS_RIGHTX);
  out->ry        = SDL_GameControllerGetAxis(gc, SDL_CONTROLLER_AXIS_RIGHTY);
 
+#ifdef GE_PLATFORM_DESKTOP
+    /* A connected controller (including XInput keypads) must not bypass mouse look or
+     * capture recovery. Use the same keyboard -> mouse -> script order as the no-pad path,
+     * preserving controller movement/buttons while a moving mouse wins the look axes. */
+ geKeyboardApply(port, out);
+ geMousePoll(port, out);
+#endif
     /* The script overlays a real pad too, so a run is reproducible whether or not a
      * controller happens to be attached to the host. OR-only: it never CLEARS a button
      * the human is holding, so a script can be steered out of by hand on the device. */
  geScriptApply(port, geSynthFrame, out);
-#ifdef GE_PLATFORM_DESKTOP
- geKeyboardApply(port, out);
-#endif
 }
 
 /* One entry point: the inner function has six returns and the self-test must survive all of them. */

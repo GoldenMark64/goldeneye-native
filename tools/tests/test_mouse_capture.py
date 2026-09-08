@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Run ROM-free mouse handoff checks through the production SDL event and polling paths.
+"""Run ROM-free mouse handoff and controller coexistence checks through production polling.
 
 Requires SDL2 headers, a C compiler, and the reconstructed gfx_sdl2.c (fetch-thirdparty.sh).
-Only SDL/device state and unrelated window callbacks are simulated. No SDL library, game
-assets, renderer or window is used. --source-root runs the same checks against an old checkout.
+SDL/device state, discovery, script adapters and unrelated window callbacks are
+simulated. No SDL library, game assets, renderer or window is used. --source-root runs the
+same checks against an old checkout.
 """
 
 import argparse
@@ -16,6 +17,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS = ("resume", "focus", "ownership", "failure", "disabled", "idle", "selftest-x",
              "selftest-y", "unfocused-start")
+SCENARIOS += tuple("controller-" + name for name in SCENARIOS) + (
+    "controller-mixed", "controller-no-keyboard")
 
 
 def section(path, start, end):
@@ -47,6 +50,12 @@ def main():
         events = section(source / "getv/port/fast3d/gfx_sdl2.c",
                          "static void gfx_sdl_handle_events(void)",
                          "static void gfx_sdl_set_keyboard_callbacks(")
+        polling = section(port / "port_input.c", "static void gePortInputPollPortInner(",
+                          "/* One entry point: the inner function")
+        keyboard = section(port / "port_input.c", "static int geKeyboardEnabled(void)",
+                           "/* Idle keyboard for automated runs.")
+        keyboard += section(port / "port_input.c", "/* Global so `nm -g`",
+                            "#endif /* GE_PLATFORM_DESKTOP */")
     except (OSError, ValueError) as error:
         parser.error(f"required production source unavailable or extraction boundary changed: {error}")
 
@@ -54,9 +63,14 @@ def main():
         directory = Path(temporary)
         (directory / "mouse.inc").write_text(mouse)
         (directory / "events.inc").write_text(events)
-        executable = directory / "test_mouse_capture"
+        (directory / "polling.inc").write_text(polling)
+        (directory / "keyboard.inc").write_text(keyboard)
+        executable = directory / ("test_mouse_capture.exe" if os.name == "nt" else "test_mouse_capture")
+        platform_flags = (["-include", str(ROOT / "getv/port/include/ge_win_compat.h")]
+                          if os.name == "nt" else [])
         subprocess.run([compiler, "-std=gnu17", "-O1", "-g", "-Wall", "-Wextra",
-                        "-Werror", "-Wno-unused-parameter", "-DGE_PLATFORM_DESKTOP",
+                        "-Werror", "-Wno-unused-parameter", "-DGE_PLATFORM_DESKTOP", "-DSDL_MAIN_HANDLED",
+                        *platform_flags,
                         "-I" + str(include), "-I" + str(port), "-I" + str(directory),
                         str(ROOT / "getv/port/tests/mouse_capture_harness.c"),
                         "-o", str(executable)], check=True, timeout=60)

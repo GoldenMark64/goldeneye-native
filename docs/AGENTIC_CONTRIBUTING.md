@@ -77,7 +77,9 @@ sanitization or comparison code from memory.
 7. Build a sanitized local bundle. For example:
 
    ```bash
+   umask 077
    python3 tools/collect_bug_report.py \
+     --output "$HOME/Documents/Goldeneye-Native-Reports/rendering-$(date +%Y%m%d-%H%M%S)" \
      --kind rendering \
      --renderer Metal \
      --stage "Complex (GETV_STAGE=31)" \
@@ -85,11 +87,18 @@ sanitization or comparison code from memory.
      --screenshot /private/tmp/ge-report/metal.bmp
    ```
 
-   The collector writes to a new system temporary directory by default. It redacts personal paths
-   and common credentials, rejects prohibited inputs and converts a native 24-bit BMP to a
-   metadata-free PNG. It never publishes anything.
+   Choose a new, durable private `--output` directory outside every checkout and temporary
+   staging area. The example uses restrictive permissions for newly created files; verify the
+   destination is private and not shared or automatically published. Without `--output`, the
+   collector uses system temporary storage, which is not a retained deliverable. It redacts
+   personal paths and common credentials, rejects prohibited inputs and converts a native
+   24-bit BMP to a metadata-free PNG. It never publishes anything.
 8. Inspect `report.md`, `manifest.json` and every staged artifact. Add the actual/expected behavior
-   and exact reproduction to the issue draft.
+   and exact reproduction to the issue draft. Reopen the final report, manifest and every
+   sanitized attachment from the durable output directory, verify they are readable and
+   complete, and record that directory in the handoff before removing temporary staging.
+   Keep the private bundle through review and submission; cleanup must not remove the only
+   retained copy.
 9. Show the complete draft and attachment list to the human contributor.
 10. Create the issue only after explicit approval for that exact submission. If the available
     GitHub tool cannot upload images, leave the issue as a ready-to-paste draft and ask the human

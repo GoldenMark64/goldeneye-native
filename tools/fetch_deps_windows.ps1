@@ -104,7 +104,8 @@ if (-not (Test-Path "$Mingw\include\SDL2\SDL.h")) {
 # a loader every modern entry point is a null pointer. gfx_opengl.c already expects GLEW --
 # it sets FOR_WINDOWS on __MINGW32__ and includes <GL/glew.h>. macOS gets its entry points
 # from the OpenGL framework and Linux from libGL, which is why neither needs this.
-if (-not (Test-Path "$Mingw\lib\libglew32.a")) {
+if (-not (Test-Path "$Mingw\lib\libglew32.a") -or
+    -not (Test-Path "$Mingw\include\GL\glew.h")) {
   Step "GLEW 2.2.0 (built from source)"
   $u = 'https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0.zip'
   Get-VerifiedFile $u 'a9046a913774395a095edcc0b0ac2d81c3aacca61787b39839b941e9be14e0d4' "$tmp\glew.zip"
@@ -235,7 +236,7 @@ if ($WizardOnly) {
 Write-Output ""
 Write-Output "gcc        : $(if (Test-Path "$Mingw\bin\gcc.exe") { (& $gcc -dumpversion) } else { 'MISSING' })"
 Write-Output "SDL2       : $(if (Test-Path "$Mingw\include\SDL2\SDL.h") { 'ok' } else { 'MISSING' })"
-Write-Output "GLEW       : $(if (Test-Path "$Mingw\lib\libglew32.a") { 'ok' } else { 'MISSING' })"
+Write-Output "GLEW       : $(if ((Test-Path "$Mingw\lib\libglew32.a") -and (Test-Path "$Mingw\include\GL\glew.h")) { 'ok' } else { 'MISSING library or headers' })"
 Write-Output "Lua        : $(if ($WizardOnly) { 'skipped (wizard-only setup)' } elseif (Test-Path "$luaPrefix\lib\liblua.a") { 'ok (mods enabled)' } else { 'absent (mods disabled)' })"
 Write-Output "Dear ImGui : $(if (Test-Path "$imguiPrefix\lib\libimgui.a") { 'ok (overlay + launcher enabled)' } else { 'absent (overlay + launcher disabled)' })"
 Write-Output "Tracy      : $(if ($WizardOnly) { 'skipped (wizard-only setup)' } elseif (Test-Path "$tracyPrefix\lib\libtracy.a") { 'ok (profiling enabled)' } else { 'absent (profiling disabled)' })"

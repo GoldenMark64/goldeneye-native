@@ -39,6 +39,9 @@ if (-not (Test-Path $gcc)) { throw "no gcc at $gcc -- run tools\fetch_deps_windo
 if (-not (Test-Path (Join-Path $imgui 'lib\libimgui.a'))) {
   throw "no Dear ImGui at $imgui -- run tools\fetch_deps_windows.ps1 first"
 }
+if (-not (Test-Path (Join-Path $Mingw 'include\GL\glew.h'))) {
+  throw "no GLEW headers under $Mingw -- run tools\fetch_deps_windows.ps1 first"
+}
 
 New-Item -ItemType Directory -Force -Path $build | Out-Null
 
@@ -69,6 +72,11 @@ $cflags = @(
   "-I$wiz",
   "-I$root\getv\port\src",
   "-I$imgui\include",
+  # WinLibs does not treat <toolchain-root>/include as a default search directory. The local
+  # development toolchain happened to, which hid this until the first clean hosted build:
+  # fetch_deps_windows.ps1 installed GL/glew.h correctly, but setup_wizard.cpp still could not
+  # include it without an explicit root. SDL already has its narrower include below.
+  "-I$Mingw\include",
   "-I$Mingw\include\SDL2",
   '-include', $packageConfig
 )

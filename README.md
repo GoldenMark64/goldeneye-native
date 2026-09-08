@@ -59,9 +59,11 @@ A window opens and does the rest. It takes 10 to 40 minutes the first time, almo
 reading your cartridge, and you can leave it running. If macOS says the file is from an
 unidentified developer, right-click it and choose **Open** instead, then **Open** again.
 
-**4.** When it finishes, **double-click `Play GoldenEye`** in the same folder.
+**4.** When it finishes, open `getv/build-mac` and **double-click `GoldenEye.app`** to choose
+a mission and settings in the custom launcher.
 
-That is it. Drag `Play GoldenEye` to your Dock if you want it there permanently.
+Keep the app beside the `goldeneye` executable. Drag the app to your Dock for quick access.
+`Play GoldenEye` in the repository folder also opens the launcher.
 
 **Optional terminal install.** If you cloned the repository or prefer the terminal, run this from
 the repository root instead of step 3:
@@ -264,6 +266,9 @@ rather than passed over quietly, because a preset that silently declined to unca
 looks exactly like a preset that did not work.
 
 ## The launcher
+
+On macOS, double-click `getv/build-mac/GoldenEye.app` to open the launcher. The normal build
+creates this app; run `./getv/build_mac.sh bundle` to add it to an existing build.
 
 `--launcher` opens a window for choosing a level, a ruleset, cheats and video settings before the
 game starts, so none of this needs a config file or a terminal.

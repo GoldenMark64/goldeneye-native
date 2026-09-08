@@ -76,6 +76,35 @@ static void gfx_sdl_set_fullscreen(void) {}
 static void gfx_sdl_reset_dimension_and_pos(void) {}
 #include "events.inc"
 
+/* Exercise the real controller/no-controller branch, not just geMousePoll in isolation.
+ * SDL controller state, discovery and scripts are simulated at their boundaries. */
+static int controller_mode, controller_storage[2];
+static SDL_GameController *gePads[GE_PORT_MAX_PADS];
+static int gePadReal[GE_PORT_MAX_PADS];
+static int geSynthFrame;
+static int geScriptPort, script_active;
+static Sint16 controller_axes[SDL_CONTROLLER_AXIS_MAX];
+static Uint8 controller_buttons[SDL_CONTROLLER_BUTTON_MAX];
+#define GE_TRIGGER_ON 8000
+void *SDL_memset(void *dst, int value, size_t size) { return memset(dst, value, size); }
+void SDL_GameControllerUpdate(void) {}
+Sint16 SDL_GameControllerGetAxis(SDL_GameController *gc, SDL_GameControllerAxis axis)
+{ return controller_axes[axis]; }
+Uint8 SDL_GameControllerGetButton(SDL_GameController *gc, SDL_GameControllerButton button)
+{ return controller_buttons[button]; }
+static void gePortAndroidTouchInit(void) {}
+static void gePortAndroidTouchUpdate(void) {}
+int gePortInputPadCount(void) { return gePads[0] != NULL; }
+static void geFrontTraceTick(int frame) {}
+static int geScriptActive(void) { return script_active; }
+static void geScriptApply(int port, int frame, struct GePadState *out)
+{ if (script_active && port == geScriptPort) out->rx = 1234; }
+int gePortForcedPads(void) { return 0; }
+int gePortSynthEnabled(void) { return 0; }
+static void geSynthState(int port, struct GePadState *out) {}
+#include "keyboard.inc"
+#include "polling.inc"
+
 static int failures;
 static void check(int condition, const char *name)
 {
@@ -85,7 +114,8 @@ static void check(int condition, const char *name)
 static struct GePadState poll(void)
 {
     struct GePadState out = {0};
-    geMousePoll(0, &out);
+    if (controller_mode) gePortInputPollPortInner(0, &out);
+    else geMousePoll(0, &out);
     return out;
 }
 static void release_buttons(void) { buttons = 0; (void)poll(); }
@@ -121,9 +151,17 @@ int main(int argc, char **argv)
     if (argc != 2) return 2;
     const char *scenario = argv[1];
     printf("scenario: %s\n", scenario);
+    if (strncmp(scenario, "controller-", 11) == 0) {
+        controller_mode = 1;
+        gePads[0] = (SDL_GameController *)&controller_storage[0];
+        gePadReal[0] = 1;
+        scenario += 11;
+    }
     unsetenv("GETV_MOUSE_SELFTEST"); unsetenv("GETV_MOUSE_SELFTEST_Y");
     setenv("GETV_MOUSE", strcmp(scenario, "disabled") == 0 ? "0" : "1", 1);
     setenv("GETV_MOUSE_SENS", "100", 1); setenv("GETV_MOUSE_INVERT", "0", 1);
+    setenv("GETV_KEYBOARD", strcmp(scenario, "no-keyboard") == 0 ? "0" : "1", 1);
+    setenv("GETV_KEYBOARD_UNFOCUSED", "0", 1); setenv("GETV_AIM_SELFTEST", "0", 1);
     keyboard_focus = mouse_focus = wnd;
     geConsoleInputReset();
     if (strcmp(scenario, "idle") == 0) idle = 1;
@@ -155,6 +193,56 @@ int main(int argc, char **argv)
         return failures != 0;
     }
     check(relative, "initial mouse capture");
+
+    if (strcmp(scenario, "no-keyboard") == 0) {
+        motion_x = 12; buttons = SDL_BUTTON_RMASK; out = poll();
+        check(out.rx > 0 && out.ltrigger, "controller and mouse work with keyboard disabled");
+        return failures != 0;
+    }
+    if (strcmp(scenario, "mixed") == 0) {
+        controller_axes[SDL_CONTROLLER_AXIS_LEFTX] = 16000;
+        controller_axes[SDL_CONTROLLER_AXIS_LEFTY] = -18000;
+        controller_axes[SDL_CONTROLLER_AXIS_RIGHTX] = -12000;
+        controller_axes[SDL_CONTROLLER_AXIS_RIGHTY] = 14000;
+        controller_buttons[SDL_CONTROLLER_BUTTON_A] = 1;
+        motion_x = 12; motion_y = -6;
+        buttons = SDL_BUTTON_LMASK | SDL_BUTTON_RMASK;
+        out = poll();
+        check(out.lx == 16000 && out.ly == -18000 && out.a,
+              "controller movement and buttons survive simultaneous mouse look");
+        check(out.rx > 0 && out.ry < 0, "mouse movement overrides controller look axes");
+        check(out.rtrigger && out.ltrigger && out.rt_raw == 32767 && out.lt_raw == 32767,
+              "mouse fire and aim work with a connected controller");
+        keys[SDL_SCANCODE_RIGHT] = 1; keys[SDL_SCANCODE_W] = 1;
+        motion_x = -12; out = poll();
+        check(out.rx < 0 && out.ly == -GE_KB_FULL && out.lx == 16000,
+              "mouse look wins over arrow key while keyboard and controller movement coexist");
+        keys[SDL_SCANCODE_RIGHT] = keys[SDL_SCANCODE_W] = 0;
+        buttons = 0; out = poll();
+        check(out.rx == -12000 && out.ry == 14000 && !out.rtrigger && !out.ltrigger,
+              "stationary released mouse preserves controller look without sticking buttons");
+        controller_axes[SDL_CONTROLLER_AXIS_TRIGGERLEFT] = 17000;
+        controller_axes[SDL_CONTROLLER_AXIS_TRIGGERRIGHT] = 19000;
+        out = poll();
+        check(out.ltrigger && out.rtrigger && out.lt_raw == 17000 && out.rt_raw == 19000,
+              "released mouse preserves held controller triggers");
+        controller_axes[SDL_CONTROLLER_AXIS_TRIGGERLEFT] = 0;
+        controller_axes[SDL_CONTROLLER_AXIS_TRIGGERRIGHT] = 0;
+        gePads[1] = (SDL_GameController *)&controller_storage[1]; gePadReal[1] = 1;
+        motion_x = 12; buttons = SDL_BUTTON_RMASK;
+        gePortInputPollPortInner(1, &out);
+        check(out.rx == -12000 && !out.ltrigger && motion_x == 12,
+              "player two never consumes player one's mouse input");
+        script_active = 1; out = poll();
+        check(out.rx == 1234, "script retains priority over physical mouse input");
+        script_active = 0; buttons = 0;
+        gePads[0] = NULL; motion_x = 12; out = poll();
+        check(out.rx > 0, "mouse keeps working after controller detach");
+        gePads[0] = (SDL_GameController *)&controller_storage[0];
+        motion_x = 12; out = poll();
+        check(out.rx > 0 && out.lx == 16000, "mouse and movement work after controller reconnect");
+        return failures != 0;
+    }
 
     if (strcmp(scenario, "focus") == 0) {
         focus_event(SDL_WINDOWEVENT_FOCUS_LOST, 8);

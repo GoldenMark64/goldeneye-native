@@ -45,6 +45,11 @@ and attachment manually.
 - For renderer work, use clean OpenGL/reference, old-backend and fixed-backend captures at the same
   deterministic frame. Keep them outside the repository and quantify them with
   `tools/compare_render_fingerprints.py`.
+- Visual bug-fix PRs must embed reviewed before/after screenshots, plus a reference image for
+  renderer fixes. Label the images and explain where to look; add matching crops when useful.
+  Use an available GitHub attachment or authenticated browser upload flow within the authorized
+  publication. Verify that images render in the PR body. If upload is blocked, retain the images
+  and report the specific blocker and incomplete evidence. Numeric tables do not replace images.
 - Add a ROM-free focused test for the root cause, then run the complete relevant validation from
   `CONTRIBUTING.md`.
 - Distinguish new failures from failures reproduced on unchanged `main`.
@@ -55,6 +60,13 @@ Repository skills are available at `.agents/skills/`:
 
 - Use `$report-goldeneye-bug` to collect a safe, reproducible bug report.
 - Use `$prepare-goldeneye-pr` to prepare a focused pull request with measured evidence.
+
+Changes anywhere under `.agents/skills/` or `.claude/skills/` require before/after behavioral
+evals and committed, sanitized results in the same PR. Follow `docs/SKILL_EVALS.md`: include the
+comparison report, machine-readable action/results record and evidence manifest. Cover the exact
+changed skill contents and relevant scenarios; include failures, ties and grading corrections.
+Do not substitute format checks or a PR comment for committed behavioral evidence. Screenshot
+captures, game data, private reasoning and full conversations must never be committed as results.
 
 Agent assistance is welcome, but the human contributor remains responsible for provenance, the
 complete diff, every published artifact and every claimed test result. Do not publish private

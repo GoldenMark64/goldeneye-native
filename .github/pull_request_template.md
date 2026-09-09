@@ -10,7 +10,15 @@ Fixes #
 
 ## Evidence
 
-<!-- Give exact reproduction steps and before/after measurements or screenshots when useful. -->
+<!-- Give exact reproduction steps and measurements. Visual bug fixes must embed before/after
+screenshots in this body. Upload reviewed runtime screenshots as attachments; never commit them. -->
+
+<!-- Label Before and After (plus Reference for renderer fixes), with descriptive alt text and
+captions saying where to look. Use columns or separate images; add matching crops for subtle bugs.
+Record the shared scene, input, frame, resolution and quality settings.
+Examples: https://github.com/seb-patron/goldeneye-native/pull/1 (columns and crops)
+and https://github.com/seb-patron/goldeneye-native/pull/3 (labeled images and captions).
+Use uploaded attachment URLs, not local file paths. Verify images render in the published body. -->
 
 <!-- For renderer changes, include OpenGL/reference, old-backend and fixed-backend screenshots.
 Generate the quantitative rows with:
@@ -56,6 +64,10 @@ private reasoning or a full transcript. Write "None" when no agent assisted. -->
 - [ ] This pull request addresses one logical bug.
 - [ ] I checked current `main` and existing issues/pull requests for duplicate work.
 - [ ] I reviewed the complete diff and removed unrelated cleanup and generated files.
+- [ ] Skill changes: before/after behavioral evals, sanitized result records, comparison report
+      and evidence manifest are committed and match the changed skills (N/A if no skills changed).
+- [ ] Visual bug fixes: before/after images render in the PR body, with a reference image for
+      renderer changes (N/A for nonvisual changes; explain any upload blocker).
 - [ ] No ROM is included in any form. I did not add, copy, stage, commit, upload, attach, paste,
       encode, archive or link to one.
 - [ ] No save, `base.zip`, extracted asset, generated asset source, texture dump or audio bank is

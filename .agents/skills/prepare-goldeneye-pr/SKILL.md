@@ -52,6 +52,12 @@ Keep runtime screenshots outside Git. Attach them to the pull request only after
 
 ## Capture renderer evidence
 
+Visual bug fixes must include before/after screenshots embedded in the PR body. For renderer
+changes, also include the reference image. Fingerprint tables supplement these images.
+Use labeled columns or separate labeled images with descriptive alt text and captions explaining
+where to look. Add matching crops when the defect is subtle at full-frame size. See the original
+Metal PR examples in `docs/AGENTIC_CONTRIBUTING.md#presenting-visual-comparisons`.
+
 For rendering changes, use clean builds or worktrees for the reference, old backend and fixed
 backend. Keep stage, scripted input, frame, resolution, supersampling, MSAA and FXAA identical.
 Write native BMPs outside the checkout with `GETV_SHOTFRAME` and `GETV_SHOTPATH`.
@@ -99,6 +105,10 @@ it does not replace the ROM-free regression test.
    the user already authorized that exact publication.
 5. Push only the intended branch. Create or update the PR with the configured GitHub tool. Attach
    only reviewed runtime screenshots, never source captures committed to the branch.
+   Use a capable GitHub tool or an available authenticated browser upload flow within the
+   authorized publication, and verify that images render in the PR body. If no available method
+   can upload them, explain the specific blocker and retain the sanitized PNGs and ready-to-paste
+   body for handoff. Do not describe the visual evidence as complete while images are missing.
 6. After an authorized push, inspect the regression CI log for the submitted revision. Record the
    job/run link, command, executed test count and result in the PR's validation evidence when an
    update is authorized. A green workflow that omits or skips the regression is not a pass. State

@@ -120,9 +120,12 @@ The `--staged` check reads index blobs, including when a working copy has change
    Keep the private bundle through review and submission; cleanup must not remove the only
    retained copy.
 9. Show the complete draft and attachment list to the human contributor.
-10. Create the issue only after explicit approval for that exact submission. If the available
-    GitHub tool cannot upload images, leave the issue as a ready-to-paste draft and ask the human
-    to attach the staged PNG.
+10. Create the issue only after explicit approval for that exact submission. Upload reviewed
+    screenshots using a capable GitHub tool or an available authenticated browser upload flow.
+    A GitHub tool without image support does not prohibit using another available upload method
+    within the authorized submission. Verify that the images render in the published body.
+    If no available method can upload them, retain the ready-to-paste body and sanitized PNGs,
+    explain the specific blocker and hand off only the remaining upload work to the human.
 
 Do not include a save to make reproduction easier. Use a clean temporary `save_dir`, `unlock_all`
 or deterministic `GETV_*` inputs where appropriate, and describe those inputs instead.
@@ -136,7 +139,9 @@ or deterministic `GETV_*` inputs where appropriate, and describe those inputs in
 4. Add the smallest change at the correct abstraction boundary and a focused ROM-free regression
    test.
 5. Repeat the unchanged baseline and the complete relevant self-test workflow.
-6. For renderer changes, capture the reference, old behavior and fixed behavior from clean builds
+6. Visual bug fixes must include before/after screenshots embedded in the PR body. For renderer
+   changes, also include the reference. Fingerprint tables supplement the images, not replace them.
+   Capture the reference, old behavior and fixed behavior from clean builds
    with identical stage, input, frame and quality settings. Generate a PR-ready table:
 
    ```bash
@@ -153,9 +158,23 @@ or deterministic `GETV_*` inputs where appropriate, and describe those inputs in
    the replayable fix commit and agent-assistance disclosure.
 9. Show the full branch comparison, draft body and attachment list to the human contributor.
 10. Push or open the pull request only after explicit approval for that exact publication.
+    Use the screenshot upload workflow above and verify that the images render in the PR body.
+    If upload is blocked, report the missing images and retain them for handoff; do not describe
+    the visual evidence as complete.
 
 Never commit screenshots, logs or diagnostic bundles. Attach only the reviewed, sanitized copies
 to the issue or pull request.
+
+### Presenting visual comparisons
+
+Follow the original Metal fixes: [three-point filtering PR #1](https://github.com/seb-patron/goldeneye-native/pull/1)
+uses reference/before/after columns with full frames and matching road crops;
+[blob-shadow PR #3](https://github.com/seb-patron/goldeneye-native/pull/3) uses separately labeled
+reference/before/after images with captions explaining the visible difference. Either layout is
+appropriate. Use descriptive alt text and say where to look. Include matching crops when the
+defect is hard to see at full-frame size, and record the shared scene, input, frame, resolution and
+quality settings. Embed the uploaded attachments so reviewers can see the comparison in the PR
+body without downloading files. Local filesystem paths are not published image URLs.
 
 ## Human responsibility and disclosure
 

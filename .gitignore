@@ -129,7 +129,8 @@ getv/Resources/hdtextures/*.png
 *.a
 *.dSYM/
 
-# Frame captures are DERIVED FROM THE ROM'S ART ASSETS. Same rule as the ROM itself.
+# Runtime screenshots must stay outside Git, but reviewed screenshots may be uploaded
+# and embedded in issues and pull requests as visual evidence (see AGENTS.md).
 # getv_shot.bmp is written by GETV_SHOTFRAME and lands in the working directory.
 *.bmp
 getv/getv_shot.*

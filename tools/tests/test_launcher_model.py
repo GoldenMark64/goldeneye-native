@@ -38,6 +38,8 @@ int main() {
     m.coop_players = 4;
     m.net_mode = 1;
     m.mouse_mode = 0;
+    m.framerate = 60;
+    m.bind_all[0] = 3;
     m.msaa = 8;
     m.hd_textures = m.widescreen = true;
     m.gibs = 3;
@@ -50,7 +52,8 @@ int main() {
     check(m.base_game, "Base Game suppresses Brutal effects");
     check(m.ruleset == 0 && !m.rs_custom && !m.horde, "Base Game uses original gameplay");
     check(m.coop_players == 0 && m.net_mode == 0, "Base Game disables added multiplayer modes");
-    check(m.mouse_mode == 1, "Base Game uses classic input response");
+    check(m.mouse_mode == 0 && m.bind_all[0] == 3 && m.framerate == 60,
+          "Base Game preserves mouse, bindings and selected frame rate");
     check(m.msaa == 0 && !m.hd_textures && !m.widescreen && m.filtering == 2,
           "Base Game shows original image settings");
     bool no_cheats = true;
@@ -60,8 +63,9 @@ int main() {
     check(m.stage_idx == 4, "Base Game retains the inactive selected mission");
     check(m.gibs == 3 && m.blood == 2, "Base Game retains inactive Brutal preferences");
     m.profile = 1;
+    m.mouse_mode = 1;
     apply_profile(m);
-    check(m.msaa >= 4 && m.hd_textures && m.base_game, "GoldenEye+ enhances graphics without enabling Brutal effects");
+    check(m.msaa >= 4 && m.hd_textures && m.base_game && m.mouse_mode == 1, "GoldenEye+ enhances graphics without enabling Brutal effects");
     m.pick_stage = true;
     m.ruleset = 2;
     m.horde = true;

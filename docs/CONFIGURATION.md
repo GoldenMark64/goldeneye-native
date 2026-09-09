@@ -503,11 +503,11 @@ marked "(in-game)" in the launcher, because they need a player context that does
 startup and a checkbox that silently does nothing is worse than one that says so.
 
 **Launcher modes.** *Base Game* replaces the old *97 Console* label. It allows original title-screen or direct mission startup with N64 graphics, 4:3 framing, three-point filtering, a retail-size
-reticle, the 30 Hz game cadence, 1.1 Honey controls and classic mouse response. It suppresses
+reticle, and your selected frame rate and controls. It suppresses
 Brutal effects, all Lua mods, launcher cheats, custom gameplay balance, horde, co-op, forced
 unlocks and netplay.
 Resolution, fullscreen, vsync, audio and the save location remain available. Keyboard and mouse
-remain usable as N64 input adapters. Choose *GoldenEye+* to customize gameplay and image quality.
+retain their configured bindings and mouse response in either mode. Controls and Timing remain editable. Choose *GoldenEye+* to customize gameplay and image quality.
 
 On **Mission**, the **Original game start / Mission selector** toggle chooses title-screen
 startup or a direct mission launch. The list remains visible but disabled for original startup;

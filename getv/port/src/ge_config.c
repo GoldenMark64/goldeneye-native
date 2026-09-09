@@ -694,7 +694,7 @@ void geConfigApplyLauncherProfile(void)
 
     /* A launcher mode is a promise, not a gap-filling config preset. Apply last,
      * otherwise forwarded CLI arguments and the re-read file can undo it. Keep
-     * display size, fullscreen, vsync, audio and save location under user control. */
+     * display, timing, input bindings, mouse response, audio and save location under user control. */
     static const struct { const char *key, *value; } original[] = {
         {"GETV_PROFILE_PLUS", "0"}, {"GETV_BASE_GAME", "1"},
         {"GETV_GIBS", "off"}, {"GETV_RULESET", "classic"},
@@ -707,9 +707,6 @@ void geConfigApplyLauncherProfile(void)
         {"GETV_HD_TEXTURES", "0"}, {"GETV_PARALLAX", "0"},
         {"GETV_FXAA", "0"}, {"GETV_CRT", "0"},
         {"GETV_CROSSHAIR_SCALE", "1"}, {"GETV_CROSSHAIR_COLOR", "FFFFFF"},
-        {"GETV_FPS", "30"}, {"GETV_REALCLOCK", "0"}, {"GETV_TICKFIELDS", "2"},
-        {"GETV_CONTROLS", "0"}, {"GETV_DUALANALOG", "0"},
-        {"GETV_MOUSE_MODE", "classic"}, {"GETV_AIM_TOGGLE", "0"},
         {"GETV_RS_ENEMY_HEALTH", "100"}, {"GETV_RS_ENEMY_DAMAGE", "100"},
         {"GETV_RS_ENEMY_ACCURACY", "100"}, {"GETV_RS_ENEMY_REACTION", "100"},
         {"GETV_RS_PLAYER_HEALTH", "100"}, {"GETV_RS_PLAYER_ARMOUR", "100"},
@@ -718,27 +715,12 @@ void geConfigApplyLauncherProfile(void)
     };
     static const char *const clear[] = {
         "GETV_CHEATS", "GETV_NET_HOST", "GETV_NET_JOIN",
-        "GETV_INVERTLOOK", "GETV_DEBUGPOS"
+        "GETV_DEBUGPOS"
     };
     size_t i;
     for (i = 0; i < sizeof original / sizeof original[0]; ++i)
         setenv(original[i].key, original[i].value, 1);
     for (i = 0; i < sizeof clear / sizeof clear[0]; ++i) unsetenv(clear[i]);
-    /* Reset gamepad action overrides, including per-player bindings. Keyboard
-     * and mouse remain usable as N64 input adapters, with classic response. */
-    static const char *const actions[] = {"FIRE", "AIM", "USE", "WEAPON_NEXT", "WEAPON_PREV", "PAUSE"};
-    static const char *const sources[] = {"rt", "lt", "b", "a", "none", "start"};
-    for (i = 0; i < sizeof actions / sizeof actions[0]; ++i) {
-        char key[64];
-        int player;
-        snprintf(key, sizeof key, "GETV_BIND_%s", actions[i]);
-        setenv(key, sources[i], 1);
-        for (player = 1; player <= 4; ++player) {
-            snprintf(key, sizeof key, "GETV_P%d_BIND_%s", player, actions[i]);
-            setenv(key, sources[i], 1);
-        }
-    }
-    ge_config_controls = 0;
     configFiltering = 2;
     configWidescreen = 0;
     /* These globals were populated by constructors before config parsing. */
@@ -1264,6 +1246,15 @@ static int locate(const char *argv0, const char *cliPath)
 
  if (try_path(getenv("GETV_CONFIG"))) { return 1; }
  if (try_path(cliPath)) { return 1; }
+
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+ /* The Finder app selects separate binaries but shares OpenGL's existing config.
+  * Explicit GETV_CONFIG/--config still win; direct executable launches never set this. */
+ const char *appDir = getenv("GETV_MAC_APP_CONFIG_DIR");
+ char appArgv0[1024];
+ if (appDir && appDir[0] && snprintf(appArgv0, sizeof appArgv0, "%s/goldeneye", appDir) < (int)sizeof appArgv0)
+     argv0 = appArgv0;
+#endif
 
  if (argv0 != NULL) {
         /* Both separators. This looked for '/' only, which on Windows means argv[0] --

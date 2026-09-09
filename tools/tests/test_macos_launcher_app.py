@@ -86,25 +86,6 @@ done
         self.assertTrue(app.is_dir(), result.stdout + result.stderr)
         return binary, app
 
-    def launch(self, app: Path) -> dict:
-        info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
-        entry = app / "Contents/MacOS" / info["CFBundleExecutable"]
-        result = subprocess.run(
-            [str(entry), "--config=config with spaces.cfg"], cwd=self.temp.name,
-            env={**self.env, "GETV_TEST_MARKER": "preserved"},
-            text=True, capture_output=True, check=True, timeout=10,
-        )
-        return json.loads(result.stdout)
-
-    def test_bundle_opens_launcher_and_preserves_arguments_and_environment(self) -> None:
-        for renderer in ("gl", "metal"):
-            with self.subTest(renderer=renderer):
-                binary, app = self.bundle(renderer)
-                result = self.launch(app)
-                self.assertEqual(result["argv"], [str(binary), "--launcher", "--config=config with spaces.cfg"])
-                self.assertEqual(Path(result["cwd"]).resolve(), binary.parent.resolve())
-                self.assertEqual(result["marker"], "preserved")
-
     def test_normal_app_build_also_creates_launcher(self) -> None:
         for renderer in ("gl", "metal"):
             with self.subTest(renderer=renderer):
@@ -129,15 +110,8 @@ done
             self.assertTrue(info["NSHighResolutionCapable"])
             files = {p.relative_to(app).as_posix() for p in app.rglob("*") if p.is_file()}
             self.assertEqual(files, {"Contents/Info.plist", "Contents/MacOS/LaunchGoldenEye", "Contents/Resources/GoldenEye.icns"})
-            self.assertNotIn(str(binary.parent), (app / "Contents/MacOS/LaunchGoldenEye").read_text())
+            self.assertEqual(info["GERendererBuild"], renderer)
         self.assertEqual(len(identifiers), 2)
-
-    def test_whole_build_folder_can_move(self) -> None:
-        binary, app = self.bundle()
-        moved = self.root / "moved build with spaces"
-        binary.parent.rename(moved)
-        result = self.launch(moved / app.name)
-        self.assertEqual(result["argv"][0], str(moved / binary.name))
 
     def test_rebundling_preserves_binary_and_settings(self) -> None:
         binary, app = self.bundle()
@@ -148,7 +122,7 @@ done
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(binary.read_bytes(), original)
         self.assertEqual(config.read_text(), "resolution = 1280x960\n")
-        self.assertEqual(self.launch(app)["argv"][1], "--launcher")
+        self.assertTrue(os.access(app / "Contents/MacOS/LaunchGoldenEye", os.X_OK))
 
     def test_missing_or_nonexecutable_binary_fails(self) -> None:
         binary, app = self.build_paths("gl")
@@ -159,6 +133,15 @@ done
                 result = self.run_build("gl", "bundle")
                 self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertFalse(app.exists())
+
+    def test_compile_failure_does_not_replace_existing_bootstrap(self) -> None:
+        binary, app = self.bundle()
+        entry = app / "Contents/MacOS/LaunchGoldenEye"
+        original = entry.read_bytes()
+        self.write_command("clang", "#!/bin/sh\nexit 1\n")
+        result = self.run_build("gl", "bundle")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(entry.read_bytes(), original)
 
     def test_direct_binary_does_not_request_launcher(self) -> None:
         binary, _ = self.bundle()

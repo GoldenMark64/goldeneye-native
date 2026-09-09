@@ -84,6 +84,12 @@
  * declaration on the non-Windows branch alone left Windows compiling the call with nothing in
  * scope -- "gePortSetWindowIcon was not declared in this scope; did you mean SDL_SetWindowIcon".
  * The platform split above is about which system headers to pull in, which this is not. */
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+#include "../mac/ge_renderer_choice.h"
+#else
+static bool geAppRendererActive(void) { return false; }
+#endif
+
 extern "C" void gePortSetWindowIcon(SDL_Window *w);
 
 #ifdef RAPI_METAL
@@ -684,13 +690,21 @@ void model_load(Model &m)
     /* After moddir is known: the scan needs it to decide where to look. */
     mod_scan(m);
     mod_apply_off(m);
-    if (m.profile == 0) apply_profile(m);
+    if (m.profile == 0) {
+        const bool uncapped = m.uncapped;
+        apply_profile(m);
+        m.uncapped = uncapped; // Opening or starting must retain the selected timing.
+    }
 }
 
 void model_store(const Model &chosen)
 {
     Model m = chosen;
-    if (m.profile == 0) apply_profile(m);
+    if (m.profile == 0) {
+        const bool uncapped = m.uncapped;
+        apply_profile(m);
+        m.uncapped = uncapped; // Opening or starting must retain the selected timing.
+    }
     setenv("GETV_LAUNCHER_BASE", m.profile == 0 ? "1" : "0", 1);
     setenv("GETV_PROFILE_PLUS", m.profile ? "1" : "0", 1);
     static const char *const gibs[] = { "off", "explosions", "high_damage", "always" };
@@ -871,13 +885,12 @@ void model_store(const Model &chosen)
 }
 
 /* Keep the visible model consistent with the launch contract. Base Game restores
- * original presentation, controls and gameplay; display size/fullscreen survive.
+ * original presentation and gameplay; input and selected frame rate survive.
  * geConfigApplyLauncherProfile also enforces it after the child re-reads config.
  * GoldenEye+ supplies enhancement defaults and allows subsequent customization. */
 void apply_profile(Model &m)
 {
     if (m.profile == 1) {
-        m.mouse_mode = 0;
         m.fov         = (m.fov < 100) ? 100 : m.fov;
         m.msaa        = (m.msaa  < 4) ? 4 : m.msaa;
         m.aniso       = (m.aniso < 8) ? 8 : m.aniso;
@@ -934,16 +947,10 @@ void apply_profile(Model &m)
         m.base_game = true;
         m.coop_players = 0;
         m.net_mode = 0;
-        m.mouse_mode = 1;
         m.filtering = 2;
         m.widescreen = false;
-        m.framerate = 30;
         for (int c = 0; c < 3; ++c) m.crosshair_color[c] = 1.0f;
         for (int i = 0; i < kCheatCount; ++i) m.cheat_on[i] = false;
-        for (int a = 0; a < kActionCount; ++a) {
-            m.bind_all[a] = -1;
-            for (int p = 0; p < 4; ++p) m.bind_p[p][a] = -1;
-        }
     }
 }
 
@@ -1299,6 +1306,18 @@ void relaunch()
         return;
     }
 
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+    if (geAppRendererActive()) {
+        int renderer = geAppRendererSelected();
+        const char *target = geAppRendererPath(renderer);
+        if (!geAppRendererAvailable(renderer) || !target || strlen(target) >= sizeof exe) {
+            fprintf(stderr, "[getv][launcher] selected renderer is unavailable\n");
+            exit(1); // The app monitor offers recovery; never fall through into another backend.
+        }
+        snprintf(exe, sizeof exe, "%s", target);
+    }
+#endif
+
     /* The environment must stop asking for the launcher too, or a GETV_LAUNCHER=1 set in
      * goldeneye.cfg would survive into the child and open the launcher again, forever. On
      * Windows, 0 must remain present: an absent setting plus a plain argv is intentionally
@@ -1306,7 +1325,8 @@ void relaunch()
 #if defined(_WIN32)
     setenv("GETV_LAUNCHER", "0", 1);
 #else
-    unsetenv("GETV_LAUNCHER");
+    if (geAppRendererActive()) setenv("GETV_LAUNCHER", "0", 1);
+    else unsetenv("GETV_LAUNCHER");
 #endif
     unsetenv("GETV_LAUNCHER_AUTOPLAY");
 
@@ -1343,6 +1363,14 @@ void relaunch()
     return;
 #else
     execv(exe, nv);
+#endif
+
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+    if (geAppRendererActive()) {
+        fprintf(stderr, "[getv][launcher] renderer exec failed: %s\n", strerror(ge_errno));
+        free(nv);
+        exit(1);
+    }
 #endif
 
     /* Only reached if execv failed. The environment is already set, so falling through into
@@ -1782,7 +1810,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("[getv][launcher] SDL_Init failed: %s\n", SDL_GetError());
-        return 0;                      /* fall through to the game rather than refusing to start */
+        return geAppRendererActive() ? -1 : 0;                      /* fall through to the game rather than refusing to start */
     }
 
     /* A plain, small, resizable window. No GL attributes are requested beyond a double
@@ -1916,7 +1944,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
     if (win == NULL) {
         printf("[getv][launcher] SDL_CreateWindow failed: %s\n", SDL_GetError());
         SDL_Quit();
-        return 0;
+        return geAppRendererActive() ? -1 : 0;
     }
 #ifndef RAPI_METAL
     SDL_GLContext ctx = SDL_GL_CreateContext(win);
@@ -1924,7 +1952,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
         printf("[getv][launcher] SDL_GL_CreateContext failed: %s\n", SDL_GetError());
         SDL_DestroyWindow(win);
         SDL_Quit();
-        return 0;
+        return geAppRendererActive() ? -1 : 0;
     }
     SDL_GL_MakeCurrent(win, ctx);
     SDL_GL_SetSwapInterval(1);
@@ -1950,7 +1978,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
         ImGui::DestroyContext();
         SDL_DestroyWindow(win);
         SDL_Quit();
-        return 0;
+        return geAppRendererActive() ? -1 : 0;
     }
 #else
     /* imgui_impl_opengl2, matching ge_imgui.cpp: this build takes macOS's legacy context and
@@ -1968,6 +1996,10 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
      * cannot reach -- the probe never clicks anything -- can each be rendered and looked at
      * without a human driving the mouse. */
     int  page    = env_int("GETV_LAUNCHER_PAGE", 0);
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+    if (geAppRendererActive() && !geAppRendererAvailable(geAppRendererSelected())) page = 5;
+    bool rendererSaveFailed = false;
+#endif
     if (page < 0 || page > 7) page = 0;
     const int probe_frames = env_int("GETV_LAUNCHER_PROBE", 0);
     int probe_seen = 0;
@@ -2080,7 +2112,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             ImGui::SetCursorScreenPos(ImVec2(36, 104));
             ImGui::PushTextWrapPos(W - 36);
             Hint(m.profile == 0
-                 ? "Base Game: N64 graphics and 1.1 Honey controls. Start at the title screen or choose a mission. "
+                 ? "Base Game: N64 graphics with your selected controls and timing. Start at the title screen or choose a mission. "
                    "No Brutal effects, mods or launcher cheats. Resolution and fullscreen remain available."
                  : "GoldenEye+: enhanced graphics and optional gameplay, controls, mods and cheats. "
                    "Start from the title screen or choose a mission. Brutal effects are optional.");
@@ -2108,9 +2140,9 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                               ImGuiChildFlags_None, 0);
 
             const bool locked_page = m.profile == 0 &&
-                (page == 1 || page == 2 || page == 3 || page == 4 || page == 6);
+                (page == 1 || page == 2 || page == 4 || page == 6);
             if (locked_page)
-                Hint("Base Game uses original gameplay and 1.1 Honey controls. "
+                Hint("Base Game uses original gameplay. "
                      "Choose GoldenEye+ above to customize these options.");
             ImGui::BeginDisabled(locked_page);
             if (page == 0) {
@@ -2485,6 +2517,34 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             else if (page == 5) {
                 float vw = ImGui::GetContentRegionAvail().x;
 
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+                if (geAppRendererActive()) {
+                    Section("RENDERER");
+                    int renderer = geAppRendererSelected();
+                    const char *label = renderer == 0 ? "OpenGL" : renderer == 1 ? "Metal" : "Choose a renderer";
+                    ImGui::SetNextItemWidth(260);
+                    if (ImGui::BeginCombo("Renderer", label)) {
+                        const char *names[] = {"OpenGL", "Metal"};
+                        for (int choice = 0; choice < 2; choice++) {
+                            bool available = geAppRendererAvailable(choice) != 0;
+                            ImGui::BeginDisabled(!available);
+                            if (ImGui::Selectable(names[choice], renderer == choice)) {
+                                setenv("GETV_MAC_APP_RENDERER", choice ? "metal" : "gl", 1);
+                                rendererSaveFailed = !geAppRememberRenderer(choice, CFSTR("org.goldeneyenative.renderer"));
+                            }
+                            ImGui::EndDisabled();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    if (rendererSaveFailed) Hint("Could not save the renderer preference. This choice applies to this session only.");
+                    Hint("Remembered separately from game settings. Takes effect when you start the game.");
+                    if (!geAppRendererAvailable(0)) Hint("OpenGL is not installed. Install it to enable fallback.");
+                    if (!geAppRendererAvailable(1)) Hint("Metal is not installed or is unavailable on this Mac.");
+                    if (!geAppRendererAvailable(geAppRendererSelected()))
+                        Hint("Choose an available renderer before starting the game.");
+                }
+#endif
+
                 Section("DISPLAY");
                 InputRow("Resolution", m.resolution, sizeof m.resolution, 260);
                 ImGui::Dummy(ImVec2(0, 4));
@@ -2560,6 +2620,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                      "320x240 on a CRT across a room; on a monitor it covers rather more of "
                      "what you are aiming at. GoldenEye+ asks for 60%.");
 
+                ImGui::EndDisabled();
                 Section("TIMING");
                 ImGui::Checkbox("Uncapped (high refresh)", &m.uncapped);
                 Hint("Removes the frame cap and switches to the real timebase together, "
@@ -2579,7 +2640,6 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                          "default clock or is ignored on the real one. Uncapped above is the "
                          "high-refresh setting.");
                 }
-                ImGui::EndDisabled();
             }
 
             else if (page == 6) {
@@ -2760,12 +2820,18 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             ImGui::SetCursorScreenPos(ImVec2(W - 358, H - footerH + 21));
             if (Btn("QUIT", ImVec2(120, 36), false)) { running = false; }
             ImGui::SetCursorScreenPos(ImVec2(W - 222, H - footerH + 21));
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+            ImGui::BeginDisabled(geAppRendererActive() && !geAppRendererAvailable(geAppRendererSelected()));
+#endif
             if (Btn(m.pick_stage ? "START MISSION" : "START GAME", ImVec2(188, 36), true)) {
                 if (developer_prepare_recording(m)) { launch = true; running = false; }
                 else SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cannot start recording",
                     "The reports directory could not be prepared. Turn recording off or check folder access.", win);
             }
 
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+            ImGui::EndDisabled();
+#endif
             ImGui::End();
         }
 

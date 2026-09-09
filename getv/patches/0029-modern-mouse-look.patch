@@ -1,0 +1,85 @@
+diff --git a/src/game/bondview2.c b/src/game/bondview2.c
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -5234,6 +5234,10 @@
+     f32 ftemp_nostack_sp78;
+     s32 canCycleWeapons; // sp74
+     f32 sp70;
++#ifdef GE_PORT_NATIVE
++    f32 ge_mouse_yaw = 0.0f, ge_mouse_pitch = 0.0f;
++    s32 ge_mouse_modern = 0;
++#endif
+ 
+ 
+     moveData.canSwivelGun = 0;
+@@ -6272,6 +6276,25 @@
+         }
+     }
+ 
++#ifdef GE_PORT_NATIVE
++    /* GE_MODERN_MOUSE_BEGIN: consume displacement once at the game input boundary.
++     * Frozen views still call this function; explicitly discard their queued motion.
++     * Vehicles retain the original stick/turret model. */
++    {
++        extern int gePortInputTakeMouseLook(int, int, float *, float *);
++        s32 allowed = (g_CameraMode == CAMERAMODE_FP || g_CameraMode == CAMERAMODE_NONE)
++            && is_timer_active && !lvlGetControlsLockedFlag()
++            && !g_CurrentPlayer->bonddead && g_bondviewForceDisarm <= 0
++            && g_CurrentPlayer->watch_animation_state == WATCH_ANIMATION_0x0
++            && !g_stopPlayFlag && !g_gameOverFlag;
++        if (g_GlobalTimerDelta > 0.0f || !allowed) {
++            ge_mouse_modern = gePortInputTakeMouseLook(get_cur_playernum(),
++                allowed ? (g_PlayerIsInTank ? 2 : 1) : 0, &ge_mouse_yaw, &ge_mouse_pitch);
++        }
++    }
++    /* GE_MODERN_MOUSE_END */
++#endif
++
+     if (g_CurrentPlayer->watch_animation_state == WATCH_ANIMATION_0x0)
+     {
+         // By default the camera is pitched slightly below the horizon
+@@ -6386,6 +6409,13 @@
+         /**
+          * If look ahead (docentreupdown) is active, adjust the player's camera pitch to the target pitch.
+          */
++#ifdef GE_PORT_NATIVE
++        /* A resting mouse must retain its pitch instead of following the floor. */
++        if (ge_mouse_modern) {
++            g_CurrentPlayer->docentreupdown = FALSE;
++            g_CurrentPlayer->automovecentre = FALSE;
++        }
++#endif
+         if (g_CurrentPlayer->docentreupdown)
+         {
+             if (g_PlayerIsInTank == 0)
+@@ -6589,6 +6619,30 @@
+             g_CurrentPlayer->speedtheta = 0;
+         }
+     }
++
++#ifdef GE_PORT_NATIVE
++    /* Angles already represent all travel since the last consumed sample. Do not
++     * multiply by tick length or put them through speedtheta/speedverta. The normal
++     * MoveBond path refreshes the camera basis and collision heading afterwards. */
++    if (ge_mouse_modern) {
++        f32 zoom_scale = viGetFovY() / FOV_Y_F;
++        g_CurrentPlayer->vv_theta = fmodf(g_CurrentPlayer->vv_theta + ge_mouse_yaw * zoom_scale, 360.0f);
++        if (g_CurrentPlayer->vv_theta < 0.0f) g_CurrentPlayer->vv_theta += 360.0f;
++        g_CurrentPlayer->vv_verta += ge_mouse_pitch * zoom_scale;
++        if (g_CurrentPlayer->vv_verta > 89.9f) g_CurrentPlayer->vv_verta = 89.9f;
++        if (g_CurrentPlayer->vv_verta < -89.9f) g_CurrentPlayer->vv_verta = -89.9f;
++        {
++            static s32 trace = -1, samples;
++            if (trace < 0) { const char *e = getenv("GETV_INPUT_DEBUG"); trace = e && atoi(e) >= 2; }
++            if (trace && (samples++ % 60) == 0) {
++                osSyncPrintf("[getv][mouse-look] dxdeg=%.4f dydeg=%.4f yaw=%.4f pitch=%.4f aim=%d dt=%.2f\n",
++                    (double)ge_mouse_yaw, (double)ge_mouse_pitch,
++                    (double)g_CurrentPlayer->vv_theta, (double)g_CurrentPlayer->vv_verta,
++                    (int)g_CurrentPlayer->insightaimmode, (double)g_GlobalTimerDelta);
++            }
++        }
++    }
++#endif
+ 
+     if (moveData.detonating)
+     {

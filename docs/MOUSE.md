@@ -1,4 +1,29 @@
-# Mouse look: why it was unusable, and the numbers behind the fix
+# Mouse look
+
+## Modern mouse response
+
+Mouse look now defaults to `mouse_mode = modern` (`GETV_MOUSE_MODE=modern`). The desktop
+launcher's Controls page offers **Modern** and **Classic N64** mouse response.
+
+Modern mode converts relative mouse travel directly into yaw and pitch: 0.1 degree per count
+at 100% sensitivity and normal FOV. Sensitivity and Y inversion still apply, and zoom reduces
+angular sensitivity with the game's FOV. Distance is independent of how many input polls
+deliver it. A fast swipe has no stick turning-speed cap, and stopping or reversing cannot
+release leftover travel from an earlier swipe. Looking up or down does not automatically
+recenter while modern mouse look is active. Pitch is limited to +/-89.9 degrees.
+
+Controllers keep their existing stick response and bindings. Controller movement and mouse
+look can be used together; mouse travel no longer overwrites a connected controller's axes.
+Pause, cutscene, console and focus transitions discard pending mouse motion.
+
+`mouse_mode = classic` preserves the previous N64 stick response. Vehicle controls, network
+sessions, `GETV_RAMROM`/`GETV_DEMO` replays and `GETV_SCRIPT` runs also retain the classic path: their
+turret physics or recorded/network input formats require it. Extending modern look to those
+contracts is separate work. `GETV_MOUSE_SELFTEST` can exercise either mouse mode.
+
+## Historical stick-response measurements
+
+The measurements below describe **Classic N64** mode, not modern mouse response.
 
 Reported as "I have to move the mouse so far to move it barely an inch". That was accurate
 and understated. At a gentle 0.9 in/sec on an 800 DPI mouse, a 180 degree turn took roughly

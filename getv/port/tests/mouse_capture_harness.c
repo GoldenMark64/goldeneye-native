@@ -5,9 +5,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "port_input.h"
 #include "ge_mouse_accum.h"
+#ifdef GE_TEST_HAS_MODERN_MOUSE
+#include "ge_mouse_look.h"
+#endif
 #include "ge_console_input.c"
 
 static int window_storage, other_storage;
@@ -158,6 +162,9 @@ int main(int argc, char **argv)
         scenario += 11;
     }
     unsetenv("GETV_MOUSE_SELFTEST"); unsetenv("GETV_MOUSE_SELFTEST_Y");
+    unsetenv("GETV_NET_HOST"); unsetenv("GETV_NET_JOIN");
+    unsetenv("GETV_RAMROM"); unsetenv("GETV_SCRIPT"); unsetenv("GETV_DEMO");
+    setenv("GETV_MOUSE_MODE", strcmp(scenario, "modern") == 0 ? "modern" : "classic", 1);
     setenv("GETV_MOUSE", strcmp(scenario, "disabled") == 0 ? "0" : "1", 1);
     setenv("GETV_MOUSE_SENS", "100", 1); setenv("GETV_MOUSE_INVERT", "0", 1);
     setenv("GETV_KEYBOARD", strcmp(scenario, "no-keyboard") == 0 ? "0" : "1", 1);
@@ -169,6 +176,61 @@ int main(int argc, char **argv)
     if (strcmp(scenario, "selftest-y") == 0) setenv("GETV_MOUSE_SELFTEST_Y", "12", 1);
     if (strcmp(scenario, "unfocused-start") == 0) keyboard_focus = mouse_focus = NULL;
     struct GePadState out = poll();
+
+    if (strcmp(scenario, "modern") == 0) {
+#ifdef GE_TEST_HAS_MODERN_MOUSE
+        float yaw, pitch;
+        check(gePortInputTakeMouseLook(0, 1, &yaw, &pitch), "modern mode activates");
+        controller_axes[SDL_CONTROLLER_AXIS_RIGHTX] = 16000;
+        motion_x = 1000; motion_y = -40; out = poll();
+        check(out.rx == (controller_mode ? 16000 : 0), "mouse leaves controller look axes intact");
+        gePortInputTakeMouseLook(1, 1, &yaw, &pitch);
+        check(yaw == 0 && pitch == 0, "player two cannot consume mouse travel");
+        gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(fabsf(yaw - 100.0f) < 0.0001f && fabsf(pitch - 4.0f) < 0.0001f,
+              "fast swipe is full displacement without a stick speed ceiling");
+        poll(); gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(yaw == 0 && pitch == 0, "stopping has no residual motion");
+        motion_x = -1; poll(); gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(fabsf(yaw + 0.1f) < 0.0001f, "tiny reversal immediately turns the other way");
+        for (int i = 0; i < 10; ++i) { motion_x = 100; poll(); }
+        gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(fabsf(yaw - 100.0f) < 0.0001f, "event batching and delayed ticks preserve total travel");
+        motion_x = 1000; poll(); gePortInputTakeMouseLook(0, 0, &yaw, &pitch);
+        check(yaw == 0, "pause and cutscene context discard pending movement");
+        motion_x = 1000; poll(); gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(yaw == 0, "return to gameplay never replays menu movement");
+        motion_x = 1000; poll(); focus_event(SDL_WINDOWEVENT_FOCUS_LOST, 7);
+        gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(yaw == 0, "focus loss clears modern motion");
+        keyboard_focus = mouse_focus = wnd; click(); release_buttons();
+        gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        motion_x = 1000; poll(); gePortInputConsoleCapture(1);
+        gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(yaw == 0, "console capture clears modern motion");
+        gePortInputConsoleCapture(0); gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        motion_x = 1000; poll(); release_cursor();
+        gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(yaw == 0, "Escape clears modern motion");
+        click(); release_buttons();
+        check(!gePortInputTakeMouseLook(0, 2, &yaw, &pitch), "vehicle context retains classic controls");
+        motion_x = 50; out = poll();
+        check(out.rx == 32767, "vehicle mouse still turns through the original stick path");
+        gePortInputTakeMouseLook(0, 1, &yaw, &pitch);
+        check(yaw == 0, "leaving vehicle discards old movement");
+        setenv("GETV_NET_HOST", "27100", 1);
+        check(!gePortInputTakeMouseLook(0, 1, &yaw, &pitch), "lockstep keeps N64 input contract");
+        motion_x = 50; out = poll();
+        check(out.rx == 32767, "network mouse retains classic stick input");
+        unsetenv("GETV_NET_HOST"); setenv("GETV_MOUSE", "0", 1);
+        check(!gePortInputTakeMouseLook(0, 1, &yaw, &pitch), "disabled mouse does not own pitch centering");
+#else
+        motion_x = 1000; poll(); poll();
+        motion_x = -1; out = poll();
+        check(out.rx < 0, "tiny reversal after a fast swipe immediately turns the other way");
+#endif
+        return failures ? 1 : 0;
+    }
 
     if (strcmp(scenario, "disabled") == 0 || strcmp(scenario, "idle") == 0 ||
         strncmp(scenario, "selftest-", 9) == 0) {

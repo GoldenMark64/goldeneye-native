@@ -23,5 +23,23 @@ jobs:
           sudo apt-get install --yes libsdl2-dev gcc
       - name: Reconstruct pinned SDL window source (no ROM or game assets)
         run: bash tools/fetch-thirdparty.sh
-      - name: Run mouse capture and controller coexistence regression (missing or empty tests fail)
+      - name: Run mouse response, capture and controller regression (missing or empty tests fail)
         run: python3 tools/tests/test_mouse_capture.py --cc gcc
+      - name: Check mouse mode configuration
+        run: |
+          test -f getv/port/tests/test_config.c
+          bash getv/port/tests/run_tests.sh config
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: n64decomp/007
+          ref: c4356466796c697dfd298010b9bed261f9ed8c6a
+          path: vendor/ge-decomp
+          persist-credentials: false
+      - name: Apply game source patches without extracted assets
+        run: |
+          for patch in getv/patches/0*.patch; do
+            case "$patch" in */0002-*) continue ;; esac
+            git -C vendor/ge-decomp apply "$GITHUB_WORKSPACE/$patch"
+          done
+      - name: Check game mouse gates and angle application
+        run: python3 tools/tests/test_modern_mouse_game.py --cc gcc

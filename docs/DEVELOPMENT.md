@@ -158,6 +158,12 @@ main wrapper disabled, so it needs no SDL library:
 python tools/tests/test_mouse_capture.py --cc C:\mingw64\bin\gcc.exe --sdl-include C:\mingw64\include\SDL2
 ```
 
+The mouse runner also checks modern displacement, reversals, event batching, pause/focus
+discard, controller coexistence and classic fallback. After applying the numbered source
+patches, `python3 tools/tests/test_modern_mouse_game.py --cc gcc` checks the actual game-side
+input gates, angle application, zoom and pitch limits with synthetic player state. It requires
+patched game source but no ROM or generated assets. Both run in `mouse-capture-regression.yml`.
+
 The game-header multi-ammo regression has a separate source-only runner. From a fresh
 checkout, with Git, Python 3 and a C compiler installed:
 

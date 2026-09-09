@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCENARIOS = ("resume", "focus", "ownership", "failure", "disabled", "idle", "selftest-x",
              "selftest-y", "unfocused-start")
 SCENARIOS += tuple("controller-" + name for name in SCENARIOS) + (
-    "controller-mixed", "controller-no-keyboard")
+    "controller-mixed", "controller-no-keyboard", "modern", "controller-modern")
 
 
 def section(path, start, end):
@@ -71,6 +71,7 @@ def main():
         subprocess.run([compiler, "-std=gnu17", "-O1", "-g", "-Wall", "-Wextra",
                         "-Werror", "-Wno-unused-parameter", "-DGE_PLATFORM_DESKTOP", "-DSDL_MAIN_HANDLED",
                         *platform_flags,
+                        *(["-DGE_TEST_HAS_MODERN_MOUSE"] if "int gePortInputTakeMouseLook(" in mouse else []),
                         "-I" + str(include), "-I" + str(port), "-I" + str(directory),
                         str(ROOT / "getv/port/tests/mouse_capture_harness.c"),
                         "-o", str(executable)], check=True, timeout=60)

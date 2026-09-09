@@ -60,6 +60,11 @@ int gePortInputPadCount(void);
  * well-defined zeroes. Out-of-range ports read as absent rather than faulting. */
 void gePortInputPollPort(int port, struct GePadState *out);
 
+/* Called by player one's game input consumer. Context 0 discards menu/cutscene
+ * motion, 1 consumes on-foot angles once, 2 retains classic vehicle controls.
+ * Returns whether modern mouse look owns pitch centering, even at rest. */
+int gePortInputTakeMouseLook(int player, int context, float *yaw, float *pitch);
+
 /* Desktop SDL window handoff. The event owner calls MouseClick only for left-button-down
  * in the game window after console capture, and FocusLost on keyboard-focus loss. */
 #ifdef GE_PLATFORM_DESKTOP

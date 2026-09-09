@@ -43,6 +43,13 @@ scripts, rather than assuming every native test includes production code.
 Only the mouse-capture regression applies `getv/patches/thirdparty/*`. The ROM-free Windows
 packaging workflow invokes `tools/fetch_deps_windows.ps1` in `-WizardOnly` mode; the separate
 multi-ammo Windows regression shares its WinLibs release pin.
+
+The public-artifact-safety job also runs `tools/tests/test_skill_eval.py`: required, ROM-free
+unit tests for the simulated screenshot workflow, grading, trace provenance, and local MCP stdio
+protocol. The test entrypoint fails on zero tests or skips. It starts only the local Python
+simulator, with synthetic artifact IDs; it does not invoke Codex, use model credentials, upload
+images, or publish to GitHub. Live model evaluations are opt-in local runs described in
+[`SKILL_EVALS.md`](SKILL_EVALS.md); a green CI harness test is not a new model evaluation.
 There are currently no local composite/reusable actions, PR artifact handoffs to a privileged
 job, shared PR/deployment caches, or `pull_request_target` workflows.
 

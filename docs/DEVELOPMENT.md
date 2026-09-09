@@ -132,6 +132,19 @@ bash getv/port/tests/run_tests.sh mouse
 
 Then run the complete suite before handoff.
 
+The save-directory regression compiles the production `geSavePathInit` initializer with
+synthetic environment and filesystem helpers. It requires Python 3 and a C compiler, checks
+11 scenarios with and without macOS diagnostics, and never opens a real save or reads the
+host home directory:
+
+```bash
+python3 tools/tests/test_save_paths.py -v
+```
+
+The public-artifact-safety CI job runs it directly; missing compiler/source, compilation errors
+and fewer than 11 successful scenarios per variant fail the check. This tests path selection
+and directory-creation failure handling, not game execution or save serialization.
+
 The desktop mouse-capture regression exercises the actual SDL event-handler and mouse-polling
 source sections and the controller/no-controller polling branch with simulated device state
 and real SDL2 headers. It covers simultaneous controller movement and mouse look/buttons,

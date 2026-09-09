@@ -55,7 +55,9 @@ running game. Keep screenshots outside Git and attach them only after review.
    are already known:
 
    ```bash
+   umask 077
    python3 tools/collect_bug_report.py \
+     --output "$HOME/Documents/Goldeneye-Native-Reports/rendering-$(date +%Y%m%d-%H%M%S)" \
      --kind rendering \
      --renderer Metal \
      --stage "Complex (GETV_STAGE=31)" \
@@ -63,10 +65,17 @@ running game. Keep screenshots outside Git and attach them only after review.
      --screenshot /private/tmp/ge-report/capture.bmp
    ```
 
+   Choose a new durable private `--output` directory outside every checkout and temporary
+   staging area. Verify its permissions and that it is not shared or automatically published.
+   The default without `--output` is system temporary storage, not a retained deliverable.
+
 5. Use only the sanitized copies and metadata-free PNG produced by the collector. Never upload the
    source log, source BMP or any file rejected by the collector.
 6. Inspect `report.md`, `manifest.json` and every artifact. Treat automated checks as a supplement
-   to manual review.
+   to manual review. Reopen the report, manifest and every sanitized attachment from the final
+   durable directory and verify they are complete and readable before removing temporary
+   staging. Record the durable directory in the handoff and retain the private bundle through
+   review and submission; never delete the only retained copy during staging cleanup.
 
 ## Prepare and submit the issue
 

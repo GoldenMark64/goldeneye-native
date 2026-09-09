@@ -236,7 +236,7 @@ ROM. A wrong or damaged file is refused before it can produce a broken build twe
 
 The launcher offers two modes, with a description beneath the selector.
 
-**Base Game** (previously **97 Console**) starts at the original title screen, uses the N64
+**Base Game** (previously **97 Console**) allows title-screen or direct mission startup, uses the N64
 graphics and 1.1 Honey control layout, and disables Brutal effects, mods, launcher cheats,
 custom gameplay presets, co-op and netplay. Keyboard and mouse still work as N64 input adapters,
 with classic mouse response. Resolution and fullscreen remain adjustable; conflicting options

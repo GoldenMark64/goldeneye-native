@@ -496,8 +496,8 @@ void model_load(Model &m)
 
     m.profile = env_bool("GETV_PROFILE_PLUS", false) ? 1 : 0;
     const char *base = getenv("GETV_BASE_GAME");
-    m.base_game = base && strcmp(base, "0") && strcmp(base, "off") &&
-                  strcmp(base, "false") && strcmp(base, "no");
+    m.base_game = !base || (strcmp(base, "0") && strcmp(base, "off") &&
+                           strcmp(base, "false") && strcmp(base, "no"));
     /* Read preferences directly: querying runtime policy here would cache it before
      * the player has finished choosing settings. */
     {
@@ -877,7 +877,6 @@ void model_store(const Model &chosen)
 void apply_profile(Model &m)
 {
     if (m.profile == 1) {
-        m.base_game = false;
         m.mouse_mode = 0;
         m.fov         = (m.fov < 100) ? 100 : m.fov;
         m.msaa        = (m.msaa  < 4) ? 4 : m.msaa;
@@ -932,7 +931,6 @@ void apply_profile(Model &m)
         m.ruleset = 0;
         m.rs_custom = false;
         m.horde = false;
-        m.pick_stage = false;
         m.base_game = true;
         m.coop_players = 0;
         m.net_mode = 0;
@@ -2082,7 +2080,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             ImGui::SetCursorScreenPos(ImVec2(36, 104));
             ImGui::PushTextWrapPos(W - 36);
             Hint(m.profile == 0
-                 ? "Base Game: original title-screen start, N64 graphics and 1.1 Honey controls. "
+                 ? "Base Game: N64 graphics and 1.1 Honey controls. Start at the title screen or choose a mission. "
                    "No Brutal effects, mods or launcher cheats. Resolution and fullscreen remain available."
                  : "GoldenEye+: enhanced graphics and optional gameplay, controls, mods and cheats. "
                    "Start from the title screen or choose a mission. Brutal effects are optional.");
@@ -2119,13 +2117,10 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                 Section("GAME START");
                 static const char *const kStart[] = { "ORIGINAL GAME START", "MISSION SELECTOR" };
                 int start = m.pick_stage ? 1 : 0;
-                ImGui::BeginDisabled(m.profile == 0);
                 if (Segmented("start", &start, kStart, 2, 240.0f)) m.pick_stage = start != 0;
-                ImGui::EndDisabled();
                 Hint(m.pick_stage
                      ? "The game boots straight into the mission selected below."
                      : "The game boots to the title screen and the mission is chosen there.");
-                if (m.profile == 0) Hint("Choose GoldenEye+ to enable the mission selector.");
 
                 ImGui::BeginDisabled(!m.pick_stage);
                 {
@@ -2271,8 +2266,12 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                 }
 
                 Section("BRUTAL GOLDENEYE");
-                ImGui::Checkbox("Disable Brutal effects", &m.base_game);
-                Hint("Next launch: disables Brutal effects and keeps your choices. "
+                bool brutal_enabled = !m.base_game;
+                if (ImGui::Checkbox("Enable Brutal effects", &brutal_enabled)) {
+                    m.base_game = !brutal_enabled;
+                    if (brutal_enabled && m.gibs == 0) m.gibs = 1;
+                }
+                Hint("Off by default. Enable for added gore on the next launch. "
                      "Other mods and gameplay options remain separately configured.");
                 ImGui::BeginDisabled(m.base_game);
                 static const char *const kGibs[] = { "Off", "Explosions", "High damage", "Always" };

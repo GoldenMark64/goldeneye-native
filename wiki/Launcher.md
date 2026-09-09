@@ -10,8 +10,7 @@ configure it through `goldeneye.cfg` and the environment instead.
 ## The pages
 
 **Mission.** Choose **Original game start** or **Mission selector**. Original startup keeps
-the mission list visible but disabled. Base Game always uses original startup; GoldenEye+
-allows direct mission selection.
+the mission list visible but disabled. Both Base Game and GoldenEye+ allow direct mission selection.
 
 **Gameplay.** Enemy health, damage, accuracy and ammunition, player health, explosion strength.
 Percentages with presets, plus horde mode. See [Rulesets](Rulesets).

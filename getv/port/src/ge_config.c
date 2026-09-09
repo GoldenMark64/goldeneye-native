@@ -685,6 +685,11 @@ static void key_cheats(const char *v, int over)
 void geConfigApplyLauncherProfile(void)
 {
     const char *base = getenv("GETV_LAUNCHER_BASE");
+    const char *pick = getenv("GETV_PICKSTAGE");
+    /* An explicit original-start choice must survive the child re-reading a
+     * configured stage. Direct selection remains available in either mode. */
+    if (base && (!strcmp(base, "0") || !strcmp(base, "1")) &&
+        pick && !strcmp(pick, "0")) unsetenv("GETV_STAGE");
     if (!base || strcmp(base, "1") != 0) return;
 
     /* A launcher mode is a promise, not a gap-filling config preset. Apply last,
@@ -694,7 +699,7 @@ void geConfigApplyLauncherProfile(void)
         {"GETV_PROFILE_PLUS", "0"}, {"GETV_BASE_GAME", "1"},
         {"GETV_GIBS", "off"}, {"GETV_RULESET", "classic"},
         {"GETV_HORDE", "0"}, {"GETV_COOP", "0"},
-        {"GETV_PICKSTAGE", "0"}, {"GETV_UNLOCKALL", "0"},
+        {"GETV_UNLOCKALL", "0"},
         {"GETV_SUPERSAMPLE", "1"}, {"GETV_FOV", "100"},
         {"GETV_MSAA", "0"}, {"GETV_ANISO", "0"},
         {"GETV_FILTERING", "2"}, {"GETV_POINT_FILTER", "0"},
@@ -712,7 +717,7 @@ void geConfigApplyLauncherProfile(void)
         {"GETV_RS_TURRET_DAMAGE", "100"}
     };
     static const char *const clear[] = {
-        "GETV_STAGE", "GETV_CHEATS", "GETV_NET_HOST", "GETV_NET_JOIN",
+        "GETV_CHEATS", "GETV_NET_HOST", "GETV_NET_JOIN",
         "GETV_INVERTLOOK", "GETV_DEBUGPOS"
     };
     size_t i;

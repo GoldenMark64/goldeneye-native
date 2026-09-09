@@ -408,10 +408,7 @@ private struct MissionPage: View {
                 Text("Mission selector").tag(true)
             }
             .pickerStyle(.segmented)
-            .disabled(m.profile == 0)
-            Text(m.profile == 0
-                 ? "Base Game starts at the title screen. Choose GoldenEye+ to use the mission selector."
-                 : (m.pickStage ? "Start directly in the selected mission." : "Start at the title screen and choose a mission in game."))
+            Text(m.pickStage ? "Start directly in the selected mission." : "Start at the title screen and choose a mission in game.")
                 .foregroundColor(geDim).font(.system(size: 14))
 
             Group {
@@ -466,10 +463,13 @@ private struct RulesetPage: View {
                 }
 
                 GeSectionTitle(text: "Brutal GoldenEye")
-                Toggle(isOn: $m.baseGame) {
-                    Text("Disable Brutal effects").foregroundColor(geText)
+                Toggle(isOn: Binding(get: { !m.baseGame }, set: { enabled in
+                    m.baseGame = !enabled
+                    if enabled && m.gibs == 0 { m.gibs = 1 }
+                })) {
+                    Text("Enable Brutal effects").foregroundColor(geText)
                 }
-                Text("Next launch: disables Brutal effects and keeps your choices. Other mods and gameplay options remain separately configured.")
+                Text("Off by default. Enable for added gore on the next launch. Other mods and gameplay options remain separately configured.")
                     .foregroundColor(geDim).font(.system(size: 12))
                 GePanel {
                     VStack(alignment: .leading, spacing: 14) {
@@ -974,7 +974,7 @@ private struct ProfilePage: View {
         VStack(alignment: .leading, spacing: 16) {
             GeSectionTitle(text: "Profile")
             LazyVStack(spacing: 6) {
-                ForEach([(0, "Base Game", "Original title-screen start, N64 graphics and 1.1 Honey controls. No Brutal effects, mods or launcher cheats. Display settings remain available."),
+                ForEach([(0, "Base Game", "N64 graphics and 1.1 Honey controls. Start at the title screen or choose a mission. No Brutal effects, mods or launcher cheats. Display settings remain available."),
                          (1, "GoldenEye+", "Enhanced graphics and optional gameplay, controls, mods and cheats. Start at the title screen or choose a mission. Brutal effects are optional.")], id: \.0) { p in
                     Button(action: { m.profile = p.0 }) {
                         VStack(alignment: .leading, spacing: 4) {

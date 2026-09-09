@@ -46,7 +46,7 @@ int main() {
     strcpy(m.resolution, "1920x1080");
     for (int i = 0; i < kCheatCount; ++i) m.cheat_on[i] = true;
     apply_profile(m);
-    check(!m.pick_stage, "Base Game always uses original startup");
+    check(m.pick_stage, "Base Game permits direct mission startup");
     check(m.base_game, "Base Game suppresses Brutal effects");
     check(m.ruleset == 0 && !m.rs_custom && !m.horde, "Base Game uses original gameplay");
     check(m.coop_players == 0 && m.net_mode == 0, "Base Game disables added multiplayer modes");
@@ -61,7 +61,7 @@ int main() {
     check(m.gibs == 3 && m.blood == 2, "Base Game retains inactive Brutal preferences");
     m.profile = 1;
     apply_profile(m);
-    check(m.msaa >= 4 && m.hd_textures, "GoldenEye+ enables enhanced graphics");
+    check(m.msaa >= 4 && m.hd_textures && m.base_game, "GoldenEye+ enhances graphics without enabling Brutal effects");
     m.pick_stage = true;
     m.ruleset = 2;
     m.horde = true;

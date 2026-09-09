@@ -430,7 +430,7 @@ int main(void)
      * undo a Base Game launch when the launcher re-executes the program. */
     {
         char *args[] = {"launcher-test", "--config=__missing_launcher_test__.cfg",
-            "--GETV_LAUNCHER_BASE=1", "--GETV_STAGE=33", "--preset=plus",
+            "--GETV_LAUNCHER_BASE=1", "--GETV_STAGE=33", "--GETV_PICKSTAGE=1", "--preset=plus",
             "--controls=2.2", "--mouse_mode=modern", "--gibs=always",
             "--horde=1", "--enemy_health=300", "--cheats=invincibility,extra_mp_chars",
             "--GETV_COOP=4", "--GETV_NET_HOST=27200", "--unlock_all=1",
@@ -439,8 +439,8 @@ int main(void)
         ge_crosshair_scale = 0.6f;
         ge_crosshair_r = 0;
         geConfigInit((int)(sizeof args / sizeof args[0]), args);
-        check_env("Base Game starts at the original title screen", "GETV_STAGE", NULL);
-        check_env("Base Game disables direct mission selection", "GETV_PICKSTAGE", "0");
+        check_env("Base Game permits direct mission startup", "GETV_STAGE", "33");
+        check_env("Base Game preserves mission selection", "GETV_PICKSTAGE", "1");
         check_env("Base Game blocks Brutal effects", "GETV_BASE_GAME", "1");
         check_env("Base Game blocks gibs", "GETV_GIBS", "off");
         check_env("Base Game uses original controls", "GETV_CONTROLS", "0");
@@ -464,6 +464,10 @@ int main(void)
         check("Base Game clears cheats parsed before launcher", g_CheatPlayerTextRelated[2], 0);
         check("Base Game clears cheat roster", num_chars_selectable_mp, 8);
 
+        setenv("GETV_PICKSTAGE", "0", 1);
+        geConfigApplyLauncherProfile();
+        check_env("Base Game also permits original startup", "GETV_STAGE", NULL);
+        setenv("GETV_PICKSTAGE", "1", 1);
         setenv("GETV_LAUNCHER_BASE", "0", 1);
         setenv("GETV_STAGE", "33", 1);
         setenv("GETV_MOUSE_MODE", "modern", 1);

@@ -43,3 +43,5 @@ jobs:
           done
       - name: Check game mouse gates and angle application
         run: python3 tools/tests/test_modern_mouse_game.py --cc gcc
+      - name: Check auto-crouch across render-only frames
+        run: python3 tools/tests/test_autocrouch_ticks.py

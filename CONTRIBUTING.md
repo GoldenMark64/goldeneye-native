@@ -71,6 +71,12 @@ request; do not publish private reasoning or a full chat transcript.
 Agent use does not relax the game-data rule below. **Never include a ROM. Ever.** An agent must not
 copy, stage, commit, upload, attach, paste, encode, archive, transmit or link to one.
 
+Every change under `.agents/skills/` or `.claude/skills/` must include before/after behavioral
+evals and committed, sanitized results in the same PR. Follow [`docs/SKILL_EVALS.md`](docs/SKILL_EVALS.md)
+for the required comparison report, action/results record and evidence manifest. Record ties and
+failures honestly; improved scores are not a submission requirement. The CI evidence gate checks
+that the evaluated skill contents match the submitted changes.
+
 ## 1. Never commit game data
 
 This is the one rule with no exceptions: **never include a ROM, ever.**

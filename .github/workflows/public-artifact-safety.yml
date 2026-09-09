@@ -22,7 +22,24 @@ jobs:
         run: python3 -m unittest discover -s tools/tests -p 'test_agent_tools.py'
       - name: Test simulated skill-eval harness (no model credentials)
         run: python3 tools/tests/test_skill_eval.py
+      - name: Test committed skill-evidence gate
+        run: python3 tools/tests/test_skill_eval_evidence.py
       - name: Test macOS launcher packaging without game data
         run: python3 tools/tests/test_macos_launcher_app.py -v
       - name: Test explicit save-directory isolation without game data
         run: python3 tools/tests/test_save_paths.py -v
+
+  skill-eval-evidence:
+    name: skill-eval-evidence-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Require committed before/after evidence for skill changes
+        env:
+          EVAL_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVAL_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python3 tools/check_skill_eval_evidence.py --base "$EVAL_BASE" --head "$EVAL_HEAD" --fetch-missing

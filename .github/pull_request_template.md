@@ -64,6 +64,8 @@ private reasoning or a full transcript. Write "None" when no agent assisted. -->
 - [ ] This pull request addresses one logical bug.
 - [ ] I checked current `main` and existing issues/pull requests for duplicate work.
 - [ ] I reviewed the complete diff and removed unrelated cleanup and generated files.
+- [ ] Skill changes: before/after behavioral evals, sanitized result records, comparison report
+      and evidence manifest are committed and match the changed skills (N/A if no skills changed).
 - [ ] Visual bug fixes: before/after images render in the PR body, with a reference image for
       renderer changes (N/A for nonvisual changes; explain any upload blocker).
 - [ ] No ROM is included in any form. I did not add, copy, stage, commit, upload, attach, paste,

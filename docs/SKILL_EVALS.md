@@ -5,6 +5,60 @@ environment. The candidate makes real calls to a local MCP server, receives resu
 its next action. Uploads, publication, artifacts, and rendering are simulated. Nothing is posted
 to GitHub by an eval, and no ROM, save, screenshot pixels, or extracted data is needed.
 
+## Required for every repository skill change
+
+Every change under `.agents/skills/` or `.claude/skills/` requires committed before/after
+behavioral evidence in the same PR, including metadata, entrypoints and supporting files. There
+is no documentation-only exemption for files inside those skill directories. Format validation
+alone, an uncommitted local output, or a PR comment does not satisfy this requirement.
+
+Commit the skill change first, then evaluate its commit against the PR baseline using at least
+two repetitions and all scenarios relevant to each changed skill. Review and commit these new
+files under `docs/evals/`:
+
+1. A sanitized machine-readable action/results record, including failures and ties.
+2. A Markdown comparison report with exact revisions, model/settings, commands and limitations.
+3. An evidence manifest named `*.evidence.json`, for example:
+
+   ```json
+   {
+     "version": 1,
+     "report": "docs/evals/example.md",
+     "record": "docs/evals/example.json"
+   }
+   ```
+
+For regraded records, also commit the original record and add its path as `source_record` in the
+manifest. Use new paths for each experiment; do not overwrite historical records or reports.
+Link the report from the PR body. Improved scores are not required: publish honest ties and
+regressions, and explain their implications for review. Infrastructure failures must be retained
+and disclosed, but do not replace a completed comparison.
+
+CI's `skill-eval-evidence-linux` job fails when a changed skill lacks matching committed evidence.
+It replays the record and any regrading lineage, checks relevant-case coverage and repetitions,
+and compares the evaluated before/after skill-file hashes with the PR baseline and submitted
+skill contents. Evidence commits can follow the evaluated skill commit without triggering an
+endless re-evaluation cycle. This content check binds the changed skill files, not every later
+policy-document edit; the report must still identify the actual complete policy snapshot tested.
+
+The initial runner covers the two shared `SKILL.md` files. Before changing another skill file,
+adding/removing a skill, or testing behavior outside the screenshot workflow, extend its snapshot,
+candidate context and relevant scenarios to include that change. The gate intentionally rejects
+unsupported or unsnapshotted paths. Represent an absent file as a null fingerprint when adding or
+removing one. A screenshot-workflow score cannot substitute for evaluating unrelated behavior.
+
+Run the gate against committed work before pushing:
+
+```sh
+python3 tools/check_skill_eval_evidence.py --base origin/main --head HEAD
+```
+
+If evaluated commits are missing locally, fetch them or add `--fetch-missing`. CI uses this option
+to fetch exact recorded commits from `origin`, so replay can still work after a squash merge.
+
+Only reviewed, sanitized text results belong in Git. Never commit screenshots, game data,
+private reasoning or full conversations as eval evidence.
+
 ## Run a before/after comparison
 
 Prerequisites: Python 3.10+, Git history containing both policy revisions, and an authenticated
@@ -88,8 +142,9 @@ To replay an older record after the evaluator changes, use a separate worktree a
 commit recorded in its report. The current script refuses mismatched harness/suite hashes; that
 refusal is not a behavioral failure and is not a successful replay. Source hashes use LF-normalized
 text for portability across Windows and Linux. Fetch the relevant Git history
-first. CI tests the current harness; historical model results stay historical until explicitly
-rerun. No GitHub secret, automatic model job or historical-code execution is added to CI.
+first. CI tests the current harness and checks/replays submitted evidence for skill changes;
+historical model results stay historical until explicitly rerun. No GitHub secret, automatic
+model job or historical-code execution is added to CI.
 
 If a grading error is found, preserve the original record and explicitly regrade the same traces:
 

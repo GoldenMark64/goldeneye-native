@@ -50,6 +50,20 @@ protocol. The test entrypoint fails on zero tests or skips. It starts only the l
 simulator, with synthetic artifact IDs; it does not invoke Codex, use model credentials, upload
 images, or publish to GitHub. Live model evaluations are opt-in local runs described in
 [`SKILL_EVALS.md`](SKILL_EVALS.md); a green CI harness test is not a new model evaluation.
+
+The same workflow runs `tools/tests/test_skill_eval_evidence.py` against temporary synthetic Git
+repositories. Its separate `skill-eval-evidence-linux` job checks out the exact PR head (or push
+commit), with full history and no persisted credentials, and runs
+`tools/check_skill_eval_evidence.py`. This requires new committed result records/reports/manifests
+for skill changes, verifies changed skill fingerprints and relevant scenario coverage, and
+replays the submitted records with the current committed evaluator. It does not invoke a model
+or execute a historical evaluator. The original safety job still tests the GitHub merge checkout;
+the separate evidence job uses the PR head to avoid comparing merge-checkout bytes to head blobs.
+If a squash merge leaves an evaluated commit outside the checked-out history, the gate fetches
+that exact validated 40-character commit ID from the fixed `origin` remote before replay. It
+never obtains a remote URL or command from an evidence record. No branch-protection or GitHub
+ruleset settings are changed by adding this check.
+
 There are currently no local composite/reusable actions, PR artifact handoffs to a privileged
 job, shared PR/deployment caches, or `pull_request_target` workflows.
 

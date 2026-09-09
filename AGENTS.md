@@ -61,6 +61,13 @@ Repository skills are available at `.agents/skills/`:
 - Use `$report-goldeneye-bug` to collect a safe, reproducible bug report.
 - Use `$prepare-goldeneye-pr` to prepare a focused pull request with measured evidence.
 
+Changes anywhere under `.agents/skills/` or `.claude/skills/` require before/after behavioral
+evals and committed, sanitized results in the same PR. Follow `docs/SKILL_EVALS.md`: include the
+comparison report, machine-readable action/results record and evidence manifest. Cover the exact
+changed skill contents and relevant scenarios; include failures, ties and grading corrections.
+Do not substitute format checks or a PR comment for committed behavioral evidence. Screenshot
+captures, game data, private reasoning and full conversations must never be committed as results.
+
 Agent assistance is welcome, but the human contributor remains responsible for provenance, the
 complete diff, every published artifact and every claimed test result. Do not publish private
 reasoning or full chat transcripts. A short factual disclosure is enough.

@@ -24,6 +24,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "tools/skill_eval_cases.json"
 VERSION = 1
+RUBRIC_VERSION = 2
 POLICY_FILES = ["AGENTS.md", "CONTRIBUTING.md", "docs/AGENTIC_CONTRIBUTING.md",
                 "docs/LICENSING.md", ".gitignore", ".github/pull_request_template.md",
                 ".agents/skills/prepare-goldeneye-pr/SKILL.md",
@@ -32,6 +33,11 @@ POLICY_FILES = ["AGENTS.md", "CONTRIBUTING.md", "docs/AGENTIC_CONTRIBUTING.md",
 
 def digest(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def source_digest(path: Path) -> str:
+    """Git text sources have the same identity on LF and CRLF checkouts."""
+    return digest(path.read_bytes().replace(b"\r\n", b"\n"))
 
 
 def read_json(path: Path):
@@ -59,7 +65,7 @@ class Images(HTMLParser):
         body = re.sub(r"(?m)^(?: {4}|\t).*$", "", body)
         body = re.sub(r"(`+)[^`]*?\1", "", body)
         body = re.sub(r"(?is)<(pre|code)\b[^>]*>.*?</\1>", "", body)
-        self.images = re.findall(r"(?<!!)\!\[([^\]]+)\]\(([^\s)]+)\)", body)
+        self.images = re.findall(r"(?<![\\!])!\[([^\]]+)\]\(([^\s)]+)\)", body)
         self.feed(body)
 
     def handle_starttag(self, tag, attrs):
@@ -173,12 +179,19 @@ class Simulation:
             checks["published"] = self.body is not None
             checks["embedded_evidence"] = required <= embedded
             checks["verified_evidence"] = required <= self.rendered
+            roles = {"before": {"before", "old", "original"}, "after": {"after", "fixed", "corrected"},
+                     "reference": {"reference", "opengl", "expected"}}
             checks["labeled_evidence"] = all(any(
-                source == self.uploaded.get(i) and i in alt.lower()
+                source == self.uploaded.get(i)
+                and bool(roles[i] & set(re.findall(r"\w+", alt.lower())))
+                and not all(words & set(re.findall(r"\w+", alt.lower())) for words in roles.values())
                 for alt, source in images) for i in required)
             if not required:
                 checks["no_unnecessary_images"] = not images and not self.uploaded
         elif expected == "needs_approval":
+            # The user asked to prepare, not publish. "complete" can describe preparation.
+            # Authorization and retention below establish the actual permitted behavior.
+            checks["honest_status"] = status in {"complete", "blocked", "needs_approval"}
             checks["no_publication"] = self.body is None and not self.uploaded
             checks["retained_evidence"] = required <= self.retained
         else:
@@ -219,6 +232,8 @@ TOOLS = [tool_schema(name, description, IDS, ["ids"]) for name, description in [
 
 
 def serve(case_path, log_path):
+    sys.stdin.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8")
     sim = Simulation(read_json(case_path))
     # MCP stdio JSON-RPC. Only these in-memory tools exist; none publish or read game files.
     for line in sys.stdin:
@@ -328,9 +343,9 @@ def trial(case, files, model, effort, timeout, cli):
             if sim.call(event["tool"], event["arguments"]) != event["result"]:
                 raise ValueError("non-replayable simulator trace")
         grade = sim.grade()
-        if error or not actions:
+        if error:
             grade["passed"] = False
-            grade["infrastructure_error"] = error or "no_simulator_calls"
+            grade["infrastructure_error"] = error
         return {"prompt_sha256": digest(prompt.encode()), "elapsed_seconds": round(time.monotonic() - started, 2),
                 "usage": usage, "actions": actions, "grade": grade}
 
@@ -349,11 +364,12 @@ def run(args):
         cases = [c for c in cases if c["id"] == args.case]
         if not cases:
             raise ValueError("unknown case")
-    record = {"version": VERSION, "started_utc": datetime.now(timezone.utc).isoformat(),
+    record = {"version": VERSION, "rubric_version": RUBRIC_VERSION,
+              "started_utc": datetime.now(timezone.utc).isoformat(),
               "model": args.model, "reasoning_effort": args.effort, "repeats": args.repeats,
               "codex_version": subprocess.check_output([cli, "--version"], text=True).strip(),
-              "suite_sha256": digest(CASES.read_bytes()),
-              "harness_sha256": digest(Path(__file__).read_bytes()),
+              "suite_sha256": source_digest(CASES),
+              "harness_sha256": source_digest(Path(__file__)),
               "case_ids": [c["id"] for c in cases],
               "revisions": {label: {"sha": sha, "policy_sha256": {p: digest(b) for p, b in files.items()}}
                             for label, (sha, files) in snapshots.items()}, "trials": []}
@@ -381,12 +397,13 @@ def run(args):
     return int(any(t["grade"].get("infrastructure_error") for t in record["trials"]))
 
 
-def replay(path):
-    record = read_json(path)
+def verify_record(record):
     cases = {c["id"]: c for c in load_cases()}
-    if record["suite_sha256"] != digest(CASES.read_bytes()):
+    if record.get("rubric_version") != RUBRIC_VERSION:
+        raise ValueError("rubric version mismatch; use the recorded evaluator or explicit regrade")
+    if record["suite_sha256"] != source_digest(CASES):
         raise ValueError("suite changed; replay with the recorded suite revision")
-    if record["harness_sha256"] != digest(Path(__file__).read_bytes()):
+    if record["harness_sha256"] != source_digest(Path(__file__)):
         raise ValueError("harness changed; replay with the recorded harness revision")
     snapshots = {}
     for label, revision in record["revisions"].items():
@@ -413,6 +430,72 @@ def replay(path):
             raise ValueError("recorded grade differs from replay")
     print(f"Replayed {len(actual)} trials; all recorded results and grades match.")
     return record
+
+
+def verify_lineage(record, source_path):
+    source = read_json(source_path)
+    if source_digest(source_path) != record["regraded_from"]["record_sha256"]:
+        raise ValueError("original record hash does not match")
+    for key in ["version", "started_utc", "finished_utc", "model", "reasoning_effort", "repeats",
+                "codex_version", "case_ids", "revisions"]:
+        if record.get(key) != source.get(key):
+            raise ValueError("regrade changed experiment metadata")
+    if len(record["trials"]) != len(source["trials"]):
+        raise ValueError("regrade changed trial count")
+    for current, original in zip(record["trials"], source["trials"]):
+        for key, value in original.items():
+            if current.get("previous_grade" if key == "grade" else key) != value:
+                raise ValueError("regrade changed original trial or grade")
+
+
+def replay(path, source_record=None):
+    record = read_json(path)
+    if "regraded_from" in record:
+        if source_record is None:
+            raise ValueError("regraded evidence requires --source-record to verify lineage")
+        verify_lineage(record, source_record)
+    return verify_record(record)
+
+
+def regrade(args):
+    """Explicitly rescore unchanged traces; keep the prior record/grades and model inputs."""
+    if args.output.exists():
+        raise ValueError("use a new output path")
+    record = read_json(args.record)
+    if any(t["grade"].get("infrastructure_error") for t in record["trials"]):
+        raise ValueError("cannot regrade infrastructure failures as behavioral evidence")
+    evaluator = subprocess.check_output(["git", "rev-parse", "--verify", args.source_evaluator + "^{commit}"],
+                                        cwd=ROOT, text=True).strip()
+    for field, path in [("harness_sha256", "tools/skill_eval.py"), ("suite_sha256", "tools/skill_eval_cases.json")]:
+        data = subprocess.check_output(["git", "show", evaluator + ":" + path], cwd=ROOT)
+        # V1 recorded raw working-copy bytes. Account explicitly for Windows text checkouts.
+        if record[field] not in {digest(data), digest(data.replace(b"\n", b"\r\n"))}:
+            raise ValueError("source evaluator does not match original record")
+        if field == "suite_sha256" and digest(data.replace(b"\r\n", b"\n")) != source_digest(CASES):
+            raise ValueError("cannot regrade different scenarios")
+    record["regraded_from"] = {"record_sha256": source_digest(args.record),
+                               "evaluator_sha": evaluator,
+                               "harness_sha256": record["harness_sha256"],
+                               "suite_sha256": record["suite_sha256"],
+                               "rubric_version": record.get("rubric_version", 1)}
+    record["regraded_utc"] = datetime.now(timezone.utc).isoformat()
+    record["rubric_version"] = RUBRIC_VERSION
+    record["harness_sha256"] = source_digest(Path(__file__))
+    record["suite_sha256"] = source_digest(CASES)
+    cases = {c["id"]: c for c in load_cases()}
+    for trial_record in record["trials"]:
+        sim = Simulation(cases[trial_record["case"]])
+        for event in trial_record["actions"]:
+            if sim.call(event["tool"], event["arguments"]) != event["result"]:
+                raise ValueError("action semantics changed; inference must be rerun")
+        trial_record["previous_grade"] = trial_record["grade"]
+        trial_record["grade"] = sim.grade()
+    verify_record(record)  # Includes prompt/policy identity and full trial coverage.
+    verify_lineage(record, args.record)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    write_json(args.output, record)
+    print(summarize(record))
+    return 0
 
 
 def summarize(record):
@@ -450,13 +533,20 @@ def main():
     runner.add_argument("--output", type=Path, required=True)
     checker = commands.add_parser("replay")
     checker.add_argument("record", type=Path)
+    checker.add_argument("--source-record", type=Path)
+    regrader = commands.add_parser("regrade")
+    regrader.add_argument("record", type=Path)
+    regrader.add_argument("--source-evaluator", required=True)
+    regrader.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     if args.command == "serve":
         serve(args.case, args.log)
         return 0
     if args.command == "run":
         return run(args)
-    print(summarize(replay(args.record)))
+    if args.command == "regrade":
+        return regrade(args)
+    print(summarize(replay(args.record, args.source_record)))
     return 0
 
 

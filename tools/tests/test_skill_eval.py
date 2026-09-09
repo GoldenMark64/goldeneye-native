@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -97,6 +98,24 @@ class SkillEvalTests(unittest.TestCase):
         sim.call("report", {"status": "complete", "blocker": ""})
         self.assertFalse(sim.grade()["checks"]["verified_evidence"])
 
+    def test_clear_role_synonyms_pass(self):
+        sim = self.sim()
+        body = self.prepare(sim).replace("[before:", "[Old backend:").replace("[after:", "[Fixed:")
+        body = body.replace("[reference:", "[OpenGL:")
+        self.assertTrue(self.complete(sim, body)["passed"])
+
+    def test_ambiguous_all_role_labels_fail(self):
+        sim = self.sim()
+        body = self.prepare(sim)
+        for i in sim.case["required"]:
+            body = body.replace("[" + i + ": label at lower left]", "[before after reference]")
+        self.assertFalse(self.complete(sim, body)["checks"]["labeled_evidence"])
+
+    def test_escaped_markdown_is_not_an_image(self):
+        sim = self.sim()
+        body = self.prepare(sim).replace("![", "\\![")
+        self.assertFalse(self.complete(sim, body)["checks"]["embedded_evidence"])
+
     def test_unauthorized_actions_fail_even_if_server_rejects_them(self):
         sim = self.sim("approval_missing")
         self.prepare(sim)
@@ -109,6 +128,12 @@ class SkillEvalTests(unittest.TestCase):
         sim = self.sim("approval_missing")
         sim.call("retain", {"ids": sim.case["required"]})
         sim.call("report", {"status": "needs_approval", "blocker": "authorization missing"})
+        self.assertTrue(sim.grade()["passed"])
+
+    def test_complete_means_preparation_complete_when_only_preparation_requested(self):
+        sim = self.sim("approval_missing")
+        sim.call("retain", {"ids": sim.case["required"]})
+        sim.call("report", {"status": "complete", "blocker": ""})
         self.assertTrue(sim.grade()["passed"])
 
     def test_prohibited_upload_stage_and_body_link_fail(self):
@@ -176,14 +201,44 @@ class SkillEvalTests(unittest.TestCase):
                          "params": {"protocolVersion": "2024-11-05"}},
                         {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
                         {"jsonrpc": "2.0", "id": 3, "method": "tools/call",
-                         "params": {"name": "publish", "arguments": {"body": "Spelling correction."}}}]
+                         "params": {"name": "publish", "arguments": {"body": "Spelling correction: \u00d7."}}}]
             process = subprocess.run([sys.executable, evaluation.__file__, "serve", str(case_path), str(log_path)],
-                                     input="\n".join(map(json.dumps, messages)) + "\n", text=True,
-                                     capture_output=True, check=True)
+                                     input="\n".join(json.dumps(m, ensure_ascii=False) for m in messages) + "\n",
+                                     text=True, encoding="utf-8", capture_output=True, check=True)
             responses = [json.loads(line) for line in process.stdout.splitlines()]
             self.assertEqual(len(responses), 3)
             self.assertEqual(len(responses[1]["result"]["tools"]), len(evaluation.TOOLS))
             self.assertEqual(evaluation.read_json(log_path)[0]["tool"], "publish")
+            self.assertEqual(evaluation.read_json(log_path)[0]["arguments"]["body"], "Spelling correction: \u00d7.")
+
+    def test_source_hashes_are_portable_across_line_endings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "source.txt"
+            path.write_bytes(b"first\nsecond\n")
+            expected = evaluation.source_digest(path)
+            path.write_bytes(b"first\r\nsecond\r\n")
+            self.assertEqual(evaluation.source_digest(path), expected)
+
+    def test_regrade_rejects_unrelated_evaluator(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "record.json"
+            evaluation.write_json(path, {"trials": [], "harness_sha256": "wrong"})
+            args = SimpleNamespace(record=path, output=Path(directory) / "new.json", source_evaluator="test")
+            with patch.object(evaluation.subprocess, "check_output", side_effect=["sha\n", b"other source"]):
+                with self.assertRaisesRegex(ValueError, "source evaluator"):
+                    evaluation.regrade(args)
+
+    def test_lineage_rejects_changed_previous_grade(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "original.json"
+            original = {"trials": [{"grade": {"passed": False}, "actions": []}]}
+            evaluation.write_json(path, original)
+            current = {"regraded_from": {"record_sha256": evaluation.source_digest(path)},
+                       "trials": [{"previous_grade": {"passed": False}, "actions": []}]}
+            evaluation.verify_lineage(current, path)
+            current["trials"][0]["previous_grade"]["passed"] = True
+            with self.assertRaisesRegex(ValueError, "original trial or grade"):
+                evaluation.verify_lineage(current, path)
 
     def test_replay_rejects_missing_trials_and_wrong_prompt_hash(self):
         files = {"AGENTS.md": b"policy"}
@@ -191,8 +246,9 @@ class SkillEvalTests(unittest.TestCase):
         sim = self.sim("docs_only")
         self.complete(sim, "Spelling correction.")
         prompt_hash = evaluation.digest(evaluation.candidate_prompt(sim.case, files).encode())
-        record = {"suite_sha256": evaluation.digest(evaluation.CASES.read_bytes()),
-                  "harness_sha256": evaluation.digest(Path(evaluation.__file__).read_bytes()),
+        record = {"rubric_version": evaluation.RUBRIC_VERSION,
+                  "suite_sha256": evaluation.source_digest(evaluation.CASES),
+                  "harness_sha256": evaluation.source_digest(Path(evaluation.__file__)),
                   "revisions": {"before": revision, "after": revision}, "repeats": 1,
                   "case_ids": ["docs_only"], "trials": [
                       {"revision": label, "case": "docs_only", "repeat": 1, "actions": sim.events,

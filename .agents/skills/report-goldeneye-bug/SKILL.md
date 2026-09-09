@@ -87,8 +87,11 @@ running game. Keep screenshots outside Git and attach them only after review.
 4. Show the complete issue title, body and exact attachment list to the human.
 5. Obtain explicit approval immediately before creating the issue unless the user already
    authorized that exact submission.
-6. Create the issue with the configured GitHub tool. Attach only reviewed sanitized artifacts. If
-   image upload is unavailable, return the ready-to-paste body and staged PNG for manual upload.
+6. Create the issue with the configured GitHub tool. Attach only reviewed sanitized artifacts.
+   For screenshots, use a capable GitHub tool or an available authenticated browser upload flow
+   within the authorized submission. Verify that images render in the published body. If no
+   available method supports upload, explain the specific blocker and return the ready-to-paste
+   body and retained sanitized PNGs for the remaining manual upload work.
 7. Return the issue URL and summarize exactly what was published.
 
 Stop rather than filing if the evidence may contain a ROM or other prohibited game data, the

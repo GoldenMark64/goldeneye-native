@@ -18,6 +18,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(__APPLE__)
+#define GE_PLATFORM_MAC 1
+#include <unistd.h>
+#include <sys/stat.h>
+#endif
 
 /* The externs ge_config.c expects from the rest of the port and the game. Filtering and
  * widescreen are exercised below; the other three only have to exist for the unit to link. */
@@ -435,7 +440,8 @@ int main(void)
             "--horde=1", "--enemy_health=300", "--cheats=invincibility,extra_mp_chars",
             "--GETV_COOP=4", "--GETV_NET_HOST=27200", "--unlock_all=1",
             "--filtering=nearest", "--widescreen=on", "--framerate=off",
-            "--resolution=1920x1080", "--fullscreen=on", "--GETV_P2_BIND_FIRE=a"};
+            "--resolution=1920x1080", "--fullscreen=on", "--GETV_P2_BIND_FIRE=a",
+            "--GETV_DUALANALOG=1", "--GETV_TICKFIELDS=1"};
         ge_crosshair_scale = 0.6f;
         ge_crosshair_r = 0;
         geConfigInit((int)(sizeof args / sizeof args[0]), args);
@@ -443,10 +449,10 @@ int main(void)
         check_env("Base Game preserves mission selection", "GETV_PICKSTAGE", "1");
         check_env("Base Game blocks Brutal effects", "GETV_BASE_GAME", "1");
         check_env("Base Game blocks gibs", "GETV_GIBS", "off");
-        check_env("Base Game uses original controls", "GETV_CONTROLS", "0");
-        check_env("Base Game uses classic mouse response", "GETV_MOUSE_MODE", "classic");
-        check_env("Base Game disables dual analog", "GETV_DUALANALOG", "0");
-        check_env("Base Game restores player bindings", "GETV_P2_BIND_FIRE", "rt");
+        check_env("Base Game retains chosen controls", "GETV_CONTROLS", "5");
+        check_env("Base Game retains modern mouse", "GETV_MOUSE_MODE", "modern");
+        check_env("Base Game retains dual analog", "GETV_DUALANALOG", "1");
+        check_env("Base Game retains player bindings", "GETV_P2_BIND_FIRE", "a");
         check_env("Base Game disables horde", "GETV_HORDE", "0");
         check_env("Base Game disables co-op", "GETV_COOP", "0");
         check_env("Base Game disables netplay", "GETV_NET_HOST", NULL);
@@ -454,8 +460,8 @@ int main(void)
         check_env("Base Game disables forced unlocks", "GETV_UNLOCKALL", "0");
         check_env("Base Game disables HD textures", "GETV_HD_TEXTURES", "0");
         check_env("Base Game disables postprocessing", "GETV_FXAA", "0");
-        check_env("Base Game restores tick cadence", "GETV_TICKFIELDS", "2");
-        check_env("Base Game restores original frame cadence", "GETV_FPS", "30");
+        check_env("Base Game retains tick cadence", "GETV_TICKFIELDS", "1");
+        check_env("Base Game retains uncapped frame rate", "GETV_FPS", "0");
         check_env("Base Game retains resolution", "GETV_WINDOW", "1920x1080");
         check_env("Base Game retains fullscreen", "GETV_FULLSCREEN", "1");
         check("Base Game resets constructor filtering", configFiltering, 2);
@@ -478,6 +484,40 @@ int main(void)
         check_env("GoldenEye+ permits optional Brutal effects", "GETV_GIBS", "always");
         unsetenv("GETV_LAUNCHER_BASE");
     }
+#if defined(__APPLE__)
+    /* Separate executable directories must not change the app's chosen config.
+     * Explicit overrides and a direct launch retain their existing precedence. */
+    char temp[] = "/tmp/ge-app-config-XXXXXX";
+    char *dir = mkdtemp(temp);
+    check("create synthetic config directory", dir != NULL, 1);
+    if (dir) {
+        char canonical[1024], adjacent[1024], cli[1024], executable[1024];
+        snprintf(canonical, sizeof canonical, "%s/goldeneye.cfg", dir);
+        snprintf(adjacent, sizeof adjacent, "%s/metal", dir);
+        mkdir(adjacent, 0700);
+        snprintf(adjacent, sizeof adjacent, "%s/metal/goldeneye.cfg", dir);
+        snprintf(executable, sizeof executable, "%s/metal/goldeneye-metal", dir);
+        snprintf(cli, sizeof cli, "%s/explicit.cfg", dir);
+        const char *paths[] = {canonical, adjacent, cli};
+        for (int i = 0; i < 3; i++) { FILE *f = fopen(paths[i], "w"); if (f) fclose(f); }
+        unsetenv("GETV_CONFIG");
+        setenv("GETV_MAC_APP_CONFIG_DIR", dir, 1);
+        check("app config found", locate(executable, NULL), 1);
+        check("app shares canonical config", strcmp(g_cfgpath, canonical), 0);
+        check("explicit CLI found", locate(executable, cli), 1);
+        check("explicit CLI wins", strcmp(g_cfgpath, cli), 0);
+        setenv("GETV_CONFIG", adjacent, 1);
+        check("explicit environment found", locate(executable, cli), 1);
+        check("environment retains precedence", strcmp(g_cfgpath, adjacent), 0);
+        unsetenv("GETV_CONFIG");
+        unsetenv("GETV_MAC_APP_CONFIG_DIR");
+        check("direct config found", locate(executable, NULL), 1);
+        check("direct launch keeps adjacent config", strcmp(g_cfgpath, adjacent), 0);
+        for (int i = 0; i < 3; i++) unlink(paths[i]);
+        snprintf(adjacent, sizeof adjacent, "%s/metal", dir);
+        rmdir(adjacent); rmdir(dir);
+    }
+#endif
 
     printf("\n%s: %d failure(s)\n", failures ? "FAILED" : "ok", failures);
     return failures ? 1 : 0;

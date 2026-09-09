@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import plistlib
 import shutil
+import subprocess
 
 
 def make_app(binary: Path) -> Path:
@@ -31,19 +32,23 @@ def make_app(binary: Path) -> Path:
     macos.mkdir(parents=True, exist_ok=True)
     resources.mkdir(parents=True, exist_ok=True)
 
-    # Resolve from the bundle at launch time so moving the whole build folder works.
-    # exec preserves the game's own path/config lookup and its launcher-to-game restart.
+    # Compile a ROM-free native bootstrap; no Python/SDL runtime is needed at launch.
     launcher = macos / "LaunchGoldenEye"
-    launcher.write_text(
-        '#!/bin/bash\n'
-        'set -euo pipefail\n'
-        'GAME_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"\n'
-        'cd "$GAME_DIR"\n'
-        f'exec "$GAME_DIR/{binary.name}" --launcher "$@"\n',
-        encoding="utf-8",
-    )
-    launcher.chmod(0o755)
+    source = Path(__file__).resolve().parents[1] / "getv/port/mac/ge_renderer_app.m"
+    arch = os.environ.get("MACARCH", os.uname().machine)
+    if arch not in ("arm64", "x86_64"):
+        raise ValueError(f"unsupported app architecture: {arch}")
+    temporary = macos / "LaunchGoldenEye.new"
+    try:
+        subprocess.run(["clang", "-fobjc-arc", "-Wall", "-Wextra", "-Werror",
+                        "-Wno-unused-parameter", "-target", f"{arch}-apple-macos13.0",
+                        "-framework", "Cocoa", "-framework", "Metal", str(source),
+                        "-o", str(temporary)], check=True)
+        temporary.replace(launcher)
+    finally:
+        temporary.unlink(missing_ok=True)
     info = {
+        "GERendererBuild": "metal" if binary.name == "goldeneye-metal" else "gl",
         "CFBundleName": name,
         "CFBundleDisplayName": name,
         "CFBundleIdentifier": identifier,
@@ -68,7 +73,7 @@ def main() -> None:
     args = parser.parse_args()
     try:
         app = make_app(args.binary)
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         parser.exit(1, f"mac launcher: {error}\n")
     print(f"mac launcher: {app}")
 

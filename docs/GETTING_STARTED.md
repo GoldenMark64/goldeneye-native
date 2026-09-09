@@ -23,10 +23,25 @@ No ROM or extracted game data is downloaded, bundled, or uploaded by this projec
 3. Open the folder and double-click **Install on Mac**. If Gatekeeper blocks it, right-click the
    file, choose **Open**, and confirm once.
 4. When installation finishes, open `getv/build-mac` and double-click **GoldenEye.app**.
-   It opens the custom launcher so you can choose a mission and settings before playing.
+   The custom launcher opens directly. Choose **Video → Renderer → OpenGL / Metal** alongside
+   the existing graphics controls, then start the game. Changing the renderer remembers the
+   choice separately from profiles, rules and saves. OpenGL remains the default.
 
 Keep the app beside the `goldeneye` executable. You can drag the app to the Dock for quick
-access. **Play GoldenEye** in the repository folder also opens the launcher.
+access. Keep `build-mac` and `build-mac-metal` together when moving the installation.
+**Play GoldenEye** remains a direct OpenGL launcher shortcut.
+
+If the selected renderer fails to start, an error dialog offers **Open launcher with OpenGL**.
+This recovery does not overwrite your saved choice. You can then change **Video → Renderer**
+permanently or just start the game once with OpenGL. The app does not retry automatically.
+Missing/unavailable renderers are disabled, and an unavailable selection prevents starting.
+The current installer builds one renderer; a missing Metal build needs the optional Metal
+build described in [`DEVELOPMENT.md`](DEVELOPMENT.md#macos). Installing both automatically is
+tracked separately in #53. There is no in-game hot switch.
+
+Both choices use the OpenGL build folder's existing `goldeneye.cfg` when that folder exists,
+or the app's own folder otherwise, followed by the usual shared user config. Explicit config
+and save overrides still apply. Other custom launcher controls remain session settings.
 
 The first install takes about 10 to 40 minutes. Re-running the installer resumes completed work.
 

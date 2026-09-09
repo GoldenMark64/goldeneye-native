@@ -1,0 +1,19 @@
+name: macOS renderer app
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  renderer-app:
+    name: macos-renderer-app
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Compile native bootstrap and test selection, persistence and process handoff
+        run: bash tools/tests/run_renderer_app_tests.sh
+      - name: Test packaging and failure handling with synthetic builds
+        run: python3 tools/tests/test_macos_launcher_app.py -v

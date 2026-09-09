@@ -1,0 +1,16 @@
+diff --git a/src/game/bondview2.c b/src/game/bondview2.c
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -2909,6 +2909,12 @@
+ 
+     g_BondCanEnterTank = 0;
+ 
++#ifdef GE_PORT_NATIVE
++    /* Render-only frames cannot advance the crouch animation. Keep the previous
++     * collision result until the next simulation tick, or a zero-motion probe
++     * clears a low passage's request before Bond has time to duck. */
++    if (g_GlobalTimerDelta > 0.0f)
++#endif
+     g_CurrentPlayer->autocrouchpos = CROUCH_STAND;
+ 
+     if (g_WorldTankProp != NULL)

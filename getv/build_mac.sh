@@ -486,7 +486,7 @@ cmd_app() {
 }
 
 cmd_bundle() {
-  python3 "$HERE/../tools/make_macos_launcher_app.py" "$BIN"
+  MACARCH="$MACARCH" python3 "$HERE/../tools/make_macos_launcher_app.py" "$BIN"
 }
 
 cmd_run() {

@@ -93,7 +93,8 @@ int main(int argc, char *argv[])
 #ifdef GE_HAS_NATIVE_LAUNCHER
     if (gePortNativeLauncherRun() != 0) { return 0; }
 #else
-    if (gePortLauncherRun(argc, argv) != 0) { return 0; }
+    int launcherResult = gePortLauncherRun(argc, argv);
+    if (launcherResult != 0) { return launcherResult < 0 ? 1 : 0; }
 #endif
     return SDL_main(argc, argv);
 }

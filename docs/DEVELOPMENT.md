@@ -303,3 +303,33 @@ A useful change report contains:
 
 The pull request template mirrors this structure. One issue and one logical fix per pull request
 keeps reviews small and preserves the ability to replay community fixes independently.
+
+## macOS app renderer selection
+
+`build_mac.sh app` and `bundle` compile a ROM-free bootstrap that immediately opens the existing
+custom launcher. Renderer selection lives in **Video**, alongside the graphics controls.
+OpenGL renders this settings UI when installed, independently of the selected game renderer.
+A Metal-only installation uses its Metal launcher and reports the missing OpenGL option.
+The only separate UI is an error recovery dialog after an unsuccessful process launch/exit.
+
+Both generated apps discover the exact sibling `build-mac/goldeneye` and
+`build-mac-metal/goldeneye-metal` pair; neither installs the other renderer. No PATH search or
+fallback to an unrelated binary is used. Keep both sibling folders when moving the installation.
+Availability is checked before opening the launcher and again before game handoff.
+
+App-only override: `open GoldenEye.app --args --app-renderer=metal` (or `gl`). Precedence is
+explicit app override, saved renderer, OpenGL default. Only explicitly changing the renderer in
+Video writes the `org.goldeneyenative.renderer` preferences domain. Overrides, the unset default,
+and recovery do not rewrite a saved choice. Invalid preferences require an available selection.
+
+The app supplies private `GETV_MAC_APP_*` path/selection/capability values and
+`GETV_MAC_RENDERER_APP` to its child, preserving other environment values and arguments.
+`GETV_MAC_APP_CONFIG_DIR` keeps config lookup consistent across executables. Direct binary,
+`--launcher`, and CLI/headless behavior is unchanged. The custom launcher's exec preserves
+settings and switches to the selected executable only when starting a game.
+
+Run `bash tools/tests/run_renderer_app_tests.sh` on macOS for native app policy, separate-process
+preference persistence, unavailable builds/devices, overrides, handoff and shared-config tests.
+Run `python3 tools/tests/test_macos_launcher_app.py` for portable packaging tests. Native UI,
+both actual game executables and failed-initialization acceptance remain necessary before #52
+closes; Metal qualification and the eventual default flip belong to #53.

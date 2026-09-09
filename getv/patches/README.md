@@ -211,3 +211,6 @@ pipeline in `docs/SETUP.md` section 3.5. Applying it early fails, and applying i
 Generated data - the audio segment, the obseg blobs, the animation blobs, the images segment,
 the per-model `Model.c` files. They are large, derived from the ROM, and reproducible from
 `tools/` and `scripts/`; see `docs/SETUP.md` section 3.5. **Never commit ROM-derived data.**
+
+`0030-autocrouch-render-ticks.patch` preserves auto-crouch intent across zero-time
+render frames, so uncapped rendering can lower Bond into low passages.

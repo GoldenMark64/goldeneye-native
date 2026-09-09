@@ -353,6 +353,7 @@ struct Model {
      * the game is playable. Held as tri-state is unnecessary here: the launcher only needs to
      * write the gate when it differs from that default. */
     bool mouse;
+    int  mouse_mode;              /* 0: modern displacement, 1: classic N64 stick */
     int  mouse_sens;              /* percent, port_input.c clamps 1..1000, default 100 */
     bool mouse_invert;
     bool keyboard;
@@ -659,6 +660,8 @@ void model_load(Model &m)
 
     /* Defaults mirror port_input.c: mouse and keyboard both ON, sensitivity 100%. */
     m.mouse        = env_bool("GETV_MOUSE", true);
+    m.mouse_mode   = getenv("GETV_MOUSE_MODE") &&
+                     strcmp(getenv("GETV_MOUSE_MODE"), "classic") == 0;
     m.mouse_sens   = env_int("GETV_MOUSE_SENS", 100);
     m.mouse_invert = env_bool("GETV_MOUSE_INVERT", false);
     m.keyboard     = env_bool("GETV_KEYBOARD", true);
@@ -819,6 +822,7 @@ void model_store(const Model &m)
     }
 
     setenv("GETV_MOUSE",        m.mouse        ? "1" : "0", 1);
+    setenv("GETV_MOUSE_MODE", m.mouse_mode ? "classic" : "modern", 1);
     setenv("GETV_MOUSE_INVERT", m.mouse_invert ? "1" : "0", 1);
     setenv("GETV_KEYBOARD",     m.keyboard     ? "1" : "0", 1);
     /* Sensitivity only when it differs from the default, so a later change to port_input.c's
@@ -2275,12 +2279,17 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                 Section("MOUSE AND KEYBOARD");
                 ImGui::Checkbox("Mouse look", &m.mouse);
                 if (m.mouse) {
+                    ImGui::Combo("Mouse response", &m.mouse_mode, "Modern\0Classic N64\0");
+                    Hint(m.mouse_mode ? "Original stick acceleration and turning limit."
+                                      : "Direct mouse look. No stick acceleration or turning limit.");
                     ImGui::Dummy(ImVec2(0, 8));
                     SliderRow("Sensitivity", &m.mouse_sens, 10, 400, "%", cw, true);
                     ImGui::Checkbox("Invert Y", &m.mouse_invert);
                     ImGui::Dummy(ImVec2(0, 6));
-                    Hint("Left button fires, right aims, ESC releases the cursor. 100% is the "
-                         "measured default -- a 180 degree turn takes about 6 cm of desk.");
+                    Hint("Left button fires, right aims, ESC releases the cursor. "
+                         "Sensitivity depends on mouse DPI; modern mode uses 0.1 degree per count at 100%.");
+                    if (!m.mouse_mode)
+                        Hint("Vehicles, network sessions and scripted replays use Classic N64 controls.");
                 } else {
                     Hint("Off. A connected gamepad still works either way; the two are ORed "
                          "rather than exclusive.");

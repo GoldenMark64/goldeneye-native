@@ -54,6 +54,7 @@
 
 #include "port_input.h"
 #include "ge_console_input.h"
+#include "ge_mouse_look.h"
 #include "ge_mouse_accum.h"/* Ports 0..3. gePads[i] != NULL implies gePads[j] != NULL for all j < i (contiguity). */
 #include "ge_android_touch.h"
 static SDL_GameController *gePads[GE_PORT_MAX_PADS];
@@ -872,34 +873,40 @@ static void geSynthState(int port, struct GePadState *out)
  *
  * GETV_KEYBOARD=0 disables it entirely.
  * =========================================================================== */
-/* ---------------------------------------------------------------- mouse look
- *
- * The most-requested feature this port did not have. Off by default, because it is a
- * Phase 2 "modernise" change and is actively wrong for a faithful run -- the GoldenEye+
- * profile is where it belongs.
- *
- * How it works, and the honest limitation. The game reads looking from the right stick,
- * which is a *rate* control: a held stick turns continuously. A mouse is a *displacement*
- * control: moving it two inches should turn a fixed amount regardless of how long that
- * took. Mapping mouse delta onto the stick axes, which is what happens below, gives a very
- * usable result and is what most ports start with, but it is not the same thing. A stick
- * value derived from this frame's delta still turns for the whole frame, so fast flicks
- * overshoot slightly and very slow movement can quantise.
- *
- * Doing it properly means injecting into yaw and pitch directly, which needs the player,
- * camera and weapon orientations separated -- the same split third person and free camera
- * need. That is the right next step and it is not attempted here: this gets
- * mouse look working and playable without touching the game's movement code at all.
- *
- * Perfect Dark's port solved the same problem and is MIT with attribution (see
- * docs/REUSE_AUDIT.md). Nothing is copied from it here -- this is small enough not to need
- * to be -- but its separation of orientation is the model for the proper fix.
- */
+/* Mouse buttons share controller bindings. Modern look keeps displacement out of
+ * the N64 stick sample and consumes angles in bondviewProcessInput; classic mode
+ * retains the original accumulator and response curve. */
 static int geKeyboardIdle(void);   /* defined below; the mouse must idle for the same runs */
 static int ge_mouse_capture_wanted;
 static int ge_mouse_resume_buttons;
 static long ge_mouse_pend_x;
 static long ge_mouse_pend_y;
+static GeMouseLook ge_mouse_look;
+
+static int geMouseModern(void)
+{
+ const char *mode = getenv("GETV_MOUSE_MODE");
+ const char *enabled = getenv("GETV_MOUSE");
+ /* Lockstep and replay carry N64 samples only. Preserve their recorded contract. */
+ const char *host = getenv("GETV_NET_HOST"), *join = getenv("GETV_NET_JOIN");
+ const char *replay = getenv("GETV_RAMROM"), *script = getenv("GETV_SCRIPT");
+ const char *demo = getenv("GETV_DEMO");
+ return (!enabled || atoi(enabled) != 0) && (!mode || strcmp(mode, "classic") != 0) &&
+        !(host && *host) && !(join && *join) && !(replay && *replay) &&
+        !(script && *script) && !(demo && *demo);
+}
+
+int gePortInputTakeMouseLook(int player, int context, float *yaw, float *pitch)
+{
+ *yaw = *pitch = 0.0f;
+ if (player != 0) return 0;
+ if (!geMouseModern()) context = 0;
+ if (!getenv("GETV_MOUSE_SELFTEST") && !getenv("GETV_MOUSE_SELFTEST_Y") &&
+     (geKeyboardIdle() || !SDL_GetRelativeMouseMode() || !SDL_GetKeyboardFocus() ||
+      geConsoleInputCaptureActive())) context = 0;
+ if (context != ge_mouse_look.context) ge_mouse_pend_x = ge_mouse_pend_y = 0;
+ return geMouseLookTake(&ge_mouse_look, context, yaw, pitch);
+}
 
 static void geMouseDiscardMotion(void)
 {
@@ -907,6 +914,7 @@ static void geMouseDiscardMotion(void)
  (void)SDL_GetRelativeMouseState(&dx, &dy);
  ge_mouse_pend_x = 0;
  ge_mouse_pend_y = 0;
+ geMouseLookClear(&ge_mouse_look);
 }
 
 static int geMouseSetRelative(SDL_bool enabled)
@@ -1085,6 +1093,7 @@ static void geMousePoll(int port, struct GePadState *out)
  (void)SDL_GetRelativeMouseState(&dx, &dy);
  ge_mouse_pend_x = 0;
  ge_mouse_pend_y = 0;
+ geMouseLookClear(&ge_mouse_look);
  return;
     }
 
@@ -1150,6 +1159,11 @@ static void geMousePoll(int port, struct GePadState *out)
          * it replaced over 16,800 swept calls in tests/test_mouse.c. That care is warranted:
          * of the first three attempts at this input path, two made the mouse worse and one
          * stopped it moving at all. The reasoning for each step lives in that header. */
+ if (geMouseModern() && ge_mouse_look.context != 2) {
+     geMouseLookAdd(&ge_mouse_look, dx, dy, sens);
+     /* Buttons still use the controller path; physical stick axes stay intact. */
+     goto mouse_buttons;
+ }
  geMouseAccumulate((long) dx, (long) dy, (long) sens,
                           &ge_mouse_pend_x, &ge_mouse_pend_y, &rx, &ry);
 
@@ -1178,6 +1192,7 @@ static void geMousePoll(int port, struct GePadState *out)
  out->real_gamepad = 1;
     }
 
+mouse_buttons:
  if (mb & SDL_BUTTON(SDL_BUTTON_LEFT))  { out->rtrigger = 1; out->rt_raw = 32767;
  out->present = 1; out->real_gamepad = 1; }
  if (mb & SDL_BUTTON(SDL_BUTTON_RIGHT)) { out->ltrigger = 1; out->lt_raw = 32767;
@@ -1439,6 +1454,15 @@ static void geKeyboardApply(int port, struct GePadState *out)
  out->real_gamepad = 1;
 }
 #endif /* GE_PLATFORM_DESKTOP */
+
+#ifndef GE_PLATFORM_DESKTOP
+int gePortInputTakeMouseLook(int player, int context, float *yaw, float *pitch)
+{
+    (void)player; (void)context;
+    *yaw = *pitch = 0.0f;
+    return 0;
+}
+#endif
 
 /* ---- a real crouch button -------------------------------------------------------
  *

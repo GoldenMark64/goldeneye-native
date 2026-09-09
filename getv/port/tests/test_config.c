@@ -414,6 +414,16 @@ int main(void)
     ge_preset_apply();
     check_env("no preset asked for, nothing applied", "GETV_FXAA", NULL);
 
+    g_errors = 0;
+    unsetenv("GETV_MOUSE_MODE");
+    check("modern mouse option accepted", set("mouse_mode", "modern"), 1);
+    check_env("modern mouse gate", "GETV_MOUSE_MODE", "modern");
+    check("classic mouse option accepted", set("mouse_mode", "classic"), 1);
+    check_env("classic mouse gate", "GETV_MOUSE_MODE", "classic");
+    check("invalid mouse mode handled", set("mouse_mode", "banana"), 1);
+    check("invalid mouse mode reports error", g_errors, 1);
+    check_env("invalid mouse mode preserves selection", "GETV_MOUSE_MODE", "classic");
+
     printf("\n%s: %d failure(s)\n", failures ? "FAILED" : "ok", failures);
     return failures ? 1 : 0;
 }

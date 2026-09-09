@@ -80,6 +80,7 @@ else
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0026-bloodier-gibs.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0027-external-rom-path.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0028-prop-allocator-telemetry.patch" )
+    ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0029-modern-mouse-look.patch" )
     echo "cloned and patched"
 fi
 

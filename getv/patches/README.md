@@ -36,6 +36,9 @@ Split by *when* they can be applied rather than by subject.
 | `0027-external-rom-path.patch` | 2 files | extraction scripts accept the user's existing local ROM path | after `0026` |
 | `0028-prop-allocator-telemetry.patch` | 3 files | `chrprop.c`, `lv.c`, `ge_port_decls.h`: allocator/lifecycle callbacks | after `0027` |
 
+`0029-modern-mouse-look.patch` adds the direct mouse-angle consumer in `bondview2.c`,
+after `0028`. It respects game input locks and leaves vehicle controls on the original path.
+
 ## The gap at 0003, 0004 and 0005 is deliberate
 
 They were folded into `0001` the last time it was refreshed, and nobody retired them

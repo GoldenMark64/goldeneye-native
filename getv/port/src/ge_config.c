@@ -985,6 +985,12 @@ static int apply(const char *key_in, const char *val, int over)
  if (strcmp(key, "moddir") == 0)   { put("GETV_MODDIR", val, over); return 1; }
  if (strcmp(key, "mods_off") == 0) { put("GETV_MODS_OFF", val, over); return 1; }
 
+ if (strcmp(key, "mouse_mode") == 0) {
+     if (strcmp(val, "modern") == 0 || strcmp(val, "classic") == 0)
+         put("GETV_MOUSE_MODE", val, over);
+     else ge_err("mouse_mode=\"%s\" - expected modern|classic%s", val, "");
+     return 1;
+ }
  if (strcmp(key, "deadzone") == 0) { key_deadzone(val, over); return 1; }
  if (strcmp(key, "invert_look") == 0 || strcmp(key, "invertlook") == 0) {
  key_invert_look(val, over); return 1;
@@ -1321,6 +1327,7 @@ static void usage(void)
 "[fire=rt aim=lt use=b weapon_next=a weapon_prev=none pause=start]\n"
 "deadzone=0..40 stick deadzone, percent, clamped to range          [20]\n"
 "invert_look=0|1 forces look inversion; UNSET = save file decides   [unset]\n"
+"mouse_mode=modern|classic selects direct mouse angles or N64 stick response [modern]\n"
 "fullscreen=0|1 audio=0|1 unlock_all=0|1 save_dir=PATH\n"
 "base_game=on disables all Brutal GoldenEye effects while preserving their settings [off]\n"
 "blood=original|enhanced|excessive controls added gib blood [enhanced]; blood_limit=16..512 [128]\n"

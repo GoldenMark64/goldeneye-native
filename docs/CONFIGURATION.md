@@ -158,6 +158,15 @@ wrong" and "verified correct" are different claims, and only the first one curre
 Sets `GETV_HD_TEXTURES` and `GETV_TEXPACK`, read by `configHDTextures` and the pack-directory
 resolver in `port_support.c`.
 
+### `mouse_mode`
+
+`modern` (default) or `classic`, also available as `GETV_MOUSE_MODE`. Modern mouse travel
+directly changes camera angles without stick acceleration, a turn-speed cap, or carried
+surplus motion. Classic preserves the original mouse-to-N64-stick mapping. The existing
+mouse sensitivity and inversion settings apply to both. Physical controllers retain their
+current response. Vehicles, network sessions and scripted/replay input retain Classic N64;
+see [MOUSE.md](MOUSE.md).
+
 ### `framerate`
 
 `30`, `50`, `60`, or `off` (`0`, `uncapped` and `unlimited` are accepted for the last). Default

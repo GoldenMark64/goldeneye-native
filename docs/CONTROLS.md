@@ -35,6 +35,11 @@ control of clicks while it is open.
 The keyboard map comes from `geKeyboardApply()` and the crouch helpers in
 `getv/port/src/port_input.c`. It is also summarized in the launcher and printed at startup.
 
+Mouse look defaults to **Modern** response: mouse distance directly controls the camera angle.
+Choose **Classic N64** in the desktop launcher's Controls page, or set `mouse_mode = classic`,
+for the original stick acceleration and turn-speed limit. Controller response is unchanged.
+See [MOUSE.md](MOUSE.md) for vehicle and network fallback behavior.
+
 Mouse and keyboard are enabled by default. The launcher exposes mouse sensitivity, mouse Y
 inversion, and an enable/disable switch for both devices. The equivalent raw settings are:
 

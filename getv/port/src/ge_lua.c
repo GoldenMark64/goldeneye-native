@@ -1030,6 +1030,9 @@ static void ge_lua_on_event(GeEventType type, int a, int b, int c, void *user);
 
 void gePortLuaInit(void)
 {
+    /* Suppress every mod, including folders added after the launcher scanned. */
+    const char *base = getenv("GETV_LAUNCHER_BASE");
+    if (base && strcmp(base, "1") == 0) return;
     const char *dir = getenv("GETV_MODDIR");
     DIR *d;
     struct dirent *e;

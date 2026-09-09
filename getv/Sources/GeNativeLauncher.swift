@@ -75,7 +75,34 @@ private final class GeLauncherModel: ObservableObject {
 
     @Published var pickStage: Bool { didSet { geBridgeSetPickStage(pickStage ? 1 : 0) } }
     @Published var stageIdx: Int { didSet { geBridgeSetStageIdx(Int32(stageIdx)) } }
-    @Published var profile: Int { didSet { geBridgeSetProfile(Int32(profile)) } }
+    @Published var profile: Int { didSet {
+        geBridgeSetProfile(Int32(profile))
+        // Refresh the values the shared profile changed, so disabled controls
+        // and the startup selector show what will actually be launched.
+        pickStage = geBridgeGetPickStage() != 0
+        baseGame = geBridgeGetBaseGame() != 0
+        ruleset = Int(geBridgeGetRuleset())
+        rsCustom = geBridgeGetRsCustom() != 0
+        horde = geBridgeGetHorde() != 0
+        supersample = Int(geBridgeGetSupersample())
+        msaa = Int(geBridgeGetMsaa())
+        aniso = Int(geBridgeGetAniso())
+        fov = Int(geBridgeGetFov())
+        filtering = Int(geBridgeGetFiltering())
+        widescreen = geBridgeGetWidescreen() != 0
+        mipmaps = geBridgeGetMipmaps() != 0
+        fxaaOn = geBridgeGetFxaa() != 0
+        hdTextures = geBridgeGetHdTextures() != 0
+        parallax = geBridgeGetParallax() != 0
+        crosshairScalePct = Int(geBridgeGetCrosshairScalePct())
+        if profile == 0 {
+            crosshairRPct = 100
+            crosshairGPct = 100
+            crosshairBPct = 100
+        }
+        framerate = Int(geBridgeGetFramerate())
+        uncapped = geBridgeGetUncapped() != 0
+    } }
     @Published var ruleset: Int { didSet { geBridgeSetRuleset(Int32(ruleset)) } }
 
     @Published var baseGame: Bool { didSet { geBridgeSetBaseGame(baseGame ? 1 : 0) } }
@@ -376,11 +403,15 @@ private struct MissionPage: View {
     @ObservedObject var m: GeLauncherModel
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Toggle(isOn: $m.pickStage) {
-                Text("Start on a specific mission").foregroundColor(geText)
+            Picker("Game start", selection: $m.pickStage) {
+                Text("Original game start").tag(false)
+                Text("Mission selector").tag(true)
             }
+            .pickerStyle(.segmented)
+            Text(m.pickStage ? "Start directly in the selected mission." : "Start at the title screen and choose a mission in game.")
+                .foregroundColor(geDim).font(.system(size: 14))
 
-            if m.pickStage {
+            Group {
                 ScrollView {
                     LazyVStack(spacing: 6) {
                         ForEach(m.stages) { s in
@@ -401,11 +432,9 @@ private struct MissionPage: View {
                         }
                     }
                 }
-            } else {
-                Text("The game boots to the title screen and the mission is chosen there.")
-                    .foregroundColor(geDim).font(.system(size: 14))
-                Spacer()
             }
+            .disabled(!m.pickStage)
+            .opacity(m.pickStage ? 1 : 0.35)
         }
     }
 }
@@ -415,7 +444,7 @@ private struct RulesetPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                GeSectionTitle(text: "Ruleset")
+                GeSectionTitle(text: "Gameplay preset")
                 LazyVStack(spacing: 6) {
                     ForEach(m.rulesets.indices, id: \.self) { i in
                         Button(action: { m.ruleset = i }) {
@@ -434,10 +463,13 @@ private struct RulesetPage: View {
                 }
 
                 GeSectionTitle(text: "Brutal GoldenEye")
-                Toggle(isOn: $m.baseGame) {
-                    Text("Base Game (Brutal effects off)").foregroundColor(geText)
+                Toggle(isOn: Binding(get: { !m.baseGame }, set: { enabled in
+                    m.baseGame = !enabled
+                    if enabled && m.gibs == 0 { m.gibs = 1 }
+                })) {
+                    Text("Enable Brutal effects").foregroundColor(geText)
                 }
-                Text("Next launch: disables Brutal effects and keeps your choices. Other mods and rules remain separately configured.")
+                Text("Off by default. Enable for added gore on the next launch. Other mods and gameplay options remain separately configured.")
                     .foregroundColor(geDim).font(.system(size: 12))
                 GePanel {
                     VStack(alignment: .leading, spacing: 14) {
@@ -751,11 +783,19 @@ private struct VideoPage: View {
             // Developer) before this split, confirmed on this machine the same way.
             VStack(alignment: .leading, spacing: 16) {
                 displaySection
-                imageQualitySection
-                filteringSection
-                timingSection
-                hdTexturesSection
-                crosshairSection
+                if m.profile == 0 {
+                    Text("Base Game uses original graphics. Choose GoldenEye+ to customize image quality.")
+                        .foregroundColor(geDim).font(.system(size: 14))
+                }
+                Group {
+                    imageQualitySection
+                    filteringSection
+                    timingSection
+                    hdTexturesSection
+                    crosshairSection
+                }
+                .disabled(m.profile == 0)
+                .opacity(m.profile == 0 ? 0.35 : 1)
                 developerSection
                 Spacer()
             }
@@ -934,8 +974,8 @@ private struct ProfilePage: View {
         VStack(alignment: .leading, spacing: 16) {
             GeSectionTitle(text: "Profile")
             LazyVStack(spacing: 6) {
-                ForEach([(0, "97 Console", "The game as shipped."),
-                         (1, "GoldenEye+", "This port's own enhancements: higher supersample, MSAA, anisotropic filtering, FOV.")], id: \.0) { p in
+                ForEach([(0, "Base Game", "N64 graphics and 1.1 Honey controls. Start at the title screen or choose a mission. No Brutal effects, mods or launcher cheats. Display settings remain available."),
+                         (1, "GoldenEye+", "Enhanced graphics and optional gameplay, controls, mods and cheats. Start at the title screen or choose a mission. Brutal effects are optional.")], id: \.0) { p in
                     Button(action: { m.profile = p.0 }) {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
@@ -963,7 +1003,7 @@ private enum GePage: Int, CaseIterable {
     var title: String {
         switch self {
         case .mission: return "Mission"
-        case .ruleset: return "Ruleset"
+        case .ruleset: return "Gameplay"
         case .horde: return "Horde"
         case .controls: return "Controls"
         case .mods: return "Mods"
@@ -1106,6 +1146,8 @@ private struct GeLauncherView: View {
                         case .profile: ProfilePage(m: m)
                         }
                     }
+                    .disabled(m.profile == 0 && [.ruleset, .horde, .controls, .mods, .cheats].contains(page))
+                    .opacity(m.profile == 0 && [.ruleset, .horde, .controls, .mods, .cheats].contains(page) ? 0.35 : 1)
                     .padding(16)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
@@ -1118,7 +1160,7 @@ private struct GeLauncherView: View {
                         m.save()
                         onStart()
                     }) {
-                        Text("START MISSION")
+                        Text(m.pickStage ? "START MISSION" : "START GAME")
                             .font(.system(size: 16, weight: .bold))
                             .tracking(3)
                             .foregroundColor(Color(white: 0.05))

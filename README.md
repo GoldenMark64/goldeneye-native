@@ -205,7 +205,7 @@ moved in 1997 and the picture is as smooth as your monitor can show.
 | **Cheats, built in** | **Done** | The game's own cheat system exposed by name, without the unlock grind. Not GameShark codes. [`CHEATS.md`](docs/CHEATS.md) |
 | **Game mode presets** | **Done** | `classic`, `hardcore`, `survival`, `chaos` and `horde` rulesets, freely combinable. |
 | **Enemy gibs** | **Beta** | `off`, explosion, high-damage or always policies feeding one Quake-like effect: solid chunks bounce, settle and linger without changing gameplay. [`GIBS.md`](docs/GIBS.md) |
-| **Graphics profiles** | **Done** | One switch: `97 Console` for the faithful look, `GoldenEye+` for everything this port adds. |
+| **Launcher modes** | **Done** | `Base Game` for the original experience; `GoldenEye+` for enhanced graphics and optional customization. |
 | **Toggle aim** | **Done** | Press once to raise the sight instead of holding the button. The game's own option, exposed as `aim_toggle`. |
 | **Coloured reticle** | **Done** | Any RRGGBB, and a smaller modern sight size. How cleanly a colour takes depends on the baked asset. |
 | **Post-processing** | **Done** | FXAA, MSAA to 4x, supersampling, anisotropic filtering, mipmaps, parallax mapping. |
@@ -232,16 +232,24 @@ The Windows setup verifies a big-endian z64 dump against that SHA-1 before build
 byte-swapped dump is recognized but refused because the no-copy setup does not create a converted
 ROM. A wrong or damaged file is refused before it can produce a broken build twenty minutes later.
 
-## GoldenEye+ versus 97 Console
+## GoldenEye+ versus Base Game
 
-Two profiles. Set `preset = plus` or `preset = faithful` in the config file, or pick one in the
-launcher.
+The launcher offers two modes, with a description beneath the selector.
 
-**97 Console** is the default and stays the default. The N64 look is the product, and correctness
-here is checked by comparing against captures from real hardware, so anything that alters the
-image has to be something you asked for.
+**Base Game** (previously **97 Console**) allows title-screen or direct mission startup, uses the N64
+graphics and 1.1 Honey control layout, and disables Brutal effects, mods, launcher cheats,
+custom gameplay presets, co-op and netplay. Keyboard and mouse still work as N64 input adapters,
+with classic mouse response. Resolution and fullscreen remain adjustable; conflicting options
+are disabled. Existing save progress and the original in-game menus remain available.
 
-**GoldenEye+** is one switch for everything this port has added and verified:
+**GoldenEye+** allows customization. On the Mission page, choose **Original game start** or
+**Mission selector**. The mission list stays visible but greyed out when original startup is
+selected. The **Gameplay** page contains gameplay presets and optional Brutal effects.
+
+The config-only `preset = faithful` and `preset = plus` retain their existing graphics-preset
+behavior. The launcher's stricter Base Game mode is applied after config and command-line parsing.
+
+**GoldenEye+** supplies these graphics defaults:
 
 | Turns on | Value |
 |---|---|

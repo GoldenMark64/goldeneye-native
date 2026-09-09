@@ -9,10 +9,10 @@ configure it through `goldeneye.cfg` and the environment instead.
 
 ## The pages
 
-**Mission.** Level select across every loadable stage, with the multiplayer-only ones marked
-as such rather than offered as though they would boot on their own.
+**Mission.** Choose **Original game start** or **Mission selector**. Original startup keeps
+the mission list visible but disabled. Both Base Game and GoldenEye+ allow direct mission selection.
 
-**Rules.** Enemy health, damage, accuracy and ammunition, player health, explosion strength.
+**Gameplay.** Enemy health, damage, accuracy and ammunition, player health, explosion strength.
 Percentages with presets, plus horde mode. See [Rulesets](Rulesets).
 
 **Controls.** Rare's eight control styles, bindings, mouse sensitivity and invert, deadzone.

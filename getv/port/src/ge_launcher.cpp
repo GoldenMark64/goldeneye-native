@@ -55,6 +55,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include "ge_config.h"
 
 /* The real errno. getv/port/include/ge_win_compat.h undefines errno on Windows so that
  * PR/os.h's struct fields of that name can parse; MSVCRT exposes the value through
@@ -277,9 +278,8 @@ const int   kSourceCount = (int)(sizeof kSources / sizeof kSources[0]);
 
 struct Model {
     /* profile */
-    /* 0 = "97 Console" (the game as shipped), 1 = GoldenEye+. The profile is only a display
-     * name here; the config-file token in ge_config.c is still `preset = faithful`, and is
-     * deliberately unchanged so existing goldeneye.cfg files keep parsing. */
+    /* 0 = Base Game, 1 = GoldenEye+. Base Game is enforced at launch as well as
+     * shown here. The legacy config-file graphics preset keeps its own semantics. */
     int  profile;
 
     /* Brutal preferences remain selected while Base Game suppresses their effects. */
@@ -488,14 +488,16 @@ int bind_index(const char *v)
     return -1;
 }
 
+void apply_profile(Model &m);
+
 void model_load(Model &m)
 {
     memset(&m, 0, sizeof m);
 
     m.profile = env_bool("GETV_PROFILE_PLUS", false) ? 1 : 0;
     const char *base = getenv("GETV_BASE_GAME");
-    m.base_game = base && strcmp(base, "0") && strcmp(base, "off") &&
-                  strcmp(base, "false") && strcmp(base, "no");
+    m.base_game = !base || (strcmp(base, "0") && strcmp(base, "off") &&
+                           strcmp(base, "false") && strcmp(base, "no"));
     /* Read preferences directly: querying runtime policy here would cache it before
      * the player has finished choosing settings. */
     {
@@ -559,17 +561,9 @@ void model_load(Model &m)
     m.horde_growth       = env_int("GETV_HORDE_GROWTH", 1);
 
     {
-        /* GETV_PICKSTAGE is a separate persisted flag from GETV_STAGE on purpose. Defaults
-         * true: with the toggle unchecked, MissionPage (GeNativeLauncher.swift) hides the
-         * mission list entirely, so a first-time player sees a checkbox and nothing else
-         * -- picking a mission is the whole point of this page. But "GETV_STAGE unset"
-         * cannot itself mean "default to true", because model_store() below unsetenv()s
-         * GETV_STAGE precisely when the player UNCHECKS the toggle and saves -- conflating
-         * the two would forget that explicit "boot to title screen" choice on every
-         * relaunch. GETV_PICKSTAGE is always written (model_store, same env_bool
-         * round-trip as GETV_HORDE/GETV_WIDESCREEN above/below), so only a true first run
-         * -- no saved config at all -- ever hits this default. */
-        m.pick_stage = env_bool("GETV_PICKSTAGE", true);
+        /* Keep an explicit startup choice separate from the selected mission. A
+         * fresh launch starts at the title screen unless a stage was requested. */
+        m.pick_stage = env_bool("GETV_PICKSTAGE", getenv("GETV_STAGE") != NULL);
         m.stage_idx = 0;
         const char *st = getenv("GETV_STAGE");
         if (st != NULL && *st != '\0') {
@@ -690,10 +684,14 @@ void model_load(Model &m)
     /* After moddir is known: the scan needs it to decide where to look. */
     mod_scan(m);
     mod_apply_off(m);
+    if (m.profile == 0) apply_profile(m);
 }
 
-void model_store(const Model &m)
+void model_store(const Model &chosen)
 {
+    Model m = chosen;
+    if (m.profile == 0) apply_profile(m);
+    setenv("GETV_LAUNCHER_BASE", m.profile == 0 ? "1" : "0", 1);
     setenv("GETV_PROFILE_PLUS", m.profile ? "1" : "0", 1);
     static const char *const gibs[] = { "off", "explosions", "high_damage", "always" };
     static const char *const blood[] = { "original", "enhanced", "excessive" };
@@ -869,25 +867,17 @@ void model_store(const Model &m)
         }
         put_str("GETV_MODS_OFF", off);
     }
+    geConfigApplyLauncherProfile();
 }
 
-/* GoldenEye+ is a profile over the same gates, not a fork. It turns on what this port has
- * added and verified; it does not enable anything inert. 97 Console clears the same set rather
- * than merely not setting it, so switching back is symmetric and cannot leave a stray
- * enhancement behind.
- *
- * The three raised to a floor rather than assigned (fov, msaa, aniso) let someone who has
- * already asked for more keep it. The booleans are assigned outright because there is no
- * "more" to preserve.
- *
- * Filtering and widescreen are deliberately absent. Both already default to their better
- * setting for every profile (three-point, and filling the window), so listing them here would
- * imply 97 Console turns them off, which it does not and should not: neither is an
- * enhancement this port added, and a 4:3 pillarbox is a display choice rather than a fidelity
- * one. */
+/* Keep the visible model consistent with the launch contract. Base Game restores
+ * original presentation, controls and gameplay; display size/fullscreen survive.
+ * geConfigApplyLauncherProfile also enforces it after the child re-reads config.
+ * GoldenEye+ supplies enhancement defaults and allows subsequent customization. */
 void apply_profile(Model &m)
 {
     if (m.profile == 1) {
+        m.mouse_mode = 0;
         m.fov         = (m.fov < 100) ? 100 : m.fov;
         m.msaa        = (m.msaa  < 4) ? 4 : m.msaa;
         m.aniso       = (m.aniso < 8) ? 8 : m.aniso;
@@ -901,8 +891,7 @@ void apply_profile(Model &m)
 
         /* Only does anything with a pack that ships height maps, and there is none in the
          * game's own assets. It is here so the same installed pack means different things
-         * under the two profiles: resolution under 97 Console, resolution and displacement
-         * under this one. */
+         * when enabled: a pack can supply resolution and displacement together. */
         m.parallax = true;
 
         /* A 32-pixel sight was sized for 320x240 on a CRT across a room; at a desk it covers
@@ -942,6 +931,19 @@ void apply_profile(Model &m)
         m.ruleset = 0;
         m.rs_custom = false;
         m.horde = false;
+        m.base_game = true;
+        m.coop_players = 0;
+        m.net_mode = 0;
+        m.mouse_mode = 1;
+        m.filtering = 2;
+        m.widescreen = false;
+        m.framerate = 30;
+        for (int c = 0; c < 3; ++c) m.crosshair_color[c] = 1.0f;
+        for (int i = 0; i < kCheatCount; ++i) m.cheat_on[i] = false;
+        for (int a = 0; a < kActionCount; ++a) {
+            m.bind_all[a] = -1;
+            for (int p = 0; p < 4; ++p) m.bind_p[p][a] = -1;
+        }
     }
 }
 
@@ -1625,6 +1627,10 @@ bool MissionRow(const Stage &s, bool selected, float w, int idx)
 
     float pw = g_fSmall->CalcTextSizeA(13.0f, FLT_MAX, 0.0f, s.place).x;
     dl->AddText(g_fSmall, 13.0f, ImVec2(p.x + w - pw - 14, p.y + h * 0.5f - 7.0f), kDim, s.place);
+    /* Draw-list colours bypass ImGui's disabled alpha. Dim the entire custom row
+     * as well as disabling its hit target, so the mission remains visible. */
+    if (ImGui::GetStyle().Alpha < 1.0f)
+        dl->AddRectFilled(p, ImVec2(p.x + w, p.y + h), IM_COL32(8, 9, 11, 175));
     return clicked;
 }
 
@@ -1768,7 +1774,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
         }
         model_store(am);
         printf("[getv][launcher] autoplay: profile=%s ruleset=%s%s\n",
-               am.profile ? "goldeneye+" : "97-console",
+               am.profile ? "goldeneye+" : "base-game",
                kRulesets[am.ruleset], am.horde ? " horde" : "");
         relaunch();
         return 0;
@@ -2041,7 +2047,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                          ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
             const float W = (float) ww, H = (float) wh;
-            const float headerH = 106.0f, footerH = 78.0f, navW = 208.0f;
+            const float headerH = 154.0f, footerH = 78.0f, navW = 208.0f;
             ImDrawList *dl = ImGui::GetWindowDrawList();
 
             /* ------------------------------------------------------------ header */
@@ -2066,18 +2072,26 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             TextLS(g_fSmall, 12.0f, ImVec2(W - 336, 26), kDim, "PROFILE", 2.6f);
             {
                 int prev_profile = m.profile;
-                static const char *const kProf[] = { "97 CONSOLE", "GOLDENEYE+" };
+                static const char *const kProf[] = { "BASE GAME", "GOLDENEYE+" };
                 ImGui::SetCursorScreenPos(ImVec2(W - 336, 46));
                 Segmented("prof", &m.profile, kProf, 2, 150.0f);
                 if (m.profile != prev_profile) apply_profile(m);
             }
+            ImGui::SetCursorScreenPos(ImVec2(36, 104));
+            ImGui::PushTextWrapPos(W - 36);
+            Hint(m.profile == 0
+                 ? "Base Game: N64 graphics and 1.1 Honey controls. Start at the title screen or choose a mission. "
+                   "No Brutal effects, mods or launcher cheats. Resolution and fullscreen remain available."
+                 : "GoldenEye+: enhanced graphics and optional gameplay, controls, mods and cheats. "
+                   "Start from the title screen or choose a mission. Brutal effects are optional.");
+            ImGui::PopTextWrapPos();
 
             /* ------------------------------------------------------------ nav */
             dl->AddRectFilled(ImVec2(0, headerH), ImVec2(navW, H - footerH), kPanel);
             dl->AddLine(ImVec2(navW, headerH), ImVec2(navW, H - footerH), kLine, 1.0f);
 
             static const char *const kPages[] =
-                { "MISSION", "CO-OP", "RULES", "CONTROLS", "CHEATS", "VIDEO", "MODS", "DEVELOPER TOOLS" };
+                { "MISSION", "CO-OP", "GAMEPLAY", "CONTROLS", "CHEATS", "VIDEO", "MODS", "DEVELOPER TOOLS" };
             const int kPageCount = (int)(sizeof kPages / sizeof kPages[0]);
             ImGui::SetCursorScreenPos(ImVec2(0, headerH + 20));
             ImGui::PushStyleColor(ImGuiCol_ChildBg, v4(kPanel));
@@ -2093,14 +2107,23 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             ImGui::BeginChild("content", ImVec2(W - navW - 60, H - headerH - footerH - 44),
                               ImGuiChildFlags_None, 0);
 
+            const bool locked_page = m.profile == 0 &&
+                (page == 1 || page == 2 || page == 3 || page == 4 || page == 6);
+            if (locked_page)
+                Hint("Base Game uses original gameplay and 1.1 Honey controls. "
+                     "Choose GoldenEye+ above to customize these options.");
+            ImGui::BeginDisabled(locked_page);
             if (page == 0) {
-                Section("DEPLOYMENT");
-                ImGui::Checkbox("Start on a specific mission", &m.pick_stage);
+                Section("GAME START");
+                static const char *const kStart[] = { "ORIGINAL GAME START", "MISSION SELECTOR" };
+                int start = m.pick_stage ? 1 : 0;
+                if (Segmented("start", &start, kStart, 2, 240.0f)) m.pick_stage = start != 0;
                 Hint(m.pick_stage
                      ? "The game boots straight into the mission selected below."
                      : "The game boots to the title screen and the mission is chosen there.");
 
-                if (m.pick_stage) {
+                ImGui::BeginDisabled(!m.pick_stage);
+                {
                     float availw = ImGui::GetContentRegionAvail().x;
                     float colw   = (availw - 14.0f) * 0.5f;
 
@@ -2145,6 +2168,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                         ImGui::PopStyleColor();
                     }
                 }
+                ImGui::EndDisabled();
             }
 
             /* ------------------------------------------------------------ co-op */
@@ -2172,7 +2196,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
 
                 if (m.coop_players >= 2) {
                     ImGui::Spacing();
-                    Section("TEAM RULES");
+                    Section("TEAM OPTIONS");
                     ImGui::Checkbox("Friendly fire", &m.coop_ff);
                     Hint(m.coop_ff
                          ? "Players can damage each other. Everyone starts on one pad facing the "
@@ -2193,7 +2217,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             }
 
             else if (page == 2) {
-                Section("RULESET");
+                Section("GAMEPLAY PRESET");
                 static const char *const kRsUp[] =
                     { "CLASSIC", "HARDCORE", "SURVIVAL", "CHAOS", "HORDE" };
                 /* Verbatim from ge_presets[].blurb in ge_ruleset.c, so this cannot drift away
@@ -2242,9 +2266,13 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                 }
 
                 Section("BRUTAL GOLDENEYE");
-                ImGui::Checkbox("Base Game (Brutal effects off)", &m.base_game);
-                Hint("Next launch: disables Brutal effects and keeps your choices. "
-                     "Other mods and rules remain separately configured.");
+                bool brutal_enabled = !m.base_game;
+                if (ImGui::Checkbox("Enable Brutal effects", &brutal_enabled)) {
+                    m.base_game = !brutal_enabled;
+                    if (brutal_enabled && m.gibs == 0) m.gibs = 1;
+                }
+                Hint("Off by default. Enable for added gore on the next launch. "
+                     "Other mods and gameplay options remain separately configured.");
                 ImGui::BeginDisabled(m.base_game);
                 static const char *const kGibs[] = { "Off", "Explosions", "High damage", "Always" };
                 static const char *const kBlood[] = { "Original", "Enhanced", "Excessive" };
@@ -2464,9 +2492,10 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                 ImGui::Dummy(ImVec2(0, 6));
                 ImGui::Checkbox("Fullscreen", &m.fullscreen);
 
+                ImGui::BeginDisabled(m.profile == 0);
                 Section("IMAGE QUALITY");
                 if (m.profile == 0) {
-                    Hint("The 97 Console profile pins these to the console's own values. Switch "
+                    Hint("Base Game pins these to the console's own values. Switch "
                          "to GoldenEye+ in the header to change them.");
                     ImGui::Dummy(ImVec2(0, 10));
                 }
@@ -2550,8 +2579,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                          "default clock or is ignored on the real one. Uncapped above is the "
                          "high-refresh setting.");
                 }
-
-
+                ImGui::EndDisabled();
             }
 
             else if (page == 6) {
@@ -2690,6 +2718,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                         ? "" : "Could not open the browser.";
             }
 
+            ImGui::EndDisabled();
             ImGui::EndChild();
             ImGui::PopStyleColor();
 
@@ -2714,9 +2743,9 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                     n += snprintf(sum + n, sizeof sum - n, "TITLE SCREEN");
                 }
                 n += snprintf(sum + n, sizeof sum - n, "   /   %s",
-                              m.profile ? "GOLDENEYE+" : "97 CONSOLE");
+                              m.profile ? "GOLDENEYE+" : "BASE GAME");
                 n += snprintf(sum + n, sizeof sum - n, "   /   %s",
-                              m.rs_custom ? "CUSTOM RULES" : kRulesets[m.ruleset]);
+                              m.rs_custom ? "CUSTOM GAMEPLAY" : kRulesets[m.ruleset]);
                 if (m.horde) n += snprintf(sum + n, sizeof sum - n, "   /   HORDE");
                 {
                     int nc = 0;
@@ -2731,7 +2760,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
             ImGui::SetCursorScreenPos(ImVec2(W - 358, H - footerH + 21));
             if (Btn("QUIT", ImVec2(120, 36), false)) { running = false; }
             ImGui::SetCursorScreenPos(ImVec2(W - 222, H - footerH + 21));
-            if (Btn("START MISSION", ImVec2(188, 36), true)) {
+            if (Btn(m.pick_stage ? "START MISSION" : "START GAME", ImVec2(188, 36), true)) {
                 if (developer_prepare_recording(m)) { launch = true; running = false; }
                 else SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cannot start recording",
                     "The reports directory could not be prepared. Turn recording off or check folder access.", win);
@@ -2873,7 +2902,7 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
 
     model_store(m);
     printf("[getv][launcher] starting: profile=%s ruleset=%s%s%s\n",
-           m.profile ? "goldeneye+" : "faithful",
+           m.profile ? "goldeneye+" : "base-game",
            kRulesets[m.ruleset],
            m.horde ? " horde" : "",
            m.pick_stage ? "" : " (title screen)");

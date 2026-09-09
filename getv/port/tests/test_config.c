@@ -23,6 +23,8 @@
  * widescreen are exercised below; the other three only have to exist for the unit to link. */
 unsigned int  configFiltering = 2;
 unsigned int  configWidescreen = 1;
+unsigned char ge_crosshair_r, ge_crosshair_g, ge_crosshair_b;
+float ge_crosshair_scale;
 void set_debug_testingmanpos_flag(int flag) { (void) flag; }
 unsigned char g_CheatPlayerTextRelated[256];
 int           num_chars_selectable_mp = 8;
@@ -423,6 +425,59 @@ int main(void)
     check("invalid mouse mode handled", set("mouse_mode", "banana"), 1);
     check("invalid mouse mode reports error", g_errors, 1);
     check_env("invalid mouse mode preserves selection", "GETV_MOUSE_MODE", "classic");
+
+    /* Exercise the real startup path: conflicting config/CLI choices must not
+     * undo a Base Game launch when the launcher re-executes the program. */
+    {
+        char *args[] = {"launcher-test", "--config=__missing_launcher_test__.cfg",
+            "--GETV_LAUNCHER_BASE=1", "--GETV_STAGE=33", "--GETV_PICKSTAGE=1", "--preset=plus",
+            "--controls=2.2", "--mouse_mode=modern", "--gibs=always",
+            "--horde=1", "--enemy_health=300", "--cheats=invincibility,extra_mp_chars",
+            "--GETV_COOP=4", "--GETV_NET_HOST=27200", "--unlock_all=1",
+            "--filtering=nearest", "--widescreen=on", "--framerate=off",
+            "--resolution=1920x1080", "--fullscreen=on", "--GETV_P2_BIND_FIRE=a"};
+        ge_crosshair_scale = 0.6f;
+        ge_crosshair_r = 0;
+        geConfigInit((int)(sizeof args / sizeof args[0]), args);
+        check_env("Base Game permits direct mission startup", "GETV_STAGE", "33");
+        check_env("Base Game preserves mission selection", "GETV_PICKSTAGE", "1");
+        check_env("Base Game blocks Brutal effects", "GETV_BASE_GAME", "1");
+        check_env("Base Game blocks gibs", "GETV_GIBS", "off");
+        check_env("Base Game uses original controls", "GETV_CONTROLS", "0");
+        check_env("Base Game uses classic mouse response", "GETV_MOUSE_MODE", "classic");
+        check_env("Base Game disables dual analog", "GETV_DUALANALOG", "0");
+        check_env("Base Game restores player bindings", "GETV_P2_BIND_FIRE", "rt");
+        check_env("Base Game disables horde", "GETV_HORDE", "0");
+        check_env("Base Game disables co-op", "GETV_COOP", "0");
+        check_env("Base Game disables netplay", "GETV_NET_HOST", NULL);
+        check_env("Base Game restores gameplay balance", "GETV_RS_ENEMY_HEALTH", "100");
+        check_env("Base Game disables forced unlocks", "GETV_UNLOCKALL", "0");
+        check_env("Base Game disables HD textures", "GETV_HD_TEXTURES", "0");
+        check_env("Base Game disables postprocessing", "GETV_FXAA", "0");
+        check_env("Base Game restores tick cadence", "GETV_TICKFIELDS", "2");
+        check_env("Base Game restores original frame cadence", "GETV_FPS", "30");
+        check_env("Base Game retains resolution", "GETV_WINDOW", "1920x1080");
+        check_env("Base Game retains fullscreen", "GETV_FULLSCREEN", "1");
+        check("Base Game resets constructor filtering", configFiltering, 2);
+        check("Base Game resets constructor aspect", configWidescreen, 0);
+        check("Base Game resets constructor reticle", ge_crosshair_scale == 1.0f && ge_crosshair_r == 255, 1);
+        check("Base Game clears cheats parsed before launcher", g_CheatPlayerTextRelated[2], 0);
+        check("Base Game clears cheat roster", num_chars_selectable_mp, 8);
+
+        setenv("GETV_PICKSTAGE", "0", 1);
+        geConfigApplyLauncherProfile();
+        check_env("Base Game also permits original startup", "GETV_STAGE", NULL);
+        setenv("GETV_PICKSTAGE", "1", 1);
+        setenv("GETV_LAUNCHER_BASE", "0", 1);
+        setenv("GETV_STAGE", "33", 1);
+        setenv("GETV_MOUSE_MODE", "modern", 1);
+        setenv("GETV_GIBS", "always", 1);
+        geConfigApplyLauncherProfile();
+        check_env("GoldenEye+ permits mission selection", "GETV_STAGE", "33");
+        check_env("GoldenEye+ permits modern controls", "GETV_MOUSE_MODE", "modern");
+        check_env("GoldenEye+ permits optional Brutal effects", "GETV_GIBS", "always");
+        unsetenv("GETV_LAUNCHER_BASE");
+    }
 
     printf("\n%s: %d failure(s)\n", failures ? "FAILED" : "ok", failures);
     return failures ? 1 : 0;

@@ -21,6 +21,10 @@ extern "C" {
  * error). */
 int geConfigInit(int argc, char **argv);
 
+/* Enforce the launcher's Base Game choice after config/CLI parsing and after the
+ * launcher stores its model (including platforms that continue without exec). */
+void geConfigApplyLauncherProfile(void);
+
 /* Non-static on purpose: `nm <binary> | grep ge_config_loaded` is the build-integrity
  * proof that a port-layer rebuild actually landed, the same way gfx_sdl2.c's
  * ge_pace_framerate is used. 0 = no file found, 1 = a file was read. */

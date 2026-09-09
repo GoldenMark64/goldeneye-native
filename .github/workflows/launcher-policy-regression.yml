@@ -23,3 +23,8 @@ jobs:
             exit 1
           }
           bash getv/port/tests/run_tests.sh launcher_policy
+      - name: Run ROM-free Base Game launch contract checks
+        run: |
+          test -f getv/port/tests/test_config.c
+          bash getv/port/tests/run_tests.sh config
+          python3 tools/tests/test_launcher_model.py

@@ -132,6 +132,19 @@ bash getv/port/tests/run_tests.sh mouse
 
 Then run the complete suite before handoff.
 
+The launcher profile regression compiles the production model and profile function without
+SDL, ImGui or game data:
+
+```bash
+python3 tools/tests/test_launcher_model.py
+```
+
+Use `--cxx /path/to/g++` for a compiler outside PATH and `--source-root /path/to/checkout`
+to check an unchanged baseline. Twelve checks cover Base Game restrictions, compatible display
+settings, retained inactive choices and GoldenEye+ customization. The launcher-policy CI job
+also runs the config group to check enforcement after command-line parsing. Launcher screenshots
+still need a desktop build or a ROM-free harness linked to SDL/ImGui.
+
 The save-directory regression compiles the production `geSavePathInit` initializer with
 synthetic environment and filesystem helpers. It requires Python 3 and a C compiler, checks
 11 scenarios with and without macOS diagnostics, and never opens a real save or reads the

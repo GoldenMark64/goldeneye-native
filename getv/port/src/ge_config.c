@@ -67,6 +67,8 @@ int ge_config_controls = -1;
  * port/src/port_support.c; this file only assigns to it. */
 extern unsigned int configFiltering;   /* 0 = nearest, 1 = bilinear, 2 = three-point */
 extern unsigned int configWidescreen;  /* 0 = retail 4:3 pillarbox, 1 = fill real window */
+extern unsigned char ge_crosshair_r, ge_crosshair_g, ge_crosshair_b;
+extern float ge_crosshair_scale;
 
 /* Rare's own leftover position readout. src/game/debugmenu_handler.c:1018 - a
  * three-line exported setter for `g_DebugManPos` (a plain s32 in BSS at :266),
@@ -678,6 +680,68 @@ static void key_cheats(const char *v, int over)
  if (applied > 0) {
  printf("[getv][config] cheats: %d set by name, %d of which are flag-only and ""need in-game activation. ""These are GE's OWN cheat flags (g_CheatPlayerTextRelated, ""bondconstants.h:1249), not GameShark addresses.\n", applied, deferred);
     }
+}
+
+void geConfigApplyLauncherProfile(void)
+{
+    const char *base = getenv("GETV_LAUNCHER_BASE");
+    if (!base || strcmp(base, "1") != 0) return;
+
+    /* A launcher mode is a promise, not a gap-filling config preset. Apply last,
+     * otherwise forwarded CLI arguments and the re-read file can undo it. Keep
+     * display size, fullscreen, vsync, audio and save location under user control. */
+    static const struct { const char *key, *value; } original[] = {
+        {"GETV_PROFILE_PLUS", "0"}, {"GETV_BASE_GAME", "1"},
+        {"GETV_GIBS", "off"}, {"GETV_RULESET", "classic"},
+        {"GETV_HORDE", "0"}, {"GETV_COOP", "0"},
+        {"GETV_PICKSTAGE", "0"}, {"GETV_UNLOCKALL", "0"},
+        {"GETV_SUPERSAMPLE", "1"}, {"GETV_FOV", "100"},
+        {"GETV_MSAA", "0"}, {"GETV_ANISO", "0"},
+        {"GETV_FILTERING", "2"}, {"GETV_POINT_FILTER", "0"},
+        {"GETV_WIDESCREEN", "0"}, {"GETV_MIPMAPS", "0"},
+        {"GETV_HD_TEXTURES", "0"}, {"GETV_PARALLAX", "0"},
+        {"GETV_FXAA", "0"}, {"GETV_CRT", "0"},
+        {"GETV_CROSSHAIR_SCALE", "1"}, {"GETV_CROSSHAIR_COLOR", "FFFFFF"},
+        {"GETV_FPS", "30"}, {"GETV_REALCLOCK", "0"}, {"GETV_TICKFIELDS", "2"},
+        {"GETV_CONTROLS", "0"}, {"GETV_DUALANALOG", "0"},
+        {"GETV_MOUSE_MODE", "classic"}, {"GETV_AIM_TOGGLE", "0"},
+        {"GETV_RS_ENEMY_HEALTH", "100"}, {"GETV_RS_ENEMY_DAMAGE", "100"},
+        {"GETV_RS_ENEMY_ACCURACY", "100"}, {"GETV_RS_ENEMY_REACTION", "100"},
+        {"GETV_RS_PLAYER_HEALTH", "100"}, {"GETV_RS_PLAYER_ARMOUR", "100"},
+        {"GETV_RS_AMMO", "100"}, {"GETV_RS_EXPLOSION_DAMAGE", "100"},
+        {"GETV_RS_TURRET_DAMAGE", "100"}
+    };
+    static const char *const clear[] = {
+        "GETV_STAGE", "GETV_CHEATS", "GETV_NET_HOST", "GETV_NET_JOIN",
+        "GETV_INVERTLOOK", "GETV_DEBUGPOS"
+    };
+    size_t i;
+    for (i = 0; i < sizeof original / sizeof original[0]; ++i)
+        setenv(original[i].key, original[i].value, 1);
+    for (i = 0; i < sizeof clear / sizeof clear[0]; ++i) unsetenv(clear[i]);
+    /* Reset gamepad action overrides, including per-player bindings. Keyboard
+     * and mouse remain usable as N64 input adapters, with classic response. */
+    static const char *const actions[] = {"FIRE", "AIM", "USE", "WEAPON_NEXT", "WEAPON_PREV", "PAUSE"};
+    static const char *const sources[] = {"rt", "lt", "b", "a", "none", "start"};
+    for (i = 0; i < sizeof actions / sizeof actions[0]; ++i) {
+        char key[64];
+        int player;
+        snprintf(key, sizeof key, "GETV_BIND_%s", actions[i]);
+        setenv(key, sources[i], 1);
+        for (player = 1; player <= 4; ++player) {
+            snprintf(key, sizeof key, "GETV_P%d_BIND_%s", player, actions[i]);
+            setenv(key, sources[i], 1);
+        }
+    }
+    ge_config_controls = 0;
+    configFiltering = 2;
+    configWidescreen = 0;
+    /* These globals were populated by constructors before config parsing. */
+    ge_crosshair_r = ge_crosshair_g = ge_crosshair_b = 255;
+    ge_crosshair_scale = 1.0f;
+    memset(g_CheatPlayerTextRelated, 0, GE_CHEAT_MAX_ID + 1);
+    num_chars_selectable_mp = 8; /* The retail menu derives unlocks from the save. */
+    set_debug_testingmanpos_flag(0);
 }
 
 static void key_roster(const char *v, int over)
@@ -1691,6 +1755,8 @@ int geConfigInit(int argc, char **argv)
             key_cheats(envcheats, 1);
         }
     }
+
+ geConfigApplyLauncherProfile();
 
  printf("[getv][config] %s%s | window=%s fps=%s ss=%s controls=%d filtering=%u\n",
  ge_config_loaded ? "file " : "no config file",

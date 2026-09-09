@@ -502,10 +502,22 @@ process would otherwise lose. Cheats whose effect lives in the game's turn-on sw
 marked "(in-game)" in the launcher, because they need a player context that does not exist at
 startup and a checkbox that silently does nothing is worse than one that says so.
 
-**Profiles.** *Faithful* is the default and clears the enhancements rather than merely not
-setting them, so switching back cannot leave one behind. *GoldenEye+* raises FOV, MSAA,
-anisotropic filtering, mipmapping and supersampling -- only things this port has implemented
-and verified. It enables nothing from the reserved-and-inert list.
+**Launcher modes.** *Base Game* replaces the old *97 Console* label. It always starts at the
+original title screen with N64 graphics, 4:3 framing, three-point filtering, a retail-size
+reticle, the 30 Hz game cadence, 1.1 Honey controls and classic mouse response. It suppresses
+Brutal effects, all Lua mods, launcher cheats, custom gameplay balance, horde, co-op, forced
+unlocks and netplay.
+Resolution, fullscreen, vsync, audio and the save location remain available. Keyboard and mouse
+remain usable as N64 input adapters. Choose *GoldenEye+* to customize gameplay and image quality.
+
+On **Mission**, the **Original game start / Mission selector** toggle chooses title-screen
+startup or a direct mission launch. The list remains visible but disabled for original startup;
+Base Game locks that startup choice. The launch button reads **Start Game** or **Start Mission**.
+
+The launcher writes `GETV_LAUNCHER_BASE=1` for Base Game and `0` for GoldenEye+. Base Game is
+enforced after config/CLI parsing and on in-process launcher handover, so an older config cannot
+re-enable conflicting settings. This does not rewrite the config file. The standalone config
+presets below keep their existing gap-filling behavior.
 
 Two testing gates, both off by default:
 
@@ -646,7 +658,7 @@ hostiles only. See [GIBS.md](GIBS.md) for implementation boundaries, tests and e
 
 ### Brutal GoldenEye blood and Base Game
 
-The launcher's Ruleset page has a **Brutal GoldenEye** section. These choices apply when you
+The launcher's Gameplay page has a **Brutal GoldenEye** section. These choices apply when you
 launch the game. The launcher holds choices for that launch; put them in `goldeneye.cfg` to keep
 preferences between application sessions.
 
@@ -670,7 +682,10 @@ blood_limit = 128
   marks when full; airborne blood has a separate fixed cap. Rendering also respects the available graphics
   memory, so crowded views may show fewer effects.
 
-The raw gates are `GETV_BASE_GAME`, `GETV_BLOOD`, and `GETV_BLOOD_LIMIT`. The Base Game override
+The gore-only checkbox is called **Disable Brutal effects** to distinguish it from the full
+**Base Game** launcher mode. Its config key `base_game` remains compatible with existing files.
+
+The raw gates are `GETV_BASE_GAME`, `GETV_BLOOD`, and `GETV_BLOOD_LIMIT`. The Brutal override
 wins over the runtime `gibs` console command too. Added blood attaches to static level triangles,
 including walls and ceilings, and fades after roughly thirty seconds of simulation time. Doors
 and other moving objects do not receive blood decals.

@@ -83,6 +83,7 @@ else
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0029-modern-mouse-look.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0030-autocrouch-render-ticks.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0031-native-joy-poll-handshake.patch" )
+    ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0032-manual-reload.patch" )
     echo "cloned and patched"
 fi
 

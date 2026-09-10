@@ -991,19 +991,23 @@ The keyboard is bound to controller port 0 by default:
 |---|---|
 | `W` `A` `S` `D` | Move |
 | Arrow keys | Look |
-| `Space` or `Left Ctrl` | Fire |
-| `Q` | Aim |
+| Left mouse button or `Space` | Fire |
+| Right mouse button | Aim |
 | `E` or `F` | Use / B |
-| `R` or `Return` | Inventory / next weapon / A |
+| `R` | Reload |
+| `Q`, mouse wheel, or `Return` | Previous / next weapon |
 | `Z` / `X` | Left / right shoulder |
 | `Tab` or keypad `Enter` | Pause / Start |
 | `Backspace` | Back |
 | `I` `J` `K` `L` | D-pad up / left / down / right |
-| `C` or `Left Shift` / `V` | Crouch / stand |
+| `C` or `Left Ctrl` | Crouch; press again to stand |
 | `F11`, `Cmd-F`, `Alt-Enter` | Toggle fullscreen |
 
 A connected gamepad works alongside the keyboard. Whichever input is held wins, so plugging in a pad
 never degrades the keyboard and unplugging it never leaves you stranded.
+
+These are the `modern` preset defaults. The `n64` preset restores the port's earlier keyboard map;
+see [`CONTROLS.md`](CONTROLS.md) for both layouts and the fixed menu controls.
 
 One exception: when `GETV_EXIT_FRAME` is set, the keyboard pad is present but reports "nothing held"
 for the whole run, because that variable marks an automated measurement rather than a play session.

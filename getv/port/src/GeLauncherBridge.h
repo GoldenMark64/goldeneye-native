@@ -136,8 +136,8 @@ const char *geBridgeGetModDir(void);
 void geBridgeSetModDir(const char *dir);
 void geBridgeRescanMods(void);
 
-/* Control rebinding -- the six bindable actions (kActions in ge_launcher.cpp) and the
- * eleven named sources (kSources) a player can point one at. bindTab: 0 = ALL, 1..4 = that
+/* Control rebinding -- the eight bindable actions (kActions in ge_launcher.cpp) and the
+ * seventeen named sources (kSources) a player can point one at. bindTab: 0 = ALL, 1..4 = that
  * player, matching ge_launcher.cpp's own ImGui tab exactly. get/setBindAll and
  * get/setBindP's `src` is an index into the source list, or -1 for "unset" (falls back to
  * the action's own default on the ALL tab, or to whatever ALL resolves to on a player tab). */
@@ -194,7 +194,7 @@ void geBridgeSetAimMode(int v);
 int  geBridgeGetCrouchMode(void);
 void geBridgeSetCrouchMode(int v);
 
-/* The port's dedicated crouch/stand keys at all. 0 leaves only the retail gesture. */
+/* Enable the port's dedicated crouch binding. 0 leaves only the retail gesture. */
 int  geBridgeGetCrouchKey(void);
 void geBridgeSetCrouchKey(int v);
 

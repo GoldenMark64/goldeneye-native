@@ -167,6 +167,11 @@ mouse sensitivity and inversion settings apply to both. Physical controllers ret
 current response. Vehicles, network sessions and scripted/replay input retain Classic N64;
 see [MOUSE.md](MOUSE.md).
 
+The other launcher controls on the same page also have friendly config names: `mouse` and
+`keyboard` are `0` or `1`, `mouse_sens` is a percentage from `1` through `1000`, and
+`mouse_invert` is `0` or `1`. Their raw equivalents are `GETV_MOUSE`, `GETV_KEYBOARD`,
+`GETV_MOUSE_SENS` and `GETV_MOUSE_INVERT`.
+
 ### `framerate`
 
 `30`, `50`, `60`, or `off` (`0`, `uncapped` and `unlimited` are accepted for the last). Default
@@ -314,9 +319,8 @@ binding does. Set it when SDL misidentifies a third-party pad.
 `modern` or `n64`. Default `modern`. `classic` is accepted as a synonym for `n64`.
 
 A preset supplies the defaults for every binding on both devices; an explicit binding always beats
-it. `n64` reproduces exactly what this port defaulted to before remapping existed, so it is a true
-revert rather than an approximation - use it if you preferred the old keys rather than
-reconstructing seventeen of them by hand.
+it. `n64` reproduces the port's earlier action layout, apart from the removed `V` stand key - use
+it if you preferred the old keys rather than reconstructing sixteen of them by hand.
 
 Changing the preset from either launcher clears every explicit binding, because the value of a
 preset is that picking it describes the whole layout.

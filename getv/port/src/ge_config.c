@@ -1128,11 +1128,23 @@ static int apply(const char *key_in, const char *val, int over)
  if (strcmp(key, "moddir") == 0)   { put("GETV_MODDIR", val, over); return 1; }
  if (strcmp(key, "mods_off") == 0) { put("GETV_MODS_OFF", val, over); return 1; }
 
+ if (strcmp(key, "mouse") == 0) {
+     key_bool_gate("GETV_MOUSE", key, val, over); return 1;
+ }
  if (strcmp(key, "mouse_mode") == 0) {
      if (strcmp(val, "modern") == 0 || strcmp(val, "classic") == 0)
          put("GETV_MOUSE_MODE", val, over);
      else ge_err("mouse_mode=\"%s\" - expected modern|classic%s", val, "");
      return 1;
+ }
+ if (strcmp(key, "mouse_sens") == 0 || strcmp(key, "mouse_sensitivity") == 0) {
+     key_int("GETV_MOUSE_SENS", key, val, over, 1, 1000); return 1;
+ }
+ if (strcmp(key, "mouse_invert") == 0) {
+     key_bool_gate("GETV_MOUSE_INVERT", key, val, over); return 1;
+ }
+ if (strcmp(key, "keyboard") == 0) {
+     key_bool_gate("GETV_KEYBOARD", key, val, over); return 1;
  }
  if (strcmp(key, "deadzone") == 0) { key_deadzone(val, over); return 1; }
  if (strcmp(key, "invert_look") == 0 || strcmp(key, "invertlook") == 0) {
@@ -1498,6 +1510,7 @@ static void usage(void)
 "deadzone=0..40 stick deadzone, percent, clamped to range          [20]\n"
 "invert_look=0|1 forces look inversion; UNSET = save file decides   [unset]\n"
 "mouse_mode=modern|classic selects direct mouse angles or N64 stick response [modern]\n"
+"mouse=0|1 mouse_sens=1..1000 mouse_invert=0|1 keyboard=0|1\n"
 "fullscreen=0|1 audio=0|1 unlock_all=0|1 save_dir=PATH\n"
 "base_game=on disables all Brutal GoldenEye effects while preserving their settings [off]\n"
 "blood=original|enhanced|excessive controls added gib blood [enhanced]; blood_limit=16..512 [128]\n"
@@ -1564,9 +1577,9 @@ static const char *DEFAULT_CFG =
 "#   modern  WASD + mouse, RMB aims, E interacts, R reloads, C crouches, wheel\n"
 "#           changes weapon. On a pad: south interacts, west reloads, east\n"
 "#           crouches, north cycles weapon.\n"
-"#   n64     exactly what this port defaulted to before remapping existed --\n"
+"#   n64     the port's earlier action layout, apart from the removed V stand key:\n"
 "#           Q aims, R cycles weapon, no reload key, pad use on the east face\n"
-"#           button. Pick this to revert rather than rebinding nine keys.\n"
+"#           button. Pick this rather than rebinding sixteen inputs.\n"
 "# An explicit binding always beats the preset, so you can start from either one\n"
 "# and change only what you care about.\n"
 "input_preset = modern\n"
@@ -1649,6 +1662,13 @@ static const char *DEFAULT_CFG =
 "# depending on where you stand is what a dedicated key replaces. Set\n"
 "# use_reloads = 1 to keep it anyway, or 0 to drop it even without a reload key.\n"
 "# use_reloads = 1\n"
+"#\n"
+"# Saved with the rest of the Controls page. Raw GETV_* spellings still work.\n"
+"# mouse        = 1      # enable mouse input\n"
+"# mouse_mode   = modern # modern | classic\n"
+"# mouse_sens   = 100    # percent, 1..1000\n"
+"# mouse_invert = 0\n"
+"# keyboard     = 1\n"
 "\n"
 "deadzone    = 20          # percent, 0-40, clamped -- worn-pad drift trimmer\n"
 "invert_look = 1           # stick UP looks UP. MEASURED, not a preference toggle:\n"

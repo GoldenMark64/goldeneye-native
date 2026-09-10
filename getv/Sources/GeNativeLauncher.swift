@@ -743,7 +743,7 @@ private struct ControlsPage: View {
                 }
             }
             Text(m.inputPreset == 1
-                 ? "What this port defaulted to before remapping existed: Q aims, R cycles weapon, no reload key, use on the east face button. Pick this to revert rather than rebinding by hand."
+                 ? "The port's earlier action layout, apart from the removed V stand key: Q aims, R cycles weapon, no reload key, use on the east face button."
                  : "WASD and the mouse. Right button aims, E interacts, R reloads, C crouches, the wheel changes weapon. On a pad: south interacts, west reloads, east crouches, north cycles weapon.")
                 .foregroundColor(geDim).font(.system(size: 12))
             Text("Changing the preset clears every binding you have set, because a preset is only useful if it describes the whole layout.")
@@ -760,6 +760,8 @@ private struct ControlsPage: View {
                     if m.mouse {
                         GeStepper(label: "Sensitivity", value: $m.mouseSens, range: 10...400, suffix: "%")
                         Toggle(isOn: $m.mouseInvert) { Text("Invert Y").foregroundColor(geText) }
+                        Text("In a level the left button fires and the right aims. In menus, move the mouse to move the cursor, left-click to select and right-click to go back. ESC releases the cursor.")
+                            .foregroundColor(geDim).font(.system(size: 11))
                     }
                     Toggle(isOn: $m.keyboard) { Text("Keyboard").foregroundColor(geText) }
                 }

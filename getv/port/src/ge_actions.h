@@ -12,7 +12,7 @@
  * `act_key[]` and `dflt[]` as separate positional tables, with a comment warning that
  * adding a member shifts every later ordinal and makes the resolved-bindings report
  * print the wrong name -- "worse than no line at all, because it looks authoritative".
- * Adding crouch, stand and reload would have meant editing four tables in two files and
+ * Adding crouch, reload and previous-weapon would have meant editing four tables in two files and
  * a fifth in the launcher. Generating all of them from one list makes that class of
  * drift unrepresentable.
  *
@@ -38,7 +38,7 @@ extern "C" {
  * so it is grouped by what a player thinks of together rather than by history.
  *
  * FIRE/AIM/USE/WEAPON_NEXT/PAUSE predate this header and keep their spellings; a config
- * written for the old build still resolves. CROUCH, STAND, RELOAD and WEAPON_PREV are
+ * written for the old build still resolves. CROUCH, RELOAD and WEAPON_PREV are
  * new here -- see ge_bindings.c for what each one can and cannot reach in the engine.
  */
 /* There is no STAND action. Crouch is a toggle: pressing it again stands you up, and
@@ -133,6 +133,21 @@ enum {
 #undef GE_AXIS_ENUM_
     GE_AXIS_MAX
 };
+
+/* ---- N64 buttons, named directly ----------------------------------------
+ *
+ * For the two inputs that must reach the game as a SPECIFIC N64 button no matter what
+ * the player has bound: front-end menus (geMenuButtons) and scripted input. Bit values
+ * are this port's own, not libultra's CONT_*, because this header is included by files
+ * that cannot see <PR/os.h>; port_os.c translates them.
+ */
+#define GE_N64_A      0x01u
+#define GE_N64_B      0x02u
+#define GE_N64_Z      0x04u
+#define GE_N64_START  0x08u
+#define GE_N64_L      0x10u
+#define GE_N64_R      0x20u
+#define GE_N64_ALL    0x3Fu
 
 /* ---- presets -------------------------------------------------------------
  *

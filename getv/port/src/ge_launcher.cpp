@@ -392,7 +392,7 @@ struct Model {
      * is "inherit whatever bind_all resolved to". Holding the unset state rather than
      * resolving it on load is what lets the UI show three distinct things -- an explicit
      * choice, an inherited one, and the built-in default -- and what stops the launcher
-     * pinning all 24 keys the first time anyone opens the page. */
+     * pinning every binding the first time anyone opens the page. */
     int  bind_all[GE_ACT_MAX];
     int  bind_p[4][GE_ACT_MAX];
     int  bind_tab;                /* 0 = all players, 1..4 = that player */
@@ -405,7 +405,7 @@ struct Model {
     /* Keyboard and mouse bindings, as comma-separated SDL scancode names plus this
      * port's mouse1..mouse5/wheelup/wheeldown. Empty means "whatever the preset says",
      * which is the same tri-state the pad bindings use and for the same reason: the
-     * launcher must not pin seventeen keys the first time anyone opens the page.
+     * launcher must not pin sixteen keys the first time anyone opens the page.
      *
      * Strings rather than a code, because a binding can be a LIST -- "C,Left Ctrl" --
      * and because a name round-trips into goldeneye.cfg without a second table. */
@@ -416,8 +416,8 @@ struct Model {
     int  aim_mode;
     int  crouch_mode;
 
-    /* The port's dedicated crouch/stand keys at all. Off leaves only the retail gesture
-     * (hold aim, push down). */
+    /* Whether the port's dedicated crouch binding is available at all. Off leaves only
+     * the retail gesture (hold aim, push down). */
     bool crouch_key;
 
     /* Mouse and keyboard. Both default ON in port_input.c, which is the right default -- a
@@ -927,7 +927,7 @@ void model_store(const Model &chosen)
         put_str("GETV_CHEATS", list);
     }
 
-    /* Only what was actually chosen is written; everything else is unset. Writing all 24 keys
+    /* Only what was actually chosen is written; everything else is unset. Writing every binding
      * would freeze today's defaults into the environment, so a later change to port_os.c's
      * defaults would never reach anyone who had opened this page once. Same reasoning as the
      * nine ruleset percentages. */
@@ -1234,12 +1234,16 @@ static bool developer_open_reports(bool latest)
  */
 static void controls_save_to_config(const Model &m)
 {
-    /* Sized for every action and axis twice over plus the scalars, so no bound is ever
-     * reached at runtime. The arrays are parallel; `n` indexes both. */
-    static char keybuf[(GE_ACT_MAX * 2 + GE_AXIS_MAX + 8)][64];
-    static char valbuf[(GE_ACT_MAX * 2 + GE_AXIS_MAX + 8)][96];
-    const char *keys[(GE_ACT_MAX * 2 + GE_AXIS_MAX + 8)];
-    const char *vals[(GE_ACT_MAX * 2 + GE_AXIS_MAX + 8)];
+    /* Every action has one pad and one keyboard value, followed by every keyboard axis
+     * and the nine scalar controls on this page. The arrays are parallel; `n` indexes
+     * both. Naming the scalar count keeps adding a control from silently overflowing a
+     * hand-counted margin. */
+    enum { GE_CONTROL_SAVE_SCALARS = 9,
+           GE_CONTROL_SAVE_CAP = GE_ACT_MAX * 2 + GE_AXIS_MAX + GE_CONTROL_SAVE_SCALARS };
+    static char keybuf[GE_CONTROL_SAVE_CAP][64];
+    static char valbuf[GE_CONTROL_SAVE_CAP][96];
+    const char *keys[GE_CONTROL_SAVE_CAP];
+    const char *vals[GE_CONTROL_SAVE_CAP];
     int n = 0;
 
     #define PUSH(k, v)                                                     \
@@ -1255,7 +1259,18 @@ static void controls_save_to_config(const Model &m)
     PUSH("aim_mode",     (m.aim_mode == GE_TOGGLE) ? "toggle" : "hold");
     PUSH("crouch_mode",  (m.crouch_mode == GE_TOGGLE) ? "toggle" : "hold");
     PUSH("crouch_key",   m.crouch_key ? "1" : "0");
+    PUSH("mouse",        m.mouse ? "1" : "0");
     PUSH("mouse_mode",   m.mouse_mode ? "classic" : "modern");
+    {
+        int sens = m.mouse_sens;
+        char v[32];
+        if (sens < 1)    { sens = 1; }
+        if (sens > 1000) { sens = 1000; }
+        snprintf(v, sizeof v, "%d", sens);
+        PUSH("mouse_sens", v);
+    }
+    PUSH("mouse_invert", m.mouse_invert ? "1" : "0");
+    PUSH("keyboard",     m.keyboard ? "1" : "0");
 
     for (int a = 0; a < kActionCount; a++) {
         char k[64];
@@ -2760,8 +2775,10 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                     SliderRow("Sensitivity", &m.mouse_sens, 10, 400, "%", cw, true);
                     ImGui::Checkbox("Invert Y", &m.mouse_invert);
                     ImGui::Dummy(ImVec2(0, 6));
-                    Hint("Left button fires, right aims, ESC releases the cursor. "
-                         "Sensitivity depends on mouse DPI; modern mode uses 0.1 degree per count at 100%.");
+                    Hint("In a level the left button fires and the right aims. In menus, move the "
+                         "mouse to move the cursor, left-click to select and right-click to go "
+                         "back. ESC releases the cursor.");
+                    Hint("Sensitivity depends on mouse DPI; modern mode uses 0.1 degree per count at 100%.");
                     if (!m.mouse_mode)
                         Hint("Vehicles, network sessions and scripted replays use Classic N64 controls.");
                 } else {
@@ -2796,9 +2813,8 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                     }
                 }
                 Hint(m.preset == GE_PRESET_N64
-                     ? "What this port defaulted to before remapping existed: Q aims, R "
-                       "cycles weapon, no reload key, use on the east face button. Pick this "
-                       "to revert rather than rebinding by hand."
+                     ? "The port's earlier action layout, apart from the removed V stand key: "
+                       "Q aims, R cycles weapon, no reload key, use on the east face button."
                      : "WASD and the mouse. Right button aims, E interacts, R reloads, C "
                        "crouches, the wheel changes weapon. On a pad: south interacts, west "
                        "reloads, east crouches, north cycles weapon.");

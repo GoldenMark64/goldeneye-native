@@ -262,6 +262,37 @@ static void test_round_trip(void)
        "reader parses the saved mode back");
 }
 
+static void test_controls_page_scalars_round_trip(void)
+{
+    const char *keys[] = {
+        "mouse", "mouse_mode", "mouse_sens", "mouse_invert", "keyboard"
+    };
+    const char *vals[] = { "0", "classic", "275", "1", "0" };
+
+    printf("# every mouse and keyboard control on the page survives a save\n");
+    write_file(g_cfg, "# controls\n");
+    point_at(g_cfg);
+    ok(geConfigSave(keys, vals, 5) == 0, "save succeeded");
+
+    unsetenv("GETV_MOUSE");
+    unsetenv("GETV_MOUSE_MODE");
+    unsetenv("GETV_MOUSE_SENS");
+    unsetenv("GETV_MOUSE_INVERT");
+    unsetenv("GETV_KEYBOARD");
+    read_file();
+
+    ok(getenv("GETV_MOUSE") && strcmp(getenv("GETV_MOUSE"), "0") == 0,
+       "mouse enable round-trips");
+    ok(getenv("GETV_MOUSE_MODE") && strcmp(getenv("GETV_MOUSE_MODE"), "classic") == 0,
+       "mouse mode round-trips");
+    ok(getenv("GETV_MOUSE_SENS") && strcmp(getenv("GETV_MOUSE_SENS"), "275") == 0,
+       "mouse sensitivity round-trips");
+    ok(getenv("GETV_MOUSE_INVERT") && strcmp(getenv("GETV_MOUSE_INVERT"), "1") == 0,
+       "mouse inversion round-trips");
+    ok(getenv("GETV_KEYBOARD") && strcmp(getenv("GETV_KEYBOARD"), "0") == 0,
+       "keyboard enable round-trips");
+}
+
 static void test_line_matcher(void)
 {
     int commented = -1;
@@ -363,6 +394,7 @@ int main(void)
     test_empty_value_comments_out();
     test_no_file_yet();
     test_round_trip();
+    test_controls_page_scalars_round_trip();
     test_template_round_trips();
     test_unchanged_lines_verbatim();
 

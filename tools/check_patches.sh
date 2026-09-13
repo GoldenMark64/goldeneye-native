@@ -47,7 +47,7 @@ LOCAL_DECOMP="$ROOT/vendor/ge-decomp"
 is_promisor_repo()
 {
     git -C "$1" config --get extensions.partialClone >/dev/null 2>&1 && return 0
-    git -C "$1" config --get-regexp '^remote\..*\.promisor$' 2>/dev/null \
+    git -C "$1" config --type=bool --get-regexp '^remote\..*\.promisor$' 2>/dev/null \
         | grep -Eq '[[:space:]]true$'
 }
 

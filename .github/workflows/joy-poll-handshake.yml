@@ -9,9 +9,18 @@ permissions:
   contents: read
 
 jobs:
-  joy-poll-handshake:
-    name: joy-poll-handshake-linux
-    runs-on: ubuntu-latest
+  unix:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            compiler: gcc
+          - os: macos-latest
+            platform: macos
+            compiler: clang
+    name: joy-poll-handshake-${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -38,8 +47,70 @@ jobs:
 
       - name: Reproduce vulnerable schedule against unpatched production source
         run: >-
-          python3 tools/tests/test_joy_poll_handshake.py --cc gcc
+          python3 tools/tests/test_joy_poll_handshake.py --cc ${{ matrix.compiler }}
           --joy-source /tmp/joy-unpatched-apollo009.c --expect-native vulnerable
 
       - name: Verify repaired native and preserved non-native schedules
-        run: python3 tools/tests/test_joy_poll_handshake.py --cc gcc
+        run: python3 tools/tests/test_joy_poll_handshake.py --cc ${{ matrix.compiler }}
+
+  windows:
+    name: joy-poll-handshake-windows
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Fetch supported standalone MinGW toolchain
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # Same pinned WinLibs release as tools/fetch_deps_windows.ps1.
+          $url = 'https://github.com/brechtsanders/winlibs_mingw/releases/download/16.2.0posix-14.0.0-ucrt-r1/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1.zip'
+          $archive = Join-Path $env:RUNNER_TEMP 'winlibs.zip'
+          Invoke-WebRequest -Uri $url -OutFile $archive
+          $expected = 'c1f52294597c0b73786b2a78eb5d176d89226d2f21875eab75e783a8b1cefcc4'
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) {
+            throw 'WinLibs checksum mismatch'
+          }
+          Expand-Archive -Path $archive -DestinationPath $env:RUNNER_TEMP
+
+      - name: Check out pinned decomp source
+        shell: pwsh
+        run: |
+          git clone -q --filter=blob:none https://github.com/n64decomp/007 vendor/ge-decomp
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git -C vendor/ge-decomp checkout -q --detach c4356466796c697dfd298010b9bed261f9ed8c6a
+          exit $LASTEXITCODE
+
+      - name: Apply source patches through 0030
+        shell: pwsh
+        run: |
+          Get-ChildItem getv/patches -Filter '0*.patch' | Sort-Object Name | ForEach-Object {
+            if ($_.Name -in @('0002-assets.patch', '0031-native-joy-poll-handshake.patch')) { return }
+            git -C vendor/ge-decomp apply $_.FullName
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          Copy-Item vendor/ge-decomp/src/joy.c (Join-Path $env:RUNNER_TEMP 'joy-unpatched-apollo009.c')
+
+      - name: Apply native joy polling repair
+        shell: pwsh
+        run: |
+          git -C vendor/ge-decomp apply "$env:GITHUB_WORKSPACE/getv/patches/0031-native-joy-poll-handshake.patch"
+          exit $LASTEXITCODE
+
+      - name: Reproduce vulnerable schedule against unpatched production source
+        shell: pwsh
+        run: |
+          $gcc = Join-Path $env:RUNNER_TEMP 'mingw64/bin/gcc.exe'
+          $unpatched = Join-Path $env:RUNNER_TEMP 'joy-unpatched-apollo009.c'
+          python tools/tests/test_joy_poll_handshake.py --cc $gcc --joy-source $unpatched --expect-native vulnerable
+          exit $LASTEXITCODE
+
+      - name: Verify repaired native and preserved non-native schedules
+        shell: pwsh
+        run: |
+          $gcc = Join-Path $env:RUNNER_TEMP 'mingw64/bin/gcc.exe'
+          python tools/tests/test_joy_poll_handshake.py --cc $gcc
+          exit $LASTEXITCODE

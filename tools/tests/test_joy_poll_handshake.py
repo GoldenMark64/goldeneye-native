@@ -97,6 +97,10 @@ def compile_and_run(
         f"-DEXPECT_NATIVE_SAFE={int(expect_safe)}",
         f"-I{directory}",
     ]
+    if os.name == "nt":
+        command.extend(
+            ["-include", str(ROOT / "getv/port/include/ge_win_compat.h")]
+        )
     if native:
         command.append("-DGE_PORT_NATIVE")
     command.extend([str(HARNESS), "-o", str(executable)])

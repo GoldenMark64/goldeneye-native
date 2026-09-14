@@ -8,7 +8,7 @@
   "repeats": 2,
   "cli_version": "2.1.267 (Claude Code)",
   "suite_sha256": "69f4e117c365b0d1ad638b37118be11e211bcc8c74785d21a955b64182e84f9d",
-  "harness_sha256": "9a653b83415a213b26584514b64ca2d01b32a74907f4b83263b9d7d802e7cc45",
+  "harness_sha256": "b79d6a03d754a92a75182f8c38cfc72cc5b2adbd7fc68951ce7ee925493e6e4e",
   "dependency_sha256": {
     "tools/check_no_game_data.py": "e87ce5bdbe1fb984df058c7395fda82b4bc0c528c5c79046fe64cd07b47e4afb",
     "tools/collect_bug_report.py": "78953c75f325a47787cdaa62b3f87f69d7757cab583f9b854642e30859415f6e"
@@ -8230,5 +8230,5 @@
     },
     "rubric_version": 3
   },
-  "regraded_utc": "2026-09-14T20:56:48.043526+00:00"
+  "regraded_utc": "2026-09-14T21:12:22.867140+00:00"
 }

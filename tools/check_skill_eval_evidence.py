@@ -10,6 +10,8 @@ import re
 import subprocess
 import sys
 
+# The Windows setup's embeddable Python never adds the script directory to sys.path.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import skill_eval
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -94,9 +96,14 @@ def check(base, head="HEAD", root=ROOT, replay=None, cases=None, fetch_missing=F
             if not blob(root, head, report).strip():
                 raise ValueError("comparison report is empty")
             record = json.loads(blob(root, head, record_path))
+            # A long-running skill PR can retain earlier, now-incompatible rubric records.
+            # They remain historical evidence but cannot cover the current changed skill.
+            if ("rubric_version" in record
+                    and record["rubric_version"] != skill_eval.RUBRIC_VERSION):
+                continue
             if record.get("repeats", 0) < 2 or not record.get("finished_utc"):
                 raise ValueError("require a completed comparison with at least two repetitions")
-            for path in ("tools/skill_eval.py", "tools/skill_eval_cases.json"):
+            for path in ("tools/skill_eval.py", "tools/skill_eval_cases.json", *skill_eval.DEPENDENCIES):
                 disk = (root / path).read_bytes().replace(b"\r\n", b"\n")
                 if disk != blob(root, head, path).replace(b"\r\n", b"\n"):
                     raise ValueError("evaluator working copy differs from committed evaluator")

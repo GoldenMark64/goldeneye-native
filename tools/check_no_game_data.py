@@ -189,11 +189,14 @@ def inspect_path(path: Path, *, allow_native_bmp: bool = False) -> list[str]:
         return [f"{display}: not a regular file"]
 
     if allow_native_bmp and path.suffix.lower() == ".bmp":
-        if path.stat().st_size > NATIVE_BMP_MAX_BYTES:
+        # Cap the read itself rather than trusting a preceding stat: the file can change
+        # between those operations, and a native capture must never cause an unbounded read.
+        with path.open("rb") as fh:
+            data = fh.read(NATIVE_BMP_MAX_BYTES + 1)
+        if len(data) > NATIVE_BMP_MAX_BYTES:
             return [f"{display}: native BMP exceeds {NATIVE_BMP_MAX_BYTES // (1024 * 1024)} MiB"]
         # The pixel boundary can fall beyond the ordinary 8 MiB publication scan, so a
         # native-capture allowance is based on the complete bounded file, never its prefix.
-        data = path.read_bytes()
     else:
         with path.open("rb") as fh:
             data = fh.read(SCAN_BYTES)
@@ -223,25 +226,29 @@ def inspect_content(path: Path, data: bytes, *, allow_native_bmp: bool = False) 
         except ValueError as exc:
             failures.append(f"{display}: invalid native BMP ({exc})")
 
+    nonpixel_regions = (data,)
+    if bmp_pixel_bounds is not None:
+        pixel_start, pixel_end = bmp_pixel_bounds
+        nonpixel_regions = (data[:pixel_start], data[pixel_end:])
+
     for magic, description in ROM_MAGICS.items():
         if magic in data:
             failures.append(f"{display}: contains a {description}, even if renamed")
     for magic, description in ARCHIVE_MAGICS.items():
         at_archive_header = data.startswith(magic)
         prefixed_archive = len(magic) >= 4 and magic in data[:4096]
-        if at_archive_header or prefixed_archive:
+        bmp_nonpixel_archive = bmp_pixel_bounds is not None and any(
+            magic in region for region in nonpixel_regions
+        )
+        if at_archive_header or prefixed_archive or bmp_nonpixel_archive:
             failures.append(f"{display}: {description} files are not accepted as public artifacts")
 
     binary_allowed = suffix in ALLOWED_BINARY_SUFFIXES or bmp_pixel_bounds is not None
     if b"\x00" in data and not binary_allowed:
         failures.append(f"{display}: unexpected binary content")
-    encoded_regions = (data,)
-    if bmp_pixel_bounds is not None:
-        pixel_start, pixel_end = bmp_pixel_bounds
-        # A long flat colour is valid pixel data even when its byte value is in the base64
-        # alphabet. Keep applying the heuristic to every byte outside the exact pixel array.
-        encoded_regions = (data[:pixel_start], data[pixel_end:])
-    if any(BASE64_PAYLOAD.search(region) for region in encoded_regions):
+    # A long flat colour is valid pixel data even when its byte value is in the base64
+    # alphabet. For a validated BMP, apply the heuristic outside its exact pixel array.
+    if any(BASE64_PAYLOAD.search(region) for region in nonpixel_regions):
         failures.append(f"{display}: contains a suspicious encoded binary payload")
     try:
         allowed_dense_array = path.resolve() in {

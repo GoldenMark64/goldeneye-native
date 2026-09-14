@@ -360,6 +360,44 @@ class BugReportCollectorTests(unittest.TestCase):
                         for item in safety.inspect_path(screenshot, allow_native_bmp=True)
                     ))
 
+    def test_native_bmp_exemption_detects_late_nonpixel_archive_marker(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            gap = b"\x01" * 4500 + b"PK\x03\x04" + b"\x02" * 500
+            screenshot = root / "late-archive-marker.bmp"
+            write_bmp(screenshot, (20, 40, 60), gap=gap)
+            self.assertTrue(any(
+                "ZIP archive" in item
+                for item in safety.inspect_path(screenshot, allow_native_bmp=True)
+            ))
+            with self.assertRaisesRegex(ValueError, "ZIP archive"):
+                collector.native_bmp_to_png(screenshot, root / "late-archive-marker.png")
+            with self.assertRaisesRegex(ValueError, "ZIP archive"):
+                comparison.comparison_rows(screenshot, [("same", screenshot)])
+
+    def test_native_bmp_read_is_bounded_before_size_rejection(self) -> None:
+        class ReadProbe:
+            requested = None
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *unused):
+                return None
+
+            def read(self, size=-1):
+                self.requested = size
+                return b"x" * size
+
+        with tempfile.TemporaryDirectory() as directory:
+            screenshot = Path(directory) / "capture.bmp"
+            screenshot.write_bytes(b"BM")
+            probe = ReadProbe()
+            with patch.object(Path, "open", return_value=probe):
+                failures = safety.inspect_path(screenshot, allow_native_bmp=True)
+            self.assertEqual(probe.requested, safety.NATIVE_BMP_MAX_BYTES + 1)
+            self.assertTrue(any("exceeds 64 MiB" in item for item in failures))
+
     def test_rejects_output_inside_repository(self) -> None:
         args = collector.parse_args([
             "--kind", "build",

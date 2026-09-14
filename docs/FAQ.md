@@ -49,7 +49,8 @@ implementation.
 ## Is there a crouch button?
 
 Yes, and the original doesn't have one. Retail crouch means holding aim, pushing down, then
-releasing aim while staying low. Here it's `C` or `L Shift`, with `V` to stand. The original
+releasing aim while staying low. The modern preset uses `C` or `Left Ctrl`; crouch toggles, so
+press it again to stand. In `hold` mode, releasing the key stands you up instead. The original
 gesture still works if you're attached to it.
 
 ## Does it run at 60fps? Can it go higher?

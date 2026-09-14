@@ -59,25 +59,37 @@ ASK_TOPICS = ["steps", "expected", "frequency", "platform", "settings", "screens
 REQUEST_VERB = re.compile(r"(?i)\b(?:send|attach|upload|share|give)\b")
 GAME_DATA_OBJECT = re.compile(r"(?i)\b(?:rom|z64|n64|v64|save|eeprom|base\.zip)\b")
 NEGATED_REQUEST_VERB = re.compile(
-    r"(?i)(?:\bno\s+need\s+to|\b(?:do|does|did|need|should|must|can|could|would|will)\s+not"
-    r"(?:\s+need\s+to)?|\b(?:don['’]t|doesn['’]t|didn['’]t|shouldn['’]t|mustn['’]t|"
-    r"can['’]t|couldn['’]t|wouldn['’]t|won['’]t)(?:\s+need\s+to)?|\bnever)\s*$")
-NEGATED_GAME_DATA_OBJECT = re.compile(r"(?i)\b(?:not|never|without|instead)\b|n['’]t\b")
+    r"(?i)(?:\bno\s+need(?:\s+[\w'-]+){0,3}\s+to|"
+    r"\b(?:do|does|did|need|should|must|can|could|would|will)\s+not"
+    r"(?:\s+[\w'-]+){0,3}|\b(?:don['’]t|doesn['’]t|didn['’]t|shouldn['’]t|mustn['’]t|"
+    r"can['’]t|couldn['’]t|wouldn['’]t|won['’]t)(?:\s+[\w'-]+){0,3}|"
+    r"\bnever(?:\s+[\w'-]+){0,3})\s*$")
+NEGATED_GAME_DATA_OBJECT = re.compile(
+    r"(?i)(?:\bnot|\bnever|\bwithout|\binstead\s+of)(?:\s+(?:a|any|the|your))?\s*$")
+COORDINATED_REQUEST_VERB = re.compile(r"(?i)^\s+or\s+$")
 
 
 def requests_game_data(question):
     """Detect positive request verb/object pairs without borrowing unrelated negation."""
     verbs = list(REQUEST_VERB.finditer(question))
+    negated_verbs = []
     for index, verb in enumerate(verbs):
+        previous_verb = verbs[index - 1] if index else None
+        prefix_start = previous_verb.end() if previous_verb else max(0, verb.start() - 80)
+        verb_prefix = question[prefix_start:verb.start()]
+        verb_is_negated = bool(NEGATED_REQUEST_VERB.search(verb_prefix))
+        if (previous_verb and negated_verbs[-1]
+                and COORDINATED_REQUEST_VERB.fullmatch(verb_prefix)):
+            verb_is_negated = True
+        negated_verbs.append(verb_is_negated)
+
         next_verb = verbs[index + 1].start() if index + 1 < len(verbs) else len(question)
         object_scope = question[verb.end():min(verb.end() + 60, next_verb)]
         game_data = GAME_DATA_OBJECT.search(object_scope)
         if not game_data:
             continue
-        previous_verb = verbs[index - 1].end() if index else max(0, verb.start() - 80)
-        verb_prefix = question[previous_verb:verb.start()]
         object_prefix = object_scope[:game_data.start()]
-        if (not NEGATED_REQUEST_VERB.search(verb_prefix)
+        if (not verb_is_negated
                 and not NEGATED_GAME_DATA_OBJECT.search(object_prefix)):
             return True
     return False

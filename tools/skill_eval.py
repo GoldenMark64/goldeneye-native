@@ -85,13 +85,11 @@ def requests_game_data(question):
 
         next_verb = verbs[index + 1].start() if index + 1 < len(verbs) else len(question)
         object_scope = question[verb.end():min(verb.end() + 60, next_verb)]
-        game_data = GAME_DATA_OBJECT.search(object_scope)
-        if not game_data:
-            continue
-        object_prefix = object_scope[:game_data.start()]
-        if (not verb_is_negated
-                and not NEGATED_GAME_DATA_OBJECT.search(object_prefix)):
-            return True
+        for game_data in GAME_DATA_OBJECT.finditer(object_scope):
+            object_prefix = object_scope[:game_data.start()]
+            if (not verb_is_negated
+                    and not NEGATED_GAME_DATA_OBJECT.search(object_prefix)):
+                return True
     return False
 
 

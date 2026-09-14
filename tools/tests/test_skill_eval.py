@@ -287,7 +287,11 @@ class SkillEvalTests(unittest.TestCase):
                  ("game_files", "Please upload not logs but your save.", True),
                  ("game_files", "Please don't send or upload your save.", False),
                  ("game_files", "Never send or upload your ROM.", False),
-                 ("game_files", "No need to send or upload your save.", False)]
+                 ("game_files", "No need to send or upload your save.", False),
+                 ("game_files", "Please upload not your ROM but your save.", True),
+                 ("game_files", "Please upload not your save but your ROM.", True),
+                 ("game_files", "Please upload your ROM but not your save.", True),
+                 ("game_files", "Please upload not your ROM and not your save.", False)]
         for topic, question, requested in cases:
             with self.subTest(topic=topic, question=question):
                 sim = self.sim("report_nontechnical_player")

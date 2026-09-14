@@ -269,16 +269,18 @@ class SkillEvalTests(unittest.TestCase):
                 self.assertFalse(self.nontechnical_report(extra).grade()["passed"])
 
     def test_declining_game_files_is_not_a_request_for_them(self):
-        cases = [("Thanks! You don't need to send your save file, so please keep it.", False),
-                 ("Please send only the screenshot, not the save file.", False),
-                 ("You don’t need to upload your ROM or eeprom.bin. What happened next?", False),
-                 ("No need to share your save. Could you describe the screen?", False),
-                 ("Thanks for the offer. Could you upload your save? It may help.", True),
-                 ("Please attach eeprom.bin to the report.", True)]
-        for question, requested in cases:
-            with self.subTest(question=question):
+        cases = [("other", "Thanks! You don't need to send your save file, so please keep it.", False),
+                 ("other", "Please send only the screenshot, not the save file.", False),
+                 ("other", "You don’t need to upload your ROM or eeprom.bin. What happened next?", False),
+                 ("game_files", "No need to share your save. Could you describe the screen?", False),
+                 ("other", "Thanks for the offer. Could you upload your save? It may help.", True),
+                 ("game_files", "Please attach eeprom.bin to the report.", True),
+                 ("game_files", "Don't send logs; please upload your save.", True),
+                 ("game_files", "Please upload your save; don't send the ROM.", True)]
+        for topic, question, requested in cases:
+            with self.subTest(topic=topic, question=question):
                 sim = self.sim("report_nontechnical_player")
-                sim.call("ask_user", {"topic": "other", "question": question})
+                sim.call("ask_user", {"topic": topic, "question": question})
                 self.assertEqual("requested_game_data" in sim.violations, requested)
 
     def test_unknown_tool_and_empty_ids_fail(self):
@@ -478,7 +480,10 @@ class SkillEvalTests(unittest.TestCase):
                 {"type": "tool_result", "tool_use_id": "rejected", "is_error": True},
                 {"type": "tool_result", "tool_use_id": "ran", "content": "done"}]}},
             {"type": "result", "usage": {"output_tokens": 1}, "is_error": False}])
-        host = {"CLAUDECODE": "1", "CLAUDE_CODE_SESSION_ID": "parent", "CLAUDE_CODE_OAUTH_TOKEN": "kept"}
+        host = {"CLAUDECODE": "1", "CLAUDE_CODE_SESSION_ID": "parent",
+                "CLAUDE_CODE_OAUTH_TOKEN": "kept", "GITHUB_TOKEN": "removed",
+                "GH_TOKEN": "removed", "AWS_SECRET_ACCESS_KEY": "removed",
+                "OPENAI_API_KEY": "removed", "PATH": os.environ["PATH"]}
         finished = SimpleNamespace(returncode=0, stdout=stream, stderr="")
         with patch.dict(os.environ, host), \
                 patch.object(evaluation.subprocess, "run", return_value=finished) as launched:
@@ -490,9 +495,42 @@ class SkillEvalTests(unittest.TestCase):
         self.assertNotIn("run_game", command[command.index("--tools") + 1])
         self.assertNotIn("CLAUDECODE", environment)
         self.assertNotIn("CLAUDE_CODE_SESSION_ID", environment)
+        self.assertNotIn("GITHUB_TOKEN", environment)
+        self.assertNotIn("GH_TOKEN", environment)
+        self.assertNotIn("AWS_SECRET_ACCESS_KEY", environment)
+        self.assertNotIn("OPENAI_API_KEY", environment)
         self.assertEqual(environment["CLAUDE_CODE_OAUTH_TOKEN"], "kept")
+        self.assertEqual(environment["PATH"], host["PATH"])
         self.assertEqual(result["grade"]["infrastructure_error"], "unexpected_tool")
         self.assertEqual(result["unexpected_tools"], ["Bash"])
+
+    def test_codex_trial_keeps_only_runtime_and_codex_authentication(self):
+        finished = SimpleNamespace(returncode=0, stdout="", stderr="")
+        host = {"PATH": os.environ["PATH"], "HOME": os.environ.get("HOME", "home"),
+                "CODEX_HOME": "/private/codex", "OPENAI_API_KEY": "kept",
+                "ANTHROPIC_API_KEY": "removed", "CLAUDE_CODE_OAUTH_TOKEN": "removed",
+                "GITHUB_TOKEN": "removed", "AWS_SECRET_ACCESS_KEY": "removed"}
+        with patch.dict(os.environ, host), \
+                patch.object(evaluation.subprocess, "run", return_value=finished) as launched:
+            evaluation.codex_trial(self.cases["docs_only"], {"AGENTS.md": b"policy"},
+                                   "model", "low", 5, "codex")
+        environment = launched.call_args.kwargs["env"]
+        self.assertEqual(environment["CODEX_HOME"], "/private/codex")
+        self.assertEqual(environment["OPENAI_API_KEY"], "kept")
+        self.assertEqual(environment["PATH"], host["PATH"])
+        for secret in ("ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN", "GITHUB_TOKEN",
+                       "AWS_SECRET_ACCESS_KEY"):
+            self.assertNotIn(secret, environment)
+
+    def test_claude_backend_credentials_require_the_selected_backend(self):
+        host = {"PATH": "runtime", "CLAUDE_CODE_OAUTH_TOKEN": "direct",
+                "AWS_SECRET_ACCESS_KEY": "cloud", "GOOGLE_APPLICATION_CREDENTIALS": "google"}
+        self.assertNotIn("AWS_SECRET_ACCESS_KEY",
+                         evaluation.isolated_environment("claude", host))
+        host["CLAUDE_CODE_USE_BEDROCK"] = "1"
+        selected = evaluation.isolated_environment("claude", host)
+        self.assertEqual(selected["AWS_SECRET_ACCESS_KEY"], "cloud")
+        self.assertNotIn("GOOGLE_APPLICATION_CREDENTIALS", selected)
 
     def test_claude_rejected_unavailable_tool_call_is_not_an_infrastructure_failure(self):
         stream = "\n".join(json.dumps(event) for event in [
@@ -564,14 +602,40 @@ class SkillEvalTests(unittest.TestCase):
     def test_lineage_rejects_changed_previous_grade(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "original.json"
-            original = {"trials": [{"grade": {"passed": False}, "actions": []}]}
+            dependencies = {"sanitizer": "original"}
+            original = {"dependency_sha256": dependencies,
+                        "trials": [{"grade": {"passed": False}, "actions": []}]}
             evaluation.write_json(path, original)
-            current = {"regraded_from": {"record_sha256": evaluation.source_digest(path)},
+            current = {"regraded_from": {"record_sha256": evaluation.source_digest(path),
+                                          "dependency_sha256": dependencies},
                        "trials": [{"previous_grade": {"passed": False}, "actions": []}]}
             evaluation.verify_lineage(current, path)
             current["trials"][0]["previous_grade"]["passed"] = True
             with self.assertRaisesRegex(ValueError, "original trial or grade"):
                 evaluation.verify_lineage(current, path)
+
+    def test_regrade_rejects_mismatched_source_sanitizer_dependency(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "record.json"
+            record = {"trials": [],
+                      "harness_sha256": evaluation.source_digest(Path(evaluation.__file__)),
+                      "suite_sha256": evaluation.source_digest(evaluation.CASES),
+                      "dependency_sha256": evaluation.dependency_digests()}
+            evaluation.write_json(path, record)
+            args = SimpleNamespace(record=path, output=Path(directory) / "new.json",
+                                   source_evaluator="source")
+
+            def source(command, **kwargs):
+                if command[1:3] == ["rev-parse", "--verify"]:
+                    return "a" * 40 + "\n"
+                source_path = command[-1].split(":", 1)[1]
+                if source_path == evaluation.DEPENDENCIES[0]:
+                    return b"changed sanitizer\n"
+                return (evaluation.ROOT / source_path).read_bytes()
+
+            with patch.object(evaluation.subprocess, "check_output", side_effect=source):
+                with self.assertRaisesRegex(ValueError, "sanitizer dependencies"):
+                    evaluation.regrade(args)
 
     def test_replay_rejects_missing_trials_and_wrong_prompt_hash(self):
         files = {"AGENTS.md": b"policy"}

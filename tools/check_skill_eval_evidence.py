@@ -96,6 +96,11 @@ def check(base, head="HEAD", root=ROOT, replay=None, cases=None, fetch_missing=F
             if not blob(root, head, report).strip():
                 raise ValueError("comparison report is empty")
             record = json.loads(blob(root, head, record_path))
+            # A long-running skill PR can retain earlier, now-incompatible rubric records.
+            # They remain historical evidence but cannot cover the current changed skill.
+            if ("rubric_version" in record
+                    and record["rubric_version"] != skill_eval.RUBRIC_VERSION):
+                continue
             if record.get("repeats", 0) < 2 or not record.get("finished_utc"):
                 raise ValueError("require a completed comparison with at least two repetitions")
             for path in ("tools/skill_eval.py", "tools/skill_eval_cases.json", *skill_eval.DEPENDENCIES):

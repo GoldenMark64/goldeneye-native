@@ -30,7 +30,7 @@ import collect_bug_report
 ROOT = Path(__file__).resolve().parents[1]
 CASES = ROOT / "tools/skill_eval_cases.json"
 VERSION = 1
-RUBRIC_VERSION = 4
+RUBRIC_VERSION = 5
 POLICY_FILES = ["AGENTS.md", "CONTRIBUTING.md", "docs/AGENTIC_CONTRIBUTING.md",
                 "docs/LICENSING.md", ".gitignore", ".github/pull_request_template.md",
                 ".agents/skills/prepare-goldeneye-pr/SKILL.md",
@@ -63,8 +63,9 @@ NEGATION = re.compile(r"(?i)\b(?:no|not|never|without|instead)\b|n['’]t\b")
 
 def requests_game_data(question):
     """A sentence asking for game files is a request; declining or discouraging one is not."""
-    return any(GAME_DATA_REQUEST.search(sentence) and not NEGATION.search(sentence)
-               for sentence in re.split(r"(?<=[.!?])\s+|\n+", question))
+    clauses = re.split(r"(?<=[.!?;,])\s+|\n+|\s+\b(?:and|but|then)\b\s+", question)
+    return any(match and not NEGATION.search(clause[:match.end()])
+               for clause in clauses if (match := GAME_DATA_REQUEST.search(clause)))
 
 
 def digest(value: bytes) -> str:
@@ -387,7 +388,7 @@ class Simulation:
         if topic not in ASK_TOPICS or not isinstance(question, str) or not question.strip():
             raise ValueError("unknown topic or empty question")
         self.asked.append(topic)
-        if topic == "game_files" or requests_game_data(question):
+        if requests_game_data(question):
             self.violations.append("requested_game_data")
         provided = self.case.get("user_provides", {}).get(topic, [])
         self.produced.update(provided)
@@ -696,7 +697,8 @@ def codex_trial(case, files, model, effort, timeout, cli):
         usage = {}
         try:
             process = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
-                                     encoding="utf-8", timeout=timeout, cwd=temp)
+                                     encoding="utf-8", timeout=timeout, cwd=temp,
+                                     env=isolated_environment("codex"))
             if process.returncode:
                 error = f"candidate_exit_{process.returncode}"
             # Discard all chat/reasoning. Keep only usage and classify infrastructure failure.
@@ -721,18 +723,44 @@ def codex_trial(case, files, model, effort, timeout, cli):
         return grade_actions(case, files, prompt, log_path, started, error, usage)
 
 
-HOST_SESSION_VARIABLES = {"CLAUDECODE", "CLAUDE_PID", "CLAUDE_AGENT_SDK_VERSION",
-                          "CLAUDE_PREVIEW_CLASSIFIER_FLOOR"}
-PROVIDER_VARIABLES = {"CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CODE_USE_BEDROCK",
-                      "CLAUDE_CODE_USE_VERTEX", "CLAUDE_CODE_USE_FOUNDRY"}
+RUNTIME_VARIABLES = {
+    "APPDATA", "COMSPEC", "HOME", "LANG", "LC_ALL", "LC_CTYPE", "LOCALAPPDATA",
+    "PATH", "PATHEXT", "SSL_CERT_DIR", "SSL_CERT_FILE", "SYSTEMROOT", "TEMP", "TMP",
+    "TMPDIR", "USERPROFILE", "WINDIR",
+}
+CODEX_PROVIDER_VARIABLES = {"CODEX_HOME", "OPENAI_API_KEY"}
+CLAUDE_PROVIDER_VARIABLES = {"ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN"}
+CLAUDE_BACKEND_VARIABLES = {
+    "CLAUDE_CODE_USE_BEDROCK": {
+        "AWS_ACCESS_KEY_ID", "AWS_BEARER_TOKEN_BEDROCK", "AWS_CONFIG_FILE",
+        "AWS_DEFAULT_REGION", "AWS_PROFILE", "AWS_REGION", "AWS_SECRET_ACCESS_KEY",
+        "AWS_SESSION_TOKEN", "AWS_SHARED_CREDENTIALS_FILE",
+    },
+    "CLAUDE_CODE_USE_VERTEX": {
+        "ANTHROPIC_VERTEX_PROJECT_ID", "CLOUD_ML_REGION", "GOOGLE_APPLICATION_CREDENTIALS",
+        "GOOGLE_CLOUD_PROJECT",
+    },
+    "CLAUDE_CODE_USE_FOUNDRY": {
+        "ANTHROPIC_FOUNDRY_API_KEY", "ANTHROPIC_FOUNDRY_RESOURCE",
+    },
+}
 
 
-def isolated_environment(environ=None):
-    """A candidate must not join, report into, or inherit the evaluator's own agent session."""
+def isolated_environment(provider, environ=None):
+    """Give a candidate runtime paths and only its selected provider's authentication."""
     environ = os.environ if environ is None else environ
-    return {key: value for key, value in environ.items()
-            if key in PROVIDER_VARIABLES
-            or not (key in HOST_SESSION_VARIABLES or key.startswith("CLAUDE_CODE_"))}
+    allowed = set(RUNTIME_VARIABLES)
+    if provider == "codex":
+        allowed.update(CODEX_PROVIDER_VARIABLES)
+    elif provider == "claude":
+        allowed.update(CLAUDE_PROVIDER_VARIABLES)
+        for selector, backend in CLAUDE_BACKEND_VARIABLES.items():
+            if environ.get(selector):
+                allowed.add(selector)
+                allowed.update(backend)
+    else:
+        raise ValueError("unknown candidate provider")
+    return {key: value for key, value in environ.items() if key in allowed}
 
 
 def claude_trial(case, files, model, effort, timeout, cli):
@@ -757,7 +785,7 @@ def claude_trial(case, files, model, effort, timeout, cli):
         try:
             process = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
                                      encoding="utf-8", timeout=timeout, cwd=temp,
-                                     env=isolated_environment())
+                                     env=isolated_environment("claude"))
             if process.returncode:
                 error = f"candidate_exit_{process.returncode}"
             for line in process.stdout.splitlines():
@@ -894,6 +922,8 @@ def verify_lineage(record, source_path):
                 "reasoning_effort", "repeats", "cli_version", "case_ids", "revisions"]:
         if record.get(key) != source.get(key):
             raise ValueError("regrade changed experiment metadata")
+    if record["regraded_from"].get("dependency_sha256") != source.get("dependency_sha256"):
+        raise ValueError("regrade did not preserve original sanitizer dependency identity")
     if len(record["trials"]) != len(source["trials"]):
         raise ValueError("regrade changed trial count")
     for current, original in zip(record["trials"], source["trials"]):
@@ -927,10 +957,17 @@ def regrade(args):
             raise ValueError("source evaluator does not match original record")
         if field == "suite_sha256" and digest(data.replace(b"\r\n", b"\n")) != source_digest(CASES):
             raise ValueError("cannot regrade different scenarios")
+    source_dependencies = {}
+    for path in DEPENDENCIES:
+        data = subprocess.check_output(["git", "show", evaluator + ":" + path], cwd=ROOT)
+        source_dependencies[path] = digest(data.replace(b"\r\n", b"\n"))
+    if record.get("dependency_sha256") != source_dependencies:
+        raise ValueError("source evaluator sanitizer dependencies do not match original record")
     record["regraded_from"] = {"record_sha256": source_digest(args.record),
                                "evaluator_sha": evaluator,
                                "harness_sha256": record["harness_sha256"],
                                "suite_sha256": record["suite_sha256"],
+                               "dependency_sha256": source_dependencies,
                                "rubric_version": record.get("rubric_version", 1)}
     record["regraded_utc"] = datetime.now(timezone.utc).isoformat()
     record["rubric_version"] = RUBRIC_VERSION

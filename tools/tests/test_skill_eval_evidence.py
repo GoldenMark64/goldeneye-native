@@ -84,6 +84,26 @@ class EvidenceGateTests(unittest.TestCase):
         self.assertEqual(self.check(), [])
         self.replay.assert_called_once_with(self.root / "docs/evals/run.json", None)
 
+    def test_stale_rubric_manifest_is_historical_and_cannot_replace_current_evidence(self):
+        self.proof()
+        stale = dict(self.record, rubric_version=gate.skill_eval.RUBRIC_VERSION - 1)
+        self.write("docs/evals/stale.json", json.dumps(stale))
+        self.write("docs/evals/stale.md", "Historical rubric record.\n")
+        self.write("docs/evals/stale.evidence.json", json.dumps({
+            "version": 1,
+            "report": "docs/evals/stale.md",
+            "record": "docs/evals/stale.json",
+        }))
+        self.commit()
+        self.assertEqual(self.check(), [])
+        self.replay.assert_called_once_with(self.root / "docs/evals/run.json", None)
+
+        self.replay.reset_mock()
+        self.command("rm", "docs/evals/run.evidence.json")
+        self.commit()
+        self.assertIn("missing fresh", " ".join(self.check()))
+        self.replay.assert_not_called()
+
     def test_stale_after_or_wrong_before_fingerprint_fails(self):
         for revision in ["before", "after"]:
             with self.subTest(revision=revision):

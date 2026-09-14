@@ -135,6 +135,7 @@ git apply ../../getv/patches/0028-prop-allocator-telemetry.patch
 git apply ../../getv/patches/0029-modern-mouse-look.patch
 git apply ../../getv/patches/0030-autocrouch-render-ticks.patch
 git apply ../../getv/patches/0031-native-joy-poll-handshake.patch
+git apply ../../getv/patches/0032-manual-reload.patch
 # ... run the asset pipeline (docs/SETUP.md 3.5) and the namespacing pass (3.6) ...
 python3 ../../tools/transform_rarewarelogo.py
 git apply ../../getv/patches/0002-assets.patch
@@ -221,3 +222,7 @@ render frames, so uncapped rendering can lower Bond into low passages.
 `0031-native-joy-poll-handshake.patch` bypasses the legacy one-slot poll disable/enable
 handshake on native builds, preventing a dropped enable request from permanently suppressing
 controller reads after mission-save/status transitions. Non-native behavior is unchanged.
+
+`0032-manual-reload.patch` adds the port-owned reload action without changing the retail
+interaction side effects. A dedicated reload binding can replace the use button's reload
+double duty while leaving door and object interaction on its original call path.

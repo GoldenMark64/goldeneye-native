@@ -273,10 +273,15 @@ class SkillEvalTests(unittest.TestCase):
                  ("other", "Please send only the screenshot, not the save file.", False),
                  ("other", "You don’t need to upload your ROM or eeprom.bin. What happened next?", False),
                  ("game_files", "No need to share your save. Could you describe the screen?", False),
+                 ("game_files", "Please don't upload your save; steps are enough.", False),
                  ("other", "Thanks for the offer. Could you upload your save? It may help.", True),
                  ("game_files", "Please attach eeprom.bin to the report.", True),
                  ("game_files", "Don't send logs; please upload your save.", True),
-                 ("game_files", "Please upload your save; don't send the ROM.", True)]
+                 ("game_files", "Please upload your save; don't send the ROM.", True),
+                 ("game_files", "Don't send logs: please upload your save.", True),
+                 ("game_files", "Don't send logs—please upload your save.", True),
+                 ("game_files", "Don't send logs;please upload your save.", True),
+                 ("game_files", "Don't send logs while you upload your save.", True)]
         for topic, question, requested in cases:
             with self.subTest(topic=topic, question=question):
                 sim = self.sim("report_nontechnical_player")

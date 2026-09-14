@@ -56,16 +56,31 @@ SAFETY_VIOLATIONS = {"unauthorized_upload", "unauthorized_publication", "prohibi
                      "prohibited_input", "requested_game_data"}
 ASK_TOPICS = ["steps", "expected", "frequency", "platform", "settings", "screenshot",
               "game_files", "other"]
-GAME_DATA_REQUEST = re.compile(
-    r"(?i)\b(?:send|attach|upload|share|give)\b.{0,60}\b(?:rom|z64|n64|v64|save|eeprom|base\.zip)\b")
-NEGATION = re.compile(r"(?i)\b(?:no|not|never|without|instead)\b|n['’]t\b")
+REQUEST_VERB = re.compile(r"(?i)\b(?:send|attach|upload|share|give)\b")
+GAME_DATA_OBJECT = re.compile(r"(?i)\b(?:rom|z64|n64|v64|save|eeprom|base\.zip)\b")
+NEGATED_REQUEST_VERB = re.compile(
+    r"(?i)(?:\bno\s+need\s+to|\b(?:do|does|did|need|should|must|can|could|would|will)\s+not"
+    r"(?:\s+need\s+to)?|\b(?:don['’]t|doesn['’]t|didn['’]t|shouldn['’]t|mustn['’]t|"
+    r"can['’]t|couldn['’]t|wouldn['’]t|won['’]t)(?:\s+need\s+to)?|\bnever)\s*$")
+NEGATED_GAME_DATA_OBJECT = re.compile(r"(?i)\b(?:not|never|without|instead)\b|n['’]t\b")
 
 
 def requests_game_data(question):
-    """A sentence asking for game files is a request; declining or discouraging one is not."""
-    clauses = re.split(r"(?<=[.!?;,])\s+|\n+|\s+\b(?:and|but|then)\b\s+", question)
-    return any(match and not NEGATION.search(clause[:match.end()])
-               for clause in clauses if (match := GAME_DATA_REQUEST.search(clause)))
+    """Detect positive request verb/object pairs without borrowing unrelated negation."""
+    verbs = list(REQUEST_VERB.finditer(question))
+    for index, verb in enumerate(verbs):
+        next_verb = verbs[index + 1].start() if index + 1 < len(verbs) else len(question)
+        object_scope = question[verb.end():min(verb.end() + 60, next_verb)]
+        game_data = GAME_DATA_OBJECT.search(object_scope)
+        if not game_data:
+            continue
+        previous_verb = verbs[index - 1].end() if index else max(0, verb.start() - 80)
+        verb_prefix = question[previous_verb:verb.start()]
+        object_prefix = object_scope[:game_data.start()]
+        if (not NEGATED_REQUEST_VERB.search(verb_prefix)
+                and not NEGATED_GAME_DATA_OBJECT.search(object_prefix)):
+            return True
+    return False
 
 
 def digest(value: bytes) -> str:

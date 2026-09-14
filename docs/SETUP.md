@@ -991,19 +991,23 @@ The keyboard is bound to controller port 0 by default:
 |---|---|
 | `W` `A` `S` `D` | Move |
 | Arrow keys | Look |
-| `Space` or `Left Ctrl` | Fire |
-| `Q` | Aim |
+| Left mouse button or `Space` | Fire |
+| Right mouse button | Aim |
 | `E` or `F` | Use / B |
-| `R` or `Return` | Inventory / next weapon / A |
+| `R` | Reload |
+| `Q`, mouse wheel, or `Return` | Previous / next weapon |
 | `Z` / `X` | Left / right shoulder |
 | `Tab` or keypad `Enter` | Pause / Start |
 | `Backspace` | Back |
 | `I` `J` `K` `L` | D-pad up / left / down / right |
-| `C` or `Left Shift` / `V` | Crouch / stand |
+| `C` or `Left Ctrl` | Crouch; press again to stand |
 | `F11`, `Cmd-F`, `Alt-Enter` | Toggle fullscreen |
 
 A connected gamepad works alongside the keyboard. Whichever input is held wins, so plugging in a pad
 never degrades the keyboard and unplugging it never leaves you stranded.
+
+These are the `modern` preset defaults. The `n64` preset restores the port's earlier keyboard map;
+see [`CONTROLS.md`](CONTROLS.md) for both layouts and the fixed menu controls.
 
 One exception: when `GETV_EXIT_FRAME` is set, the keyboard pad is present but reports "nothing held"
 for the whole run, because that variable marks an automated measurement rather than a play session.
@@ -1017,9 +1021,10 @@ The pad stays *present* rather than being removed, because dropping the controll
 sends the front end to a terminal `MENU_NO_CONTROLLERS` state with no way out. A plain
 `./build_mac.sh run` is unaffected. `GETV_KEYBOARD_IDLE=0` forces live input; `=1` forces idle.
 
-The complete physical map, mouse controls, live shortcuts, and supported rebinding behavior are in
-[`CONTROLS.md`](CONTROLS.md). In particular, gamepad actions are configurable but arbitrary
-physical keyboard keys are not currently rebindable.
+The complete physical map, mouse controls, live shortcuts, and rebinding are in
+[`CONTROLS.md`](CONTROLS.md). Everything is rebindable: keys, mouse buttons, the wheel, and
+gamepad buttons, each independently of the others, and the launcher can save them to
+`goldeneye.cfg` so they survive quitting.
 
 ---
 
@@ -1060,14 +1065,18 @@ recentre it. Comment the line out if you want retail behaviour; note that unset 
 
 **Button names are positional, not label-based.** `a` means the physically bottom face button on
 whatever pad you have - SDL maps the bottom face button to its `A` slot on every controller it
-knows, including Nintendo's, where that same button is printed `B`. Defaults: `fire = rt`,
-`aim = lt`, `use = b`, `weapon_next = a`, `weapon_prev = none`, `pause = start`.
-`fire = rt` / `aim = lt` is the modern-shooter convention rather than a settled fact; GoldenEye's
-retail scheme has neither, and swapping them is one line.
+knows, including Nintendo's, where that same button is printed `B`. Under the default `modern`
+preset: `fire = rt`, `aim = lt`, `use = a`, `reload = x`, `crouch = b`, `weapon_next = y`,
+`pause = start`. `fire = rt` / `aim = lt` is the modern-shooter convention rather than a settled
+fact; GoldenEye's retail scheme has neither, and swapping them is one line.
 
-`weapon_prev` defaults to `none` on purpose: GoldenEye has no back-cycle button. The retail gesture
-is hold-inventory plus tap-fire. A synthesised single-button version exists and is faithful to that
-gesture, but it has not been verified against real hardware, so it stays opt-in.
+`input_preset = n64` reverts every default, on both the pad and the keyboard, to exactly what this
+port shipped with before remapping existed.
+
+`weapon_prev` defaults to `none` on the pad on purpose: GoldenEye has no back-cycle button. The
+retail gesture is hold-inventory plus tap-fire. The synthesised single-button version is faithful
+to that gesture but has not been verified against real hardware, so it stays opt-in on a face
+button. The mouse wheel binds to it by default, where one notch is unambiguous.
 
 The `gamepad` setting (`auto`, `xbox`, `playstation`, `switch`, `generic`) changes **which glyphs
 are printed for on-screen prompts and nothing else.** It cannot make `a` refer to a different

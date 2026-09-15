@@ -103,7 +103,6 @@ class SkillEvalTests(unittest.TestCase):
         sim.call("report", {"status": status, "blocker": blocker})
         return sim
 
-    @unittest.expectedFailure  # Issue #85: the real collector rejects flat grey captures as encoded payloads.
     def test_flat_grey_screenshot_report_passes_with_a_working_collector(self):
         grade = self.flat_grey_report().grade()
         self.assertTrue(grade["passed"], grade["failed_checks"])
@@ -651,6 +650,16 @@ class SkillEvalTests(unittest.TestCase):
             with patch.object(evaluation.subprocess, "check_output", side_effect=source):
                 with self.assertRaisesRegex(ValueError, "sanitizer dependencies"):
                     evaluation.regrade(args)
+
+    def test_historical_records_remain_pinned_to_their_original_sanitizer(self):
+        historical = evaluation.ROOT / "docs" / "evals" / (
+            "agent-workflows-2026-09-14-claude-sonnet-5-medium-rubric-v5-regraded.json"
+        )
+        source = evaluation.ROOT / "docs" / "evals" / (
+            "agent-workflows-2026-09-10-claude-sonnet-5-medium.json"
+        )
+        with self.assertRaisesRegex(ValueError, "sanitizer dependencies changed"):
+            evaluation.replay(historical, source)
 
     def test_replay_rejects_missing_trials_and_wrong_prompt_hash(self):
         files = {"AGENTS.md": b"policy"}

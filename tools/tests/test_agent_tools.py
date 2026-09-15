@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import io
 import os
@@ -21,18 +22,19 @@ import collect_bug_report as collector
 import compare_render_fingerprints as comparison
 
 
-def write_bmp(path: Path, rgb: tuple[int, int, int], width: int = 32, height: int = 24) -> None:
+def write_bmp(path: Path, rgb: tuple[int, int, int], width: int = 32, height: int = 24,
+              *, gap: bytes = b"", trailing: bytes = b"") -> None:
     stride = ((width * 3 + 3) // 4) * 4
     red, green, blue = rgb
     row = bytes((blue, green, red)) * width + b"\x00" * (stride - width * 3)
     pixels = row * height
-    offset = 14 + 40
+    offset = 14 + 40 + len(gap)
     header = (
         b"BM"
         + struct.pack("<IHHI", offset + len(pixels), 0, 0, offset)
         + struct.pack("<IiiHHIIiiII", 40, width, height, 1, 24, 0, len(pixels), 0, 0, 0, 0)
     )
-    path.write_bytes(header + pixels)
+    path.write_bytes(header + gap + pixels + trailing)
 
 
 def hex_rows(count: int, per_line: int = 8, prefix: str = "") -> str:
@@ -272,13 +274,129 @@ class BugReportCollectorTests(unittest.TestCase):
             self.assertTrue(manifest["safety"]["manual_review_required"])
             self.assertEqual(len(manifest["artifacts"]), 2)
 
-    @unittest.expectedFailure  # Issue #85: flat colours made of base64 characters look like payloads.
     def test_accepts_flat_colour_native_screenshots(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            screenshot = Path(directory) / "grey.bmp"
-            write_bmp(screenshot, (100, 100, 100), width=320, height=240)
-            collector.native_bmp_to_png(screenshot, Path(directory) / "grey.png")
-            comparison.comparison_rows(screenshot, [("same", screenshot)])
+            root = Path(directory)
+            dimensions = [(320, 240), (1366, 2), (2048, 1366)]
+            for width, height in dimensions:
+                with self.subTest(width=width, height=height):
+                    screenshot = root / f"grey-{width}x{height}.bmp"
+                    png = root / f"grey-{width}x{height}.png"
+                    write_bmp(screenshot, (100, 100, 100), width=width, height=height)
+                    self.assertEqual(safety.inspect_path(screenshot, allow_native_bmp=True), [])
+                    collector.native_bmp_to_png(screenshot, png)
+                    comparison.comparison_rows(screenshot, [("same", screenshot)])
+                    self.assertTrue(png.read_bytes().startswith(b"\x89PNG"))
+
+    def test_native_bmp_exemption_does_not_hide_nonpixel_payloads(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            encoded_payload = base64.b64encode(b"invented binary payload\x00" * 250)
+            encoded_gap = root / "encoded-gap.bmp"
+            write_bmp(encoded_gap, (100, 100, 100), gap=encoded_payload)
+            encoded_failures = safety.inspect_path(encoded_gap, allow_native_bmp=True)
+            self.assertTrue(any(
+                "encoded binary payload" in item
+                for item in encoded_failures
+            ))
+            with self.assertRaisesRegex(ValueError, "encoded binary payload"):
+                collector.native_bmp_to_png(encoded_gap, root / "encoded-gap.png")
+            with self.assertRaisesRegex(ValueError, "encoded binary payload"):
+                comparison.comparison_rows(encoded_gap, [("same", encoded_gap)])
+
+            trailing = root / "trailing.bmp"
+            write_bmp(trailing, (20, 40, 60), trailing=encoded_payload)
+            trailing_data = bytearray(trailing.read_bytes())
+            struct.pack_into("<I", trailing_data, 2, len(trailing_data))
+            trailing.write_bytes(trailing_data)
+            failures = safety.inspect_path(trailing, allow_native_bmp=True)
+            self.assertTrue(any("unexpected data follows" in item for item in failures))
+            self.assertTrue(any("encoded binary payload" in item for item in failures))
+            with self.assertRaisesRegex(ValueError, "unexpected data follows"):
+                collector.native_bmp_to_png(trailing, root / "trailing.png")
+            with self.assertRaisesRegex(ValueError, "unexpected data follows"):
+                comparison.comparison_rows(trailing, [("same", trailing)])
+
+    def test_native_bmp_exemption_requires_valid_structure(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            malformed = root / "malformed.bmp"
+            write_bmp(malformed, (100, 100, 100))
+            data = bytearray(malformed.read_bytes())
+            struct.pack_into("<I", data, 10, 20)
+            malformed.write_bytes(data)
+            malformed_failures = safety.inspect_path(malformed, allow_native_bmp=True)
+            self.assertTrue(any(
+                "pixel data overlaps its header" in item
+                for item in malformed_failures
+            ))
+            with self.assertRaisesRegex(ValueError, "pixel data overlaps its header"):
+                collector.native_bmp_to_png(malformed, root / "malformed.png")
+            with self.assertRaisesRegex(ValueError, "pixel data overlaps its header"):
+                comparison.comparison_rows(malformed, [("same", malformed)])
+
+            truncated = root / "truncated.bmp"
+            write_bmp(truncated, (20, 40, 60))
+            data = bytearray(truncated.read_bytes()[:-4])
+            struct.pack_into("<I", data, 2, len(data))
+            truncated.write_bytes(data)
+            self.assertTrue(any(
+                "truncated BMP pixel data" in item
+                for item in safety.inspect_path(truncated, allow_native_bmp=True)
+            ))
+
+    def test_native_bmp_exemption_keeps_magic_checks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, marker, expected in (
+                ("rom-marker.bmp", b"\x80\x37\x12\x40", "N64 ROM header"),
+                ("archive-marker.bmp", b"PK\x03\x04", "ZIP archive"),
+            ):
+                with self.subTest(name=name):
+                    screenshot = root / name
+                    write_bmp(screenshot, (20, 40, 60), gap=marker)
+                    self.assertTrue(any(
+                        expected in item
+                        for item in safety.inspect_path(screenshot, allow_native_bmp=True)
+                    ))
+
+    def test_native_bmp_exemption_detects_late_nonpixel_archive_marker(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            gap = b"\x01" * 4500 + b"PK\x03\x04" + b"\x02" * 500
+            screenshot = root / "late-archive-marker.bmp"
+            write_bmp(screenshot, (20, 40, 60), gap=gap)
+            self.assertTrue(any(
+                "ZIP archive" in item
+                for item in safety.inspect_path(screenshot, allow_native_bmp=True)
+            ))
+            with self.assertRaisesRegex(ValueError, "ZIP archive"):
+                collector.native_bmp_to_png(screenshot, root / "late-archive-marker.png")
+            with self.assertRaisesRegex(ValueError, "ZIP archive"):
+                comparison.comparison_rows(screenshot, [("same", screenshot)])
+
+    def test_native_bmp_read_is_bounded_before_size_rejection(self) -> None:
+        class ReadProbe:
+            requested = None
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *unused):
+                return None
+
+            def read(self, size=-1):
+                self.requested = size
+                return b"x" * size
+
+        with tempfile.TemporaryDirectory() as directory:
+            screenshot = Path(directory) / "capture.bmp"
+            screenshot.write_bytes(b"BM")
+            probe = ReadProbe()
+            with patch.object(Path, "open", return_value=probe):
+                failures = safety.inspect_path(screenshot, allow_native_bmp=True)
+            self.assertEqual(probe.requested, safety.NATIVE_BMP_MAX_BYTES + 1)
+            self.assertTrue(any("exceeds 64 MiB" in item for item in failures))
 
     def test_rejects_output_inside_repository(self) -> None:
         args = collector.parse_args([

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -13,6 +14,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCAN_BYTES = 8 * 1024 * 1024
+NATIVE_BMP_MAX_BYTES = 64 * 1024 * 1024
+NATIVE_BMP_MAX_PIXELS = 50_000_000
 
 ROM_MAGICS = {
     b"\x80\x37\x12\x40": "big-endian N64 ROM header",
@@ -130,6 +133,44 @@ def _has_dense_hex_array(data: bytes) -> bool:
     return _has_dense_braced_array(text) or _has_dense_hex_run(text)
 
 
+def native_bmp_pixel_bounds(data: bytes) -> tuple[int, int]:
+    """Validate a complete native capture and return its pixel-array bounds."""
+    if len(data) < 54 or data[:2] != b"BM":
+        raise ValueError("only native BMP captures are accepted")
+
+    declared_size, reserved_one, reserved_two, pixel_offset = struct.unpack_from("<IHHI", data, 2)
+    dib_size = struct.unpack_from("<I", data, 14)[0]
+    if declared_size != len(data):
+        raise ValueError("BMP file size does not match its header")
+    if reserved_one or reserved_two:
+        raise ValueError("BMP reserved fields must be zero")
+    if dib_size < 40 or 14 + dib_size > len(data):
+        raise ValueError("unsupported BMP header")
+
+    width, signed_height = struct.unpack_from("<ii", data, 18)
+    planes, bits_per_pixel = struct.unpack_from("<HH", data, 26)
+    compression, declared_pixel_bytes = struct.unpack_from("<II", data, 30)
+    if width <= 0 or signed_height == 0:
+        raise ValueError("unsupported BMP dimensions")
+    if planes != 1 or bits_per_pixel != 24 or compression != 0:
+        raise ValueError("expected an uncompressed 24-bit native BMP")
+    if width * abs(signed_height) > NATIVE_BMP_MAX_PIXELS:
+        raise ValueError("screenshot dimensions are unexpectedly large")
+    if pixel_offset < 14 + dib_size:
+        raise ValueError("BMP pixel data overlaps its header")
+
+    stride = ((width * 3 + 3) // 4) * 4
+    pixel_bytes = stride * abs(signed_height)
+    if declared_pixel_bytes not in (0, pixel_bytes):
+        raise ValueError("BMP pixel size does not match its header")
+    pixel_end = pixel_offset + pixel_bytes
+    if pixel_end > len(data):
+        raise ValueError("truncated BMP pixel data")
+    if pixel_end != len(data):
+        raise ValueError("unexpected data follows the BMP pixel array")
+    return pixel_offset, pixel_end
+
+
 def inspect_path(path: Path, *, allow_native_bmp: bool = False) -> list[str]:
     """Return publication-safety failures without following symlinks."""
     path = path if path.is_absolute() else ROOT / path
@@ -147,8 +188,18 @@ def inspect_path(path: Path, *, allow_native_bmp: bool = False) -> list[str]:
     if not path.is_file():
         return [f"{display}: not a regular file"]
 
-    with path.open("rb") as fh:
-        data = fh.read(SCAN_BYTES)
+    if allow_native_bmp and path.suffix.lower() == ".bmp":
+        # Cap the read itself rather than trusting a preceding stat: the file can change
+        # between those operations, and a native capture must never cause an unbounded read.
+        with path.open("rb") as fh:
+            data = fh.read(NATIVE_BMP_MAX_BYTES + 1)
+        if len(data) > NATIVE_BMP_MAX_BYTES:
+            return [f"{display}: native BMP exceeds {NATIVE_BMP_MAX_BYTES // (1024 * 1024)} MiB"]
+        # The pixel boundary can fall beyond the ordinary 8 MiB publication scan, so a
+        # native-capture allowance is based on the complete bounded file, never its prefix.
+    else:
+        with path.open("rb") as fh:
+            data = fh.read(SCAN_BYTES)
     return inspect_content(path, data, allow_native_bmp=allow_native_bmp)
 
 
@@ -168,19 +219,36 @@ def inspect_content(path: Path, data: bytes, *, allow_native_bmp: bool = False) 
     if suffix == ".bmp" and not allow_native_bmp:
         failures.append(f"{display}: rendered BMP captures must not be committed")
 
+    bmp_pixel_bounds = None
+    if suffix == ".bmp" and allow_native_bmp:
+        try:
+            bmp_pixel_bounds = native_bmp_pixel_bounds(data)
+        except ValueError as exc:
+            failures.append(f"{display}: invalid native BMP ({exc})")
+
+    nonpixel_regions = (data,)
+    if bmp_pixel_bounds is not None:
+        pixel_start, pixel_end = bmp_pixel_bounds
+        nonpixel_regions = (data[:pixel_start], data[pixel_end:])
+
     for magic, description in ROM_MAGICS.items():
         if magic in data:
             failures.append(f"{display}: contains a {description}, even if renamed")
     for magic, description in ARCHIVE_MAGICS.items():
         at_archive_header = data.startswith(magic)
         prefixed_archive = len(magic) >= 4 and magic in data[:4096]
-        if at_archive_header or prefixed_archive:
+        bmp_nonpixel_archive = bmp_pixel_bounds is not None and any(
+            magic in region for region in nonpixel_regions
+        )
+        if at_archive_header or prefixed_archive or bmp_nonpixel_archive:
             failures.append(f"{display}: {description} files are not accepted as public artifacts")
 
-    binary_allowed = suffix in ALLOWED_BINARY_SUFFIXES or (allow_native_bmp and suffix == ".bmp")
+    binary_allowed = suffix in ALLOWED_BINARY_SUFFIXES or bmp_pixel_bounds is not None
     if b"\x00" in data and not binary_allowed:
         failures.append(f"{display}: unexpected binary content")
-    if BASE64_PAYLOAD.search(data):
+    # A long flat colour is valid pixel data even when its byte value is in the base64
+    # alphabet. For a validated BMP, apply the heuristic outside its exact pixel array.
+    if any(BASE64_PAYLOAD.search(region) for region in nonpixel_regions):
         failures.append(f"{display}: contains a suspicious encoded binary payload")
     try:
         allowed_dense_array = path.resolve() in {

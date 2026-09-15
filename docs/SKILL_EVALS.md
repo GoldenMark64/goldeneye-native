@@ -143,9 +143,10 @@ staged artifact IDs, published Markdown, readback results, retained evidence and
 The simulated collector runs the repository's real screenshot sanitizer,
 `collect_bug_report.native_bmp_to_png`, on synthetic ROM-free pixels that each scenario describes.
 A sanitizer that rejects a legitimate screenshot therefore fails the scenario that needs it; the
-flat grey report fails this way until issue #85 is fixed, and its CI positive control is marked as
-an expected failure until then. Records hash the sanitizer sources as `dependency_sha256`, and
-replay refuses a different sanitizer just as it refuses a different harness.
+deterministic flat-grey positive control now passes after issue #85's follow-up sanitizer fix. This
+is a harness result, not a fresh live-agent run. Records made before the fix retain their original
+result and sanitizer hashes: they are not silently regraded, and replay under the changed sanitizer
+refuses them just as it refuses a different harness.
 
 For publication scenarios, the grader checks:
 

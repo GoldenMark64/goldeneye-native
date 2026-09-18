@@ -136,6 +136,7 @@ git apply ../../getv/patches/0029-modern-mouse-look.patch
 git apply ../../getv/patches/0030-autocrouch-render-ticks.patch
 git apply ../../getv/patches/0031-native-joy-poll-handshake.patch
 git apply ../../getv/patches/0032-manual-reload.patch
+git apply ../../getv/patches/0033-cctv-lookpad.patch
 # ... run the asset pipeline (docs/SETUP.md 3.5) and the namespacing pass (3.6) ...
 python3 ../../tools/transform_rarewarelogo.py
 git apply ../../getv/patches/0002-assets.patch
@@ -226,3 +227,8 @@ controller reads after mission-save/status transitions. Non-native behavior is u
 `0032-manual-reload.patch` adds the port-owned reload action without changing the retail
 interaction side effects. A dedicated reload binding can replace the use button's reload
 double duty while leaving door and object interaction on its original call path.
+
+`0033-cctv-lookpad.patch` makes `setupCctv()` use the CCTV record's dedicated
+`lookpad` field for target selection instead of the inherited `ObjectRecord.pad`
+placement field. This preserves object placement while restoring the intended
+camera look target on native builds.

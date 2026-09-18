@@ -58,7 +58,12 @@ def main() -> int:
         (directory / "production_objdeform_assignment.inc").write_text(assignment + "\n")
         (directory / "production_model_accessor.inc").write_text(accessor + "\n")
         executable = directory / ("objdeform_rwdata.exe" if os.name == "nt" else "objdeform_rwdata")
-        command = [compiler, "-std=c11", "-O0", "-fno-strict-aliasing", "-Werror=return-type",
+        # GCC 14+ promotes the decomp accessor's legacy union-to-struct pointer
+        # assignment to an error. Keep the production accessor byte-for-byte and
+        # downgrade only that unrelated diagnostic so this harness can test its
+        # runtime-data address semantics consistently across native compilers.
+        command = [compiler, "-std=c11", "-O0", "-fno-strict-aliasing",
+                   "-Werror=return-type", "-Wno-error=incompatible-pointer-types",
                    "-DGE_PORT_NATIVE=1", f"-DEXPECT_FIXED={int(args.expect == 'fixed')}",
                    f"-I{directory}", str(HARNESS), "-o", str(executable)]
         compiled = subprocess.run(command, capture_output=True, text=True, timeout=60)

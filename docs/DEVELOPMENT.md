@@ -222,6 +222,19 @@ not establish crate pickup or full-game behavior. The whole-game forced declarat
 intentionally omitted because it requires generated assets; native/endian declaration flags
 and the Windows MinGW bitfield ABI flag are retained.
 
+The model-slot lifecycle regression replays both unchanged base and repaired source patches onto
+the pinned decomp source. It extracts and compiles the production allocation, instantiation and
+release functions, with stubbed memory allocation and model initialization:
+
+```bash
+python3 tools/test_model_slots.py --cc cc
+```
+
+Each case executes 106 assertions. The unchanged base must compile and fail for animated slot
+exhaustion; the repair must pass. The harness cycles both pools twelve times, checks slot and rwdata
+reuse, and releases fallback allocations. CI runs GCC and Clang on Linux, Clang on macOS, and
+MinGW GCC on Windows. It needs no ROM, generated assets, renderer or live game process.
+
 When the behavior requires the running game, use a bounded deterministic scenario. The common
 shape is:
 

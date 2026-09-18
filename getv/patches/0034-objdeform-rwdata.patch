@@ -1,0 +1,13 @@
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -7770,7 +7770,9 @@
+         return;
+     }
+     
+-    vtxslot = (Vertex **) (&model->datas[rodata->RwDataIndex]);
++    /* RwDataIndex counts 4-byte words, even when a native pointer occupies two.
++     * modelGetNodeRwData applies that stride and follows attached head pools. */
++    vtxslot = &modelGetNodeRwData(model, nodeCopy)->DisplayListCollisions.Vertices;
+     
+ #ifdef VERSION_EU
+     if (obj->obj < PROP_WINDOW)

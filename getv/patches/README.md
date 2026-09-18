@@ -136,6 +136,7 @@ git apply ../../getv/patches/0029-modern-mouse-look.patch
 git apply ../../getv/patches/0030-autocrouch-render-ticks.patch
 git apply ../../getv/patches/0031-native-joy-poll-handshake.patch
 git apply ../../getv/patches/0032-manual-reload.patch
+git apply ../../getv/patches/0034-objdeform-rwdata.patch
 # ... run the asset pipeline (docs/SETUP.md 3.5) and the namespacing pass (3.6) ...
 python3 ../../tools/transform_rarewarelogo.py
 git apply ../../getv/patches/0002-assets.patch
@@ -226,3 +227,5 @@ controller reads after mission-save/status transitions. Non-native behavior is u
 `0032-manual-reload.patch` adds the port-owned reload action without changing the retail
 interaction side effects. A dedicated reload binding can replace the use button's reload
 double duty while leaving door and object interaction on its original call path.
+
+`0034-objdeform-rwdata.patch` fixes the native `objDeform` access to a four-byte-word-indexed model runtime-data pool by using `modelGetNodeRwData`. It changes only `src/game/propobj.c` and does not require the independent `0033-cctv-lookpad.patch` (open PR #103).

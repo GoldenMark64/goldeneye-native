@@ -235,74 +235,251 @@ that gap should be closed: the notice has to travel with the source under every 
 ### 4.3 A related finding: the inheritance is wider than Fast3D
 
 The measurement above was run as a sweep, not a spot check. Every one of the 45 C and header
-files under b‹­¦ëm®éÜj×¢¸ Šv¥jšk£¦j×­¢G§r‹§·]8ïÁ”×ÒØ‚‚•\ÈX]\œÈ™XØ]\ÙH]ÚY[œÈH]Y\İ[Û‹ˆ
-ŠœÛM^Ú\È›ÈXÙ[˜ÙHš[H[™XZÙ\È›ÈXÙ[˜ÙBœİ][Y[[ˆ]È‘PQQJŠˆH™\šYšYYH\İ[™ÈHÚXÚÛİ]›Ûİ[™Ü™\[™ÈH‘PQQNÈBœØ[YH\ÈYHÙˆÛM\Üˆ[Z[	ÜÈ›İXÙH[‚˜Ü˜ËÜËÔ‘PQQK[Y˜\İÌ‹Y[™Ú[™K›Y\ÈHÛ›HXÙ[˜ÙH^[]Ú\™H[ˆHÛM^™YK[™š]Ûİ™\œÈÛ›HH˜\İÑ[™Ú[™KˆHİ\ˆÛÈXY\œÈ\™H[š\š]Yœ›ÛH[ˆ\İ™X[H]œİ]\È›İ[™È][[™ÛM^	ÜÈİÛˆ›Û‹Q˜\İÑÛÙH\ØÙ[™Èœ›ÛHHİ\\ˆX\š[È™XÛÛ\[][Û‹ÚXÚZÙ]Ú\ÙHØ\œšY\È›ÈXÙ[˜ÙK‚‚›İXY\œÈ\™HÛX[[™™Z]\ˆ\È™XÙ\ÜØ\Kˆ™]Üš][™È[Hœ›ÛHH[\™˜XÙ\È\ÈÜ˜XİX[H\Ù\ÈÛİ[™[[İ™H[Hœ›ÛHH]Y\İ[Ûˆ]İÈÛÜİ[™\ÈÛÜÛÛœÚY\š[™Âš[™\[™[HÙˆÚ]]™\ˆ\ÈXÚYYX›İ]˜\İÑ‚‚ˆÈÈÈÜ[ÛœÈ[™Z\ˆÛÛœÙ\]Y[˜Ù\Â‚ŠŠŠJHÚ\Ûİ\˜ÙHÛ›NÈ\Ù\œÈZ[Z\ˆİÛˆš[˜\KŠŠ‚•H™KLŒŒH›İXÙK\ÈÜš][‹Y™\ÜÙ\ÈÛÈØ\Ù\Îˆ]\›Z]È™Y\İšX][Ûˆ
-š[ˆÛİ\˜ÙB™›Ü›Jˆ›İšYYH›İXÙH\È™]Z[™Y[™İ]\È]™Y\İšX][Ûˆ
-š[ˆš[˜\H›Ü›Jˆ\È›İ˜[İÙYˆHÛİ\˜ÙK[Û›H™[X\ÙHÚ][Z[	ÜÈ›İXÙH™\İÜ™YÈÙ]‹ÜÜÙ˜\İÙØ\ÈHØ\ÙBH^Y™\ÜÙ\ÈY™š\›X]]™[KˆÛÛœÙ\]Y[˜ÙNˆ›È™[X\ÙHš[˜\šY\Ë›È\İÜ™HÜˆ\İ›YÚ™\İšX][Û‹[™]™\H\Ù\ˆ™YYÈH[ÛÛÚZ[‹ˆ]\ÈHÚX\\İÜ[ÛˆÈ^Xİ]H[™]›X]™\È]™\Hİ\ˆÜ[Ûˆ™[İÈİ[]˜Z[X›K‚‚ŠŠŠŠH™\XÙH˜\İÑÚ][ˆ[˜[XšYİ[İ\ÛHXÙ[œÙY™[™\™\‹ŠŠ‚Ø[™Y]\È\™HX[˜\Ú\	ÜÈ˜\İÙ
-RU0ªHŒŒˆÙ[š^ÊHÜˆHœ›ÛK\ØÜ˜]ÚŒÑ[\œ™]\‹‚ÛÛœÙ\]Y[˜ÙNˆH]Y\İ[Ûˆ\Ø\X\œÈ\›X[™[H[™š[˜\šY\È™XÛÛYHÜÜÚX›Kˆ]HYX\İ\™Y™]™\™Ù[˜ÙHX›İ™Hİ]ÈHİ\ˆØ^H\™HHÙÜË˜Ø\ÈÜ›İÛˆœ›ÛHKÌˆÈKLMH[™\ÈÚ]‘ÛÛ[‘^YK\ÜXÚYšXÈÛÜšÈ
-HŒÑ×Õ’M^[œÚ[Û‹ÚŞH‘ÛÚÜËÛÛ[‘^YIÜÈÑ[™^[™[œÚ]H™Z]š[İ\‹™X\‹\[™H™Z™Xİ[Ûˆ[™YÈHØ[YIÜÈİÛˆZXÜ›ØÛÙJKˆ[Ùˆ]Ûİ[š]™HÈ™H™K[[™YÛˆHY™™\™[˜\ÙKˆ\™ÙK[™]]ÈÛÜšÚ[™È™[™\š[™È]š\ÚË‚‚ŠŠŠÊH\ÚÈ[Z[›ÜˆÛ\šYšXØ][Û‹ŠŠ‚HÚÜÜXÚYšXÈ]Y\İ[ÛˆÙ\ÈHİ\œ™[PÑS”ÑK\H™]›ØXİ]™[HÈHÛÙH\È]œİÛÙ[ˆŒŒ[™\ÈH\ÜÙ]Ø\™K[İ][[™YÈ\›Z]š[˜\šY\ÈÛÛZ[š[™È›ÈØ[YH\ÜÙ]ÏÂÛÛœÙ\]Y[˜ÙNˆÚX\[™HÛX\ˆ[œİÙ\ˆ™\ÛÛ™\ÈHX]\ˆ›Üˆ]™\[Û™HİÛœİ™X[Kˆ]]\Â›İ]ÚYH\È›Ú™Xİ	ÜÈÛÛ›ÛX^HÛÈ[˜[œİÙ\™Y[™[ˆ[™˜]›İ\˜X›H[œİÙ\ˆ›Ü™XÛÜÙ\Â›Ü[Ûˆ
-
-H^XÚ]H˜]\ˆ[ˆX]š[™È]Y\™[H[˜Ù\Z[‹‚‚ŠŠŠ
-HÚ\š[˜\šY\È[™XØÙ\Hš\ÚËŠŠ‚ÛÛœÙ\]Y[˜ÙNˆÙˆH›İ\‹\È\ÈHÛ›HÛ™H]›ØÙYYÈÛÛ˜\HÈH›İXÙH\Âœ›Ú™Xİ	ÜÈİÛˆ\İ™X[HÚ\Ë˜]\ˆ[ˆ\›İ[™]ˆÛÈ\\ˆ˜XİÈ™[Û™ÈÚ]HXÚ\Ú[Û‹‚‘š\œİ]\ÈHXÚ\Ú[ÛˆX›İ]ÛÈÙ\\˜]H[™ÜË›İÛ™NˆÙXİ[ÛˆH™XÛÜ™È]\ÈÜ˜ÛÛ\[\È^˜XİYØ[YH\ÜÙ]È\™XİH[ÈH^Xİ]X›KÛÈHš[˜\HÙˆÛÛ[™^YKS˜]]™B˜ÛÛZ[œÈHØ[YIÜÈ]HÚ]]™\ˆH˜\İÑ]Y\İ[Ûˆ\›œÈİ]ÈYX[‹ˆÙXÛÛ™HŒŒB˜Ø\™K[İ]H
-ˆ™^Ù\[ˆØ\Ù\ÈÚ\™HHš[˜\HÛÛZ[œÈ›È\ÜÙ]È[İHÈ›İ]™HHšYÚÂ™\İšX]HŠˆH\ÈÜš][ˆ›Üˆš[˜\šY\È]Ø\œH›ÈİXÚ\ÜÙ]ËÚXÚ\È›İÚ]\ÈÜ˜İ\œ™[H›ÙXÙ\Ë‚‚‹KKB‚ˆÈÈKˆœš[™È[İ\ˆİÛˆ“ÓB‚ŠŠ“›ÈØ[YH]H\È\İšX]YH\È›Ú™Xİ[™›Û™HØ[ˆ™KŠŠˆHÚZ[ˆ\È\È›ÛİÜË‚‚ˆÈÈÈÚ]H\Ù\ˆ]\İİ\B‚H[\ÙˆZ\ˆİÛˆYØ[•ĞÈ
-TÊHÛÛ[‘^YHÈØ\šYÙN‚‚‹HL‹N‹LLˆ]\ËšYËY[™X[ˆ›Ü›X]
-XYÚXÈÍÌL[\›˜[˜[YHÓÓS‘VQX
-B‹HÒKLHX™LYMYXŒÌØ˜ÌÍNYMXÍÎLXŒ˜Ù™NØ‚•]\ÚX]Ú\ÈÙLËKœÚLX[ˆHXÛÛ\[][Û‹ÛÈH[\Ú]]˜[YH\Â˜]KZY[XØ[ÈÚ]HÛÜœ™XİTÈZ[ÙˆHXÛÛ\[][Ûˆ›ÙXÙ\ËˆH[\Ú]H›Ü‚˜^[œÚ[Û‹ÜˆHXY\ˆÙˆÍÎL˜\È]K\İØ\Y[™]\İ™HÛÛ™\YÈ˜]]™B˜šYËY[™X[ˆš\œİ‚‚•Hš[HÛÙ\È]™[™Ü‹ÙÙKYXÛÛ\Ø˜\Ù\›ÛKKˆHÛÛ™[[Ûˆ\ÙY\™H\ÈÈÙY\[\È[‚˜›Û\ËØ]H™\ÜÚ]ÜH›Ûİ[™Ş[[[šÈÛ™H[ÈXÙNÈ™Ú]YÛ›Ü™X›ØÚÜÈ›İØØ][ÛœË‚‚ˆÈÈÈÚ]HZ[Ù\ÈÚ]]‚•HXÛÛ\[][Û‰ÜÈİÛˆ^˜Xİ[Ûˆİ\ÛÛœİ[Y\ÈH“ÓKˆ™[™Ü‹ÙÙKYXÛÛ\ÓXZÙYš[X\™Ù]˜^˜XİİX™\]Z\™\È˜\Ù\›ÛKKÈ™H™\Ù[[™[›ÚÙ\Â˜ØÜš\ËÙ^˜XİØ˜\Ù\›ÛKKœÚÈ™\™\]Z\Ú]\Ø\[™ÈÛˆ^˜Xİ\ÜÙ]ØˆH™\İ[\ÂŠŠŒKˆÈÛİ\˜ÙHš[\ËLŒÈP‹[™\ˆ™[™Ü‹ÙÙKYXÛÛ\Ø\ÜÙ]ËØ
-ŠˆHHØ[YIÜÈ[Ù[Ë^\™\Ë]™[˜XÚÙÜ›İ[™Ëİ[ˆÛÛ\Ú[Ûˆ]KÙ]\š[\Ë[š[X][ÛˆX›\Ë^˜[šÜÈ[™˜]Y[ÈÙYÛY[Ë˜[œØÜšX™Yœ›ÛHHØ\šYÙH[ÈË‚‚•ÜÙHš[\È\™H[ˆÛÛ\[Y[™
-Š›[šÙY[ÈH^Xİ]X›JŠ‹ˆÛˆH^H]™Y[ˆ“ÓBœÙYÛY[È[™Ù\™HPIÙ[ˆ][[YNÈÛÛ\[Y˜]]™[H^H\™HÜ™[˜\H[šÙY]HÚ]™X[œÚ[\œËÛÈ\™H\È›È“ÓHØY\ˆ][[YH[™›ÈÙ™œÙ]]Ë\Ú[\ˆ˜[œÛ][Û‹‚‚ˆÈÈÈÚH›ÈØ[YH]HØ[ˆ™H™Y\İšX]Y‚•ÛÈÛÛœÙ\]Y[˜Ù\È›ÛİË[™^H\™HÛÜÙ\\˜][™Î‚‚ŒKˆ
-Š•H^˜XİY\ÜÙ]ËØ™YH\ÈØ[YH]H[ˆHY™™\™[š[H›Ü›X]ŠŠˆ˜[œØÜšXš[™ÈBˆ^\™H[ÈHÈ\œ˜^HÙ\È›İÚ[™ÙHÚ]]\Ëˆ]Ø[››İ™HÛÛ[Z]YZ\œ›Ü™YÜ‚ˆ]XÚYÈH™[X\ÙK‚Œ‹ˆ
-ŠHZ[š[˜\HÙˆ\ÈÜÛÛZ[œÈH[\™HØ[YKŠŠˆ\È\È\˜Ú]Xİ\˜[HY™™\™[ˆœ›ÛH\™™Xİ\šÉÜÈÜÚXÚ™XYÈ]È“ÓH][[YHœ›ÛHH]KØ\™XİÜH[™ÚÜÙBˆš[˜\H\È\™Y›Ü™H“ÓKYœ™YKˆİ\œÈ\È›İˆ
-ŠH™[X\ÙHš[˜\HÙˆÛÛ[™^YKS˜]]™HÛİ[ˆÛÛZ[ˆHÛÜ\šYÚYØ[YH[ˆ[
-Š‹[™]\ÈYH\œ™\ÜXİ]™HÙˆH˜\İÑ]Y\İ[Û‚ˆ[ˆÙXİ[Ûˆ‚‚”Ú[ˆ\ÈH™X\ÛÛˆH˜œš[™È[İ\ˆİÛˆ“ÓHˆ[Ù[\™HYX[œÈ
-˜œš[™È[İ\ˆİÛˆ“ÓH[™Z[š][İ\œÙ[Š‹˜]\ˆ[ˆ
-™İÛ›ØYİ\ˆš[˜\H[™İ\HH“ÓH][[YJ‹ˆÚ[™Ú[™È]Ûİ[›YX[ˆ™KX\˜Ú]Xİ[™È\ÜÙ][]™\HÈØYœ›ÛH\ÚÈ][[YKÚXÚ\ÈHÚYÛšYšXØ[YXÙHÙ‚ÛÜšÈ[™\È›İİ\œ™[H[›™Y‚‚ˆÈÈÈXÚšXØ[›İ[™\HÙˆHÚ[™İÜÈÙ]\Ø[™Y]B‚˜ÛÛ[‘^YKS˜]]™KTÙ]\™^X\ÈH›ÜÜÙYš\œİ\[ˆÙ]\\XØ][Ûˆ›ÜˆÚ[™İÜË›İH^XX›B˜š[˜\Kˆ]İÛ›ØYÈš]˜]HÜX›HZ[ÛÛÈ[™HX›XÈÛİ\˜ÙK\ÚÜÈ›ÜˆH\Ù\‹\İ\YY˜šYËY[™X[ˆ“ÓK™\šYšY\È]ÈÒKLH[ˆXÙK[™\ÜÙ\È]ÈÜšYÚ[˜[]Â˜ÛÛËÜÙ]\]Ú[™İÜËœÚˆH“ÓH\È›İÛÜYYÜˆ\ØYYÈ^˜Xİ[Ûˆ[™H^XX›HZ[š\[ˆÛˆH\Ù\‰ÜÈXXÚ[™K‚‚•HÚ^˜\™\È[X™\˜][H\ÚYÛ™YÈØ\œH›È“ÓKY\š]™YÜˆ\ÜÙ]ËØ]KXÛÛ\[][ÛˆÛÙK›Üˆ˜\İÑ™[™\™\ˆÛÙKˆH™[™\™\ˆ[™“ÓKY\š]™Y\ÜÙ]È\™H[šÙY[ÈHØØ[HZ[˜ÛÛ[™^YK™^X™]™\ˆ[ÈHÙ]\Ø[™Y]Kˆ\È\ÈH˜\œ›İÙ\ˆXÚšXØ[\Y˜Xİ[ˆBœ^XX›Hš[˜\NÈ]\È
-Š››İ
-ŠˆHÛÛ˜Û\Ú[Ûˆ]\İšX][™È]\È\›Z]Yˆ[ˆ\Xİ[\‹\Âœ™\ÜÚ]ÜH\È›È›ÛİXÙ[˜ÙH›Üˆ]ÈİÛˆÛÙH[™H\İ™X[HXÛÛ\[][Ûˆ\È›ÈXÙ[˜ÙHš[K‚•ÜÙH]Y\İ[ÛœÈ™\]Z\™HXZ[Z[™\ˆ[™Ú\™H\›ÜšX]KYØ[™]šY]È™Y›Ü™HX›XÈ™[X\ÙK‚‚•]\ÈÚXÚÙY˜]\ˆ[ˆ\ÜÙ\YˆÙ]‹ØZ[İÚ^˜\™œÌX[šÜÈ^XİH™YHÙˆ\Âœ›Ú™Xİ	ÜÈİÛˆÛÛ\[][Ûˆ[š]ÈKHÙ]\İÚ^˜\™˜ÜÚLK˜Ø[™ÙWÚXÛÛ—Ø\K˜ØKH\È]Â˜\XØ][Û‹[X[šY™\İ™\Ûİ\˜ÙHYØZ[œİX\ˆ[QİZH
-RU
-KÑˆ
-›XŠH[™ÓUË‚˜ÛÛËÜXÚØYÙWİÚ[™İÜ×İÚ^˜\™œÌX[ˆ[œÈH™\šYšXØ][ÛˆÙ[‹]\İ›İ™\ÈHU‹NX[šY™\İš\È[X™YYÚXÚÜÈH[\ÜÈ[™š[˜\HÚ^™K[™ØØ[œÈ™\™\Ù[]]™HÙ[™\˜]YX\ÜÙ]™XÛÛ\[][Û‹[™˜\İÑX\šÙ\œÈ™Y›Ü™H]İYÙ\ÈHXÚØYÙKˆHXÚØYÙH[˜ÛY\ÈZ\ˆÛÛ\]B››İXÙ\Èœ›ÛHÙ]‹İÚ^˜\™ÕT‘ÔT•WÓ“ÕPÑTËˆH“ÓH[Û™H\ÈLˆP‹‚‚ŠŠ•\È›Ú™Xİ]\İ›İX›\ÚÛÛ[™^YK™^X[™\ˆHİ\œ™[XÚØYÚ[™È[Ù[ŠŠˆ]\È›İ˜Ú[™ÙYˆYˆHÚ^˜\™]™\ˆÜ›İÜÈH\[™[˜ŞHÛˆHÜ^Y\ˆ›Ü\‹HXÚšXØ[›İ[™\B™Øİ[Y[Y\™HİÜÈ™Z[™ÈYH[™HØ[™Y]H™[X\ÙH›ØÙ\ÜÈ]\İİÜ›Üˆ[›İ\ˆ™]šY]Ë‚‚˜™Ú]YÛ›Ü™X[™›Ü˜Ù\ÈHš\œİÚ[YXÚ[šXØ[Kˆ]›ØÚÜÈ›Û\ËØ]™\H
-‹È
-‹›Â˜
-‹È
-‹™[˜
-Š‹Ø˜\ÙKš\™[™Ü‹Ø\ËØ[Ù]‹ØZ[J˜[™Z[[XXËJ˜[™˜Z[\Ú[KJ˜\™XİÜšY\Ë]™\H
-‹›ØÈ
-‹˜XÈ
-‹™ÖSX[]Ú\™H[ˆH™YK
-‹˜›\œ˜[YB˜Ø\\™\Ë[™ØÜ˜]ÚYØˆXXÚÙˆÜÙH[\ÈØ\È™\šYšYYYØZ[œİH™X[]]^\İÈÛ‚™\ÚÈ
-ÙXİ[ÛˆJKˆ
-Š‘È›İY™X][KŠŠ‚‚ˆÈÈÈH[X™YY–ÜXİ[H[][]Ü‚‚˜™[™Ü‹ÙÙKYXÛÛ\ÜÜ˜ËÙØ[YKÜÜXİ[K˜Ø\È
-ŠLLH[™\È[\[Y[[™ÈHÛÛ\]H[][]ÜŠŠ‹ÚXÚH™]Z[Ø\šYÙH\ÙYÈ[ˆ[ˆ[[X]H^HHØ[YH]\È\È[ˆ[›ØÚØX›H^˜K‚’]›İÈÛÛ\[\È[ˆ\ÈÜ‚‚•H\İ[˜İ[Ûˆ\™H\ÈHØ[YHÛ™H\È›ÜˆH˜\ÙH“ÓK[™]\ÈÛÜİ][™ÈÙ\\˜][B˜™XØ]\ÙHHš[IÜÈÚ^™H[š]\ÈHÜ›Û™È\Üİ[\[Û‚‚‹H
-Š•H[][]ÜˆÛÙH\È\ÙˆHXÛÛ\[][Û‹ŠŠˆ]Ø\œšY\ÈHØ[YHİ]\È\ÈH™\İÙ‚ˆ™[™Ü‹ÙÙKYXÛÛ\ÜÜ˜ËØH›ÈXÙ[˜ÙHš[H\İ™X[K›İ\İšX]YH\È™\ÜÚ]ÜK‚‹H
-Š•H[][]Üˆ[X™YÈ›ÈØ[YH]KŠŠˆ™\šYšYYH™XY[™È]ˆHÛ›H]KX\œ˜^H]\˜[È[‚ˆHš[H\™HÛX[[™Ù^X›Ø\™X›\È][™\ÈMKMM‹ÍKNH[™LLËLLM‹ˆH[ˆØ[Y\È\™BˆØYY][[YHœ›ÛH]È\İY]ÜXİ[K˜ÎNKLLˆ[KÙ]KÜØXœ™KœÙYËœ˜ˆ]XØ™]XØ™]X[˜[Y[İ[™œšYÚ[™\˜ÛšYÚÜ™XÜÜİÛÛÚÚYX‚‹H
-Š•ÜÙH[ˆš[\È\™H›İ™\Ù[[]Ú\™H[ˆ\È™\ÜÚ]ÜHÜˆ[ˆHXÛÛ\[][Û‚ˆÚXÚÛİ]
-ŠˆHÛÛ™š\›YYHHÚÛK]™YHÙX\˜Ú›Üˆ
-‹œÙYËœ˜ÚXÚ™]\›œÈ›İ[™Ëˆ^HÛÛYBˆİ]ÙˆH\Ù\‰ÜÈİÛˆ“ÓHšXHH^˜Xİ[Ûˆİ\^XİHZÙH]™\Hİ\ˆ\ÜÙ]‚‚•H[ˆØ[Y\È\™HÙ\\˜]H\™\\HÛÜšÜÈÚ]Z\ˆİÛˆšYÚÈÛ\œË\İ[˜İœ›ÛB‘ÛÛ[‘^YHÈ]Ù[‹ˆ
-Š•^H\™H›İ\È›Ú™Xİ	ÜÈÈ\İšX]K[™HØ[YH[H\Y\ÈÂ[H\ÈÈH˜\ÙH“ÓNˆœš[™È[İ\ˆİÛ‹ŠŠ‚‚ˆÈÈÈHXÛÛ\[][Û‰ÜÈİÛˆÜÚ][Û‚‚˜XÛÛ\ÌØ
-Šš\È›ÈXÙ[˜ÙHš[JŠˆH™\šYšYYH\İ[™ÈHÚXÚÛİ]›Ûİˆ]Â˜Ü˜ËÛX[˜KØÛİ\˜Ù\ÈØ\œHÚ[XÛÛˆÜ˜\XÜÈ›ÜšY]\H›İXÙ\È™XY[™Ë[ˆ\]^BŠˆ˜ÛÛZ[ˆ[œX›\ÚY›ÜšY]\H[™›Ü›X][ÛˆÙˆÚ[XÛÛˆÜ˜\XÜË[˜ËˆŠˆ[™X^H›İ™B™\ØÛÜÙYÜˆÛÜYYÚ]İ]Üš][ˆÛÛœÙ[È
-ŠNš[\È[™\ˆÜ˜ËØØ\œH]XY\‹ŠŠ‚‚•]\È\İ™X[IÜÈÚ]X][Û‹›İÛÛY][™È\È›Ú™XİÜ™X]YÜˆØ[ˆ™\ÛÛ™Kˆ]\È™XÛÜ™Y˜™XØ]\ÙH]\ÈH˜XİX›İ]H˜\ÙH\ÈÜ\ÈZ[Û‹[™™XØ]\ÙH]™X\œÈÛˆ[HXÚ\Ú[Û‚š[ˆÙXİ[Ûˆ‚‚‹KKB‚ˆÈÈ‹ˆ]šX][Û‚‚‘]™\HY\][Ûˆœ›ÛH[›İ\ˆ›Ú™Xİ]\İ™XÛÜ™
-Šœ™\ÜÚ]ÜKÛÛ[Z][™š[H]B˜Y\][ÛˆÚ]H[ˆHÛİ\˜ÙK[™[ˆ\ÈØİ[Y[ŠŠˆ]\ÈHİ[™[™È[K›İB™›Ü›X[]HH]\ÈÚ]XZÙ\ÈHX›H[ˆÙXİ[ÛˆÈ™\šYšXX›HHÛÛY[Û™HÚÈØ\È›İ\™K‚‚ˆÈÈÈİ\œ™[HØ\œšYY‚ŸÚ]œ›ÛHÚ\™H][™ÈŸKK_KK_KK_Ÿ˜\İÑ™[™\™\ˆÛM^Ü˜ËÜËÙÙØ
-œ›ÛH[Z[ÛY˜\İÙY[™Ú[™X
-HÙ]‹ÜÜÙ˜\İÙÙÙÊ‹ØËXˆ
-Š“›È›İXÙHš[H™\Ù[HÙYHŒ‹ŠŠˆŸ]Y[ÈZXÜ›ØÛÙH[ˆÛÙØ\™HÛM^Ü˜ËÜËÛZ^\‹˜Ø
-[Z[
-HÙ]‹ÜÜØ]Y[ËÙÙWÛZ^\‹˜ØˆHš[HXY\ˆ˜[Y\È]ÈÜšYÚ[ˆ[™\İÈ]È›İ\ˆÚ[™Ù\ËˆŸ”ÔZXÜ›ØÛÙH™Y™\™[˜ÙH\™™XİY\šË\Ë\ÜÜ\™™XİÙ\šØÜ˜ËÜœÜÙÜÜœØH[ˆ[››İ]YÛÜHÙˆHØ[YHZXÜ›ØÛÙHÛÛ[‘^YH[œÈ™XY›İÛÜYYˆÚ]Y]Ù]‹ÜÜÙ˜\İÙÙÙÜË˜ÎŒŒMŒÌMM[™Ù]‹ÜÜÙ˜\İÙÙÙWÜÚŞWÜ™˜ÎŒÌÌ˜ˆŸİ—Ú[XYÙHŒ‹ŒNH›İ[™ÜËÜİ˜ÙX[ˆ˜\œ™]Ù]‹ÜÜÚ[˜ÛYKÜİ‹Üİ—Ú[XYÙKšXÙ[˜ÙH›İXÙH[Xİ[‹Yš[KˆŸİ—İY]\H›İ[™ÜËÜİ˜ÙX[ˆ˜\œ™]Ù]‹ÜÜÚ[˜ÛYKÜİ—İY]\KšXÙ[˜ÙH›İXÙH[Xİ[‹Yš[KˆYYÚ]H™X[Y›Û^İ™\›^KˆŸ\Y]\İØ\Ú]˜Z[[İYY˜][
-ÑWÔÕĞT
-H\™™XİY\šË\Ë\ÜÜ\™™XİÙ\šØLM™ØXÜÚ[˜ÛYKÜ™\›ØÙ\ÜËØÛÛ[[Û‹š
-ÔÕĞTQÕSØÔÕĞTÕS
-KˆRU
-ÊHŒŒˆX[ˆŞY\‹ˆÙ]‹ÜÜÚ[˜ÛYKÙÙWİ\YÜİØ\šİÛˆ[\[Y[][ÛˆÙˆHÑÙ[™\šXØY\Ü]ÚXÚš\]YK›İXÙH[™Ú]H[ˆHš[HXY\‹ˆŸŞ[[™\‹X]Ø\™HÜ›İ[™İ\ÜÙ[Xİ[ÛˆXÛÛ\Ü\™™XİÙ\šØMYY™Ø™˜ŒØMŒ™X™X˜ŒÍÌÍLMÜ˜ËÛX‹ØÛÛ\Ú[Û‹˜Ø
-ÙÙš[™ÙÜ›İ[™Ùš[˜[\ÙXÙÙš[™ÙÜ›İ[™Ø]ØŞ[Ê˜
-KˆRU0ªHŒŒˆX[ˆŞY\‹ˆ™[™Ü‹ÙÙKYXÛÛ\ÜÜ˜ËÙØ[YKÜİ[—ÙÜ›İ[™Û˜]]™Kš[™H˜]]™H™\ÛÛ™\ˆ[ˆİ[‹˜ØÈÛÛ[‘^YHÕS‹Ü›ÛÛH[\[Y[][ÛˆÚ]	ÜÈÙ[\‹Yš\œİ[ˆŞ[[™\‹YYÙHİ\ÜÙ[X[XÜËˆ[RU›İXÙNˆPÑS”ÑTËÜ\™™XİY\šË\ÜSRUˆ‚ˆÈÈÈ^Xİ\İ™X[H™]š\Ú[ÛœÂ‚]šX][Ûˆ\ÈÈ˜[YHHÛÛ[Z]›İ\İH™\ÜÚ]ÜKˆ\ÙH\™HH™]š\Ú[ÛœÈ™\Ù[[ˆ\ÂÛÜšÚ[™È™YH]H[YHÙˆÜš][™ËØZ[™YÚ]Ú]PÈ\ˆÙÈLX‚‚ŸÚXÚÛİ]\İ™X[Hœ˜[˜ÚÜˆYÈÛÛ[Z]]HŸKK_KK_KK_KK_KK_Ÿ™[™Ü‹Ü\Ü\™™XİY\šË\Ë\ÜÜ\™™XİÙ\šØÜYÈÚKY]‹XZ[LM™ØY™™ÌNXÎLNLMLŒLÍ™™XL™L˜ØŒ‹LKLHŸ™[™Ü‹ÜY^\™™XİY\šË\Ë\ÜÜ\™™XİÙ\šØLØMMYLŒÙYNML˜NŒÍŒYY™˜ŒKLL‹LˆŸ™[™Ü‹ÙÙKYXÛÛ\XÛÛ\ÌØX\İ\˜
-Ü˜YY
-HÍÍMÎM˜ÍMÙ™NLX™YŒYYYÍ˜XŒ‹LLMÈŸ™[™Ü‹ÜÛM^ÛMËÜÛM^šYÚX
-Ü˜YY
-HØØL˜ÌÍM™XÍNÌMLYLLÙM™ŒŒLL‹LMÈŸ™[™Ü‹ÜÛM\ÜÛM\ÜÜÛM\ÜX\İ\˜
-Ü˜YY
-H˜ŒMÙXÎMÎNŒÌXLYÍÌYŒÍÎNMŒLÙ™˜ÎXŒLLKLMH‚›İ\™™Xİ\šÈÚXÚÛİ]ÈØ\œHHØ[YHÛÈXÙ[˜ÙHš[\ÎˆH›ÛİPÑS”ÑX™XY[™ÈRU°ªHŒŒˆX[ˆŞY\‹[™ÜÙ˜\İÙÓPÑS”ÑK™XY[™ÈRU0ªHŒŒ[Z[XZZÙ[Ú[‹ˆHÛÂ˜˜\İÙÓPÑS”ÑKš[\È\™H]KZY[XØ[ÈXXÚİ\‹‚‚“›İH]™[™Ü‹ÙÙKYXÛÛ\™[™Ü‹ÜÛM^[™™[™Ü‹ÜÛM\Ü\™H
-Š™Ü˜YYÚ[İÂ˜ÛÛ™\ÊŠ‹ˆZ\ˆØØ[\İÜH\È[˜Ø]YÛÈHÛÛ[Z]\Úœ›ÛH[HY[YšY\ÈH™]š\Ú[Û‚˜]Ù\È›İ][[Û™H™XÛÛœİXİ]È[˜Ù\İHØØ[K‚‚ˆÈÈÈ™\]Z\™Y›Üˆ[][™ÈYÜY[ˆ]\™B‚”\™™Xİ\šÈ
-™[™Ü‹ÜY^™[™Ü‹Ü\Ü
-H[™YØ\™HRU[™ÛX\™Y›ÜˆY\][Û‹‚•Z\ˆRU›İXÙ\È]\İ™H™\›ÙXÙY[™XXÚY\][ÛˆÚ]H]\İØ\œHHÛÛ[Y[˜[Z[™ÈB\İ™X[H™\ÜÚ]ÜKHÛÛ[Z]Y\Yœ›ÛK[™H\İ™X[Hš[KˆÙYHØÜËÔT‘‘PÕÑT’Ë›Y›ÜˆHÜXÚYšXÂ˜Ø[™Y]\ËH^XİÛÛ[Z]ÈÈÚ]K[™ÛÈ]šX][ÛˆØ\È[œÚYH\™™Xİ\šÉÜÈİÛˆ™YBŠÜÙ˜\İÙÙÛYØØ\œšY\È›È›İXÙH][
-H]™YY™\ÛÛš[™È™Y›Ü™H[][™È\ÈZÙ[ˆœ›ÛBÜÙH\™XİÜšY\Ë‚‚“Û™HY\][Ûˆ\È[™XYH[ˆXÙH[™
-Š˜İ\œ™[H[˜]šX]Y
-ŠˆH×ÔÔÑMÌW×ØÈ×ĞT“WÓ‘SÓ˜”ÒSQ\Ü]Ú›ØÚÈ]Ù]‹ÜÜØ]Y[ËÙÙWÛZ^\‹˜ÎŒÍMX]Ú\Â˜™[™Ü‹Ü\ÜÜÜÜÜ˜ËÛZ^\‹˜ÎŒL‹LXˆ]Úİ[Ø\œHHÛÛ[Y[˜[Z[™Â˜\™™XİY\šË\Ë\ÜÜ\™™XİÙ\šÈLM™ØXÜÜÜ˜ËÛZ^\‹˜ØRU0ªHŒŒˆX[ˆŞY\‹‚‚ˆÈÈÈ›İY]XÚYY‚ŠŠ•\È™\ÜÚ]ÜH\È›È›ÛİPÑS”ÑHš[KŠŠˆH]›Ü›H^Y\‹HÚŞH‘XÛÙ\ˆ[™B˜Z[ÛÛ[™È\™H\È›Ú™Xİ	ÜÈİÛˆÛÜšÈ[™›È\›\È]™H™Y[ˆXÛ\™Y›Üˆ[Kˆ]\ÈBœÙ\\˜]HXÚ\Ú[Ûˆœ›ÛHÙXİ[Ûˆ[™Ø[ˆ™HXYH[™\[™[HÙˆ]‚
+files under `getv/port/` (excluding the vendored `stb/`) was compared against all 1,924 sources
+in `vendor/sm64ex`, `vendor/sm64-port` and `vendor/pd-port`, matching on filename and near-name
+variants. Everything scoring at or above 25% overlap with an upstream file is listed here:
+
+| our file | upstream | share of upstream surviving verbatim |
+|---|---|---|
+| `getv/port/configfile.h` | `sm64ex/src/pc/configfile.h` | **100%** |
+| `getv/port/fs/fs.h` | `sm64ex/src/pc/fs/fs.h` | **100%** |
+| `getv/port/audio/ge_mixer.c` | `sm64ex/src/pc/mixer.c` | 97% |
+| `getv/port/audio/ge_mixer.h` | `sm64ex/src/pc/mixer.h` | 66% |
+| `getv/port/fast3d/*` | `sm64ex/src/pc/gfx/*` | 86-100% (table above) |
+| `getv/port/pc_main.h` | `sm64ex/src/pc/pc_main.h` | 33% - the file's own header credits sm64ex |
+| `getv/port/src/pc/controller/controller_keyboard.h` | `sm64-port/src/pc/controller/controller_keyboard.h` | 42% - three shared function declarations; the file is otherwise this project's own and says so |
+| `getv/port/src/port_audio.c` | `pd-port/port/src/audio.c` | 29% - inspected; SDL boilerplate, not adapted code. The file is this project's own and its header explains what it replaces |
+
+Everything else under `getv/port/src/` and `getv/port/mac/` scored below 25% and is this
+project's own work.
+
+`configfile.h` and `fs/fs.h` are unmodified sm64ex headers. They are still recognisable as such:
+`configfile.h` defines `CONFIGFILE_DEFAULT "sm64config.txt"` and `fs.h` uses the header guard
+`_SM64_FS_H_`.
+
+This matters because it widens the question. **sm64ex ships no licence file and makes no licence
+statement in its README** - verified by listing the checkout root and grepping the README; the
+same is true of `sm64-port`. Emill's notice in
+`src/pc/README-n64-fast32-engine.md` is the only licence text anywhere in the sm64ex tree, and
+it covers only the Fast3D engine. The other two headers are inherited from an upstream that
+states nothing at all, and sm64ex's own non-Fast3D code descends from the Super Mario 64
+decompilation, which likewise carries no licence.
+
+Both headers are small and neither is necessary. Rewriting them from the interfaces this port
+actually uses would remove them from the question at low cost, and is worth considering
+independently of whatever is decided about Fast3D.
+
+### 4.4 Options and their consequences
+
+**(a) Ship source only; users build their own binary.**
+The pre-2021 notice, as written, addresses two cases: it permits redistribution *in source
+form* provided the notice is retained, and states that redistribution *in binary form* is not
+allowed. A source-only release with Emill's notice restored to `getv/port/fast3d/` is the case
+the text addresses affirmatively. Consequence: no release binaries, no App Store or TestFlight
+distribution, and every user needs a full toolchain. It is the cheapest option to execute and it
+leaves every other option below still available.
+
+**(b) Replace Fast3D with an unambiguously licensed renderer.**
+Candidates are libultraship's fast3d (MIT, Â© 2022 kenix3) or a from-scratch F3D interpreter.
+Consequence: the question disappears permanently and binaries become possible. But the measured
+divergence above cuts the other way here - `gfx_pc.c` has grown from 1,832 to 5,515 lines with
+GoldenEye-specific work (the F3D `G_TRI4` extension, sky RDP hooks, GoldenEye's LOD and texel
+density behaviour, near-plane rejection tuned to the game's own microcode). All of that would
+have to be re-landed on a different base. Large, and it puts working rendering at risk.
+
+**(c) Ask Emill for clarification.**
+A short, specific question: does the current `LICENSE.txt` apply retroactively to the code as it
+stood in 2020, and is the asset carve-out intended to permit binaries containing no game assets?
+Consequence: cheap, and a clear answer resolves the matter for everyone downstream. But it is
+outside this project's control, may go unanswered, and an unfavourable answer forecloses
+option (d) explicitly rather than leaving it merely uncertain.
+
+**(d) Ship binaries and accept the risk.**
+Consequence: of the four, this is the only one that proceeds contrary to the notice this
+project's own upstream ships, rather than around it. Two further facts belong with the decision.
+First, it is a decision about two separate things, not one: section 5 records that this port
+compiles extracted game assets directly into the executable, so a binary of Goldeneye-Native
+contains the game's data whatever the Fast3D question turns out to mean. Second, the 2021
+carve-out - *"except in cases where the binary contains no assets you do not have the right to
+distribute"* - is written for binaries that carry no such assets, which is not what this port
+currently produces.
+
+---
+
+## 5. Bring your own ROM
+
+**No game data is distributed by this project and none can be.** The chain is as follows.
+
+### What the user must supply
+
+A dump of their own legal NTSC (US) GoldenEye 007 cartridge:
+
+- 12,582,912 bytes, big-endian z64 format (magic `80371240`, internal name `GOLDENEYE`)
+- SHA-1 `abe01e4aeb033b6c0836819f549c791b26cfde83`
+
+That hash matches `ge007.u.sha1` in the decompilation, so a dump with that value is
+byte-identical to what a correct US build of the decompilation produces. A dump with a `.n64` or
+`.v64` extension, or a header of `37804012`, is byte-swapped and must be converted to native
+big-endian first.
+
+The file goes at `vendor/ge-decomp/baserom.u.z64`. The convention used here is to keep dumps in
+`roms/` at the repository root and symlink one into place; `.gitignore` blocks both locations.
+
+### What the build does with it
+
+The decompilation's own extraction step consumes the ROM. `vendor/ge-decomp/Makefile` target
+`extract_u` requires `baserom.u.z64` to be present and invokes
+`scripts/extract_baserom.u.sh`; `prerequisites` depends on `extractassets`. The result is
+**1,842 C source files, 123 MB, under `vendor/ge-decomp/assets/`** - the game's models,
+textures, level backgrounds, stan collision data, setup files, animation tables, text banks and
+audio segments, transcribed from the cartridge into C.
+
+Those files are then compiled and **linked into the executable**. On the N64 they lived in ROM
+segments and were DMA'd in at runtime; compiled natively they are ordinary linked data with real
+pointers, so there is no ROM loader at runtime and no offset-to-pointer translation.
+
+### Why no game data can be redistributed
+
+Two consequences follow, and they are worth separating:
+
+1. **The extracted `assets/` tree is game data in a different file format.** Transcribing a
+   texture into a C array does not change what it is. It cannot be committed, mirrored or
+   attached to a release.
+2. **A built binary of this port contains the entire game.** This is architecturally different
+   from Perfect Dark's port, which reads its ROM at runtime from a `data/` directory and whose
+   binary is therefore ROM-free. Ours is not. **A release binary of Goldeneye-Native would
+   contain the copyrighted game in full**, and that is true irrespective of the Fast3D question
+   in section 4.
+
+Point 2 is the reason the "bring your own ROM" model here means *bring your own ROM and build
+it yourself*, rather than *download our binary and supply a ROM at runtime*. Changing that would
+mean re-architecting asset delivery to load from disk at runtime, which is a significant piece of
+work and is not currently planned.
+
+### Technical boundary of the Windows setup candidate
+
+`GoldenEye-Native-Setup.exe` is a proposed first-run setup application for Windows, not a playable
+binary. It downloads private portable build tools and the public source, asks for a user-supplied
+big-endian z64 ROM, verifies its SHA-1 in place, and passes its original path to
+`tools/setup-windows.sh`. The ROM is not copied or uploaded; extraction and the playable build
+happen on the user's machine.
+
+The wizard is deliberately designed to carry no ROM-derived or `assets/` data, decompilation code,
+or Fast3D renderer code. The renderer and ROM-derived assets are linked into the locally built
+`goldeneye.exe`, never into the setup candidate. This is a narrower technical artifact than the
+playable binary; it is **not** a conclusion that distributing it is permitted. In particular, this
+repository has no root licence for its own code and the upstream decompilation has no licence file.
+Those questions require maintainer and, where appropriate, legal review before public release.
+
+That is checked rather than asserted. `getv/build_wizard.ps1` links exactly three of this
+project's own compilation units -- `setup_wizard.cpp`, `sha1.c` and `ge_icon_apply.c` -- plus its
+application-manifest resource against Dear ImGui (MIT), SDL2 (zlib) and GLEW.
+`tools/package_windows_wizard.ps1` then runs the verification self-test, proves the UTF-8 manifest
+is embedded, checks the DLL imports and binary size, and scans representative generated-asset,
+decompilation, and Fast3D markers before it stages the package. The package includes their complete
+notices from `getv/wizard/THIRD_PARTY_NOTICES.txt`. A ROM alone is 12 MB.
+
+**This project must not publish `goldeneye.exe` under the current packaging model.** That has not
+changed. If the wizard ever grows a dependency on the port layer proper, the technical boundary
+documented here stops being true and the candidate release process must stop for another review.
+
+`.gitignore` enforces the first point mechanically. It blocks `roms/`, every `*.z64` / `*.n64` /
+`*.v64` / `*.elf`, `**/base.zip`, `vendor/`, `deps/`, all `getv/build-*` and `build-mac-*` and
+`build-sim-*` directories, every `*.o` / `*.a` / `*.dSYM` anywhere in the tree, `*.bmp` frame
+captures, and `scratchpad/`. Each of those rules was verified against a real path that exists on
+disk (section 1). **Do not defeat them.**
+
+### The embedded ZX Spectrum emulator
+
+`vendor/ge-decomp/src/game/spectrum.c` is **8,911 lines implementing a complete Z80 emulator**,
+which the retail cartridge used to run ten Ultimate Play the Game titles as an unlockable extra.
+It now compiles in this port.
+
+The distinction here is the same one as for the base ROM, and it is worth stating separately
+because the file's size invites the wrong assumption:
+
+- **The emulator code is part of the decompilation.** It carries the same status as the rest of
+  `vendor/ge-decomp/src/` - no licence file upstream, not distributed by this repository.
+- **The emulator embeds no game data.** Verified by reading it: the only byte-array literals in
+  the file are small Z80 and keyboard tables at lines 55-56, 75-85 and 113-116. The ten games are
+  loaded at runtime from paths listed at `spectrum.c:99-108`: `em/data/sabre.seg.rz`,
+  `atic`, `jetpac`, `jetman`, `alien8`, `gunfright`, `under`, `knightlore`, `pssst`, `cookie`.
+- **Those ten files are not present anywhere in this repository or in the decompilation
+  checkout** - confirmed by a whole-tree search for `*.seg.rz`, which returns nothing. They come
+  out of the user's own ROM via the extraction step, exactly like every other asset.
+
+The ten games are separate third-party works with their own rights holders, distinct from
+GoldenEye 007 itself. **They are not this project's to distribute, and the same rule applies to
+them as to the base ROM: bring your own.**
+
+### The decompilation's own position
+
+`n64decomp/007` **has no licence file** - verified by listing the checkout root. Its
+`src/libultra/` sources carry Silicon Graphics proprietary notices reading, in part, that they
+*"contain unpublished proprietary information of Silicon Graphics, Inc."* and may not be
+disclosed or copied without written consent; **58 files under `src/` carry that header.**
+
+That is upstream's situation, not something this project created or can resolve. It is recorded
+because it is a fact about the base this port is built on, and because it bears on any decision
+in section 4.4.
+
+---
+
+## 6. Attribution
+
+Every adaptation from another project must record **repository, commit and file at the
+adaptation site in the source, and in this document.** That is a standing rule, not a
+formality - it is what makes the table in section 3 verifiable by someone who was not here.
+
+### Currently carried
+
+| what | from | where it lands |
+|---|---|---|
+| Fast3D renderer | sm64ex `src/pc/gfx/` (from `Emill/n64-fast3d-engine`) | `getv/port/fast3d/gfx_*.{c,h}`. **No notice file present - see 4.2.** |
+| N64 audio microcode in software | sm64ex `src/pc/mixer.c` (Emill) | `getv/port/audio/ge_mixer.c`. The file header names its origin and lists its four changes. |
+| RSP microcode reference | `perfect-dark-pc-port/perfect_dark`, `src/rsp/gsp.s` - an annotated copy of the same microcode GoldenEye runs | Read, not copied. Cited at `getv/port/fast3d/gfx_pc.c:2144`, `:3168`, `:4944` and `getv/port/fast3d/ge_sky_rdp.c:332`. |
+| stb_image v2.19 | `nothings/stb`, Sean Barrett | `getv/port/include/stb/stb_image.h`, licence notice intact in-file. |
+| stb_truetype | `nothings/stb`, Sean Barrett | `getv/port/include/stb_truetype.h`, licence notice intact in-file. Added with the real-font text overlay. |
+| Typed byteswap with fail-loud default (`GE_SWAP`) | `perfect-dark-pc-port/perfect_dark` @ `514bf7a`, `port/include/preprocess/common.h` (`PD_SWAPPED_VAL`/`PD_SWAP_VAL`). MIT, (c) 2022 Ryan Dwyer. | `getv/port/include/ge_typed_swap.h`, own implementation of the `_Generic`-dispatch technique, notice and cite in the file header. |
+| Cylinder-aware ground support selection | `n64decomp/perfect_dark` @ `169ed48bdcbfb3b568b028bd5bebb27680073514`, `src/lib/collision.c` (`cd_find_ground_finalise`, `cd_find_ground_at_cyl_*`). MIT, Â© 2022 Ryan Dwyer. | `vendor/ge-decomp/src/game/stan_ground_native.h` and the native resolver in `stan.c`; GoldenEye STAN/room implementation with PD's center-first then cylinder-edge support semantics. Full MIT notice: `LICENSES/perfect-dark-port-MIT.txt`. |
+
+### Exact upstream revisions
+
+Attribution has to name a commit, not just a repository. These are the revisions present in this
+working tree at the time of writing, obtained with `git -C <dir> log -1`:
+
+| checkout | upstream | branch or tag | commit | date |
+|---|---|---|---|---|
+| `vendor/pd-port` | `perfect-dark-pc-port/perfect_dark` | `port`, tag `ci-dev-build` | `514bf7affd3259b7919165201342ff81a026d92c` | 2026-05-29 |
+| `vendor/pd-ext` | `perfect-dark-pc-port/perfect_dark` | `pr653` | `e5484dee23d1e8144d92b8b98f362869d9fd0d66` | 2025-12-02 |
+| `vendor/ge-decomp` | `n64decomp/007` | `master` (grafted) | `c4356466796c697dfd298010b9bed261f9ed8c6a` | 2026-08-17 |
+| `vendor/sm64ex` | `sm64pc/sm64ex` | `nightly` (grafted) | `d7ca2c04364a6dd0dac58b47151e04e26887e6f0` | 2024-12-17 |
+| `vendor/sm64-port` | `sm64-port/sm64-port` | `master` (grafted) | `2b17d081c9798b31b91dc71f37994b0da28cffc9` | 2024-11-15 |
+
+Both Perfect Dark checkouts carry the same two licence files: a root `LICENSE` reading MIT,
+Â© 2022 Ryan Dwyer, and `port/fast3d/LICENSE.txt` reading MIT, Â© 2020 Emill, MaikelChan. The two
+`fast3d/LICENSE.txt` files are byte-identical to each other.
+
+Note that `vendor/ge-decomp`, `vendor/sm64ex` and `vendor/sm64-port` are **grafted shallow
+clones**. Their local history is truncated, so a commit hash from them identifies the revision
+but does not let anyone reconstruct its ancestry locally.
+
+### Required for anything adopted in future
+
+Perfect Dark (`vendor/pd-ext`, `vendor/pd-port`) and mgb64 are MIT and cleared for adaptation.
+Their MIT notices must be reproduced, and each adaptation site must carry a comment naming the
+upstream repository, the commit adapted from, and the upstream file. See `docs/PERFECT_DARK.md` for the specific
+candidates, the exact commits to cite, and two attribution gaps inside Perfect Dark's own tree
+(`port/fast3d/glad/` carries no notice at all) that need resolving before anything is taken from
+those directories.
+
+One adaptation is already in place and **currently unattributed**: the `__SSE4_1__` / `__ARM_NEON`
+SIMD dispatch block at `getv/port/audio/ge_mixer.c:34-44` matches
+`vendor/pd-port/port/src/mixer.c:12-25`. It should carry a comment naming
+`perfect-dark-pc-port/perfect_dark @ 514bf7a`, `port/src/mixer.c`, MIT, Â© 2022 Ryan Dwyer.
+
+### Not yet decided
+
+**This repository has no root LICENSE file.** The platform layer, the sky RDP decoder and the
+build tooling are this project's own work and no terms have been declared for them. That is a
+separate decision from section 4 and can be made independently of it.

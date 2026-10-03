@@ -322,332 +322,1930 @@ static void key_crosshair_scale(const char *v, int over)
 {
     double s = atof(v);
 
- "‹­¦ëm®éÜj×¢¸ Šv¥jšk£¦j×­¢G§r‹§·~¶Ó¸Yˆ
-ˆH	ĞIÈ	‰ˆˆH	Ö‰ÊHÈˆH
-Ú\ŠH
-ˆH	ĞIÈ
-È	ØIÊNÈBˆYˆ
-HOHŠHÈ™]\›ˆLNÈBˆBˆ
-ÏHÛ[ÂˆBˆÚ[H
+    if (s < 0.25 || s > 2.0) {
+        ge_err("crosshair_scale=\"%s\" is out of range: 0.25 to 2.0, where 1.0 is the "
+               "retail size. Below a quarter the sight texture has too few texels left to "
+               "read as a shape%s", v, "");
+        return;
+    }
+    put("GETV_CROSSHAIR_SCALE", v, over);
+}
 
-œOH	È	È
-œOH	×	ÊHÈ
-ÊÎÈBˆYˆ
+static void key_gunbarrel_bond_speed(const char *v, int over)
+{
+    char *end = NULL;
+    double speed = strtod(v, &end);
 
-œOH	ÏIÊHÈ™]\›ˆLNÈBˆ
-ÊÎÂˆÚ[H
+    if (end == v || *end != '\0' || speed != speed || speed < 0.25 || speed > 1.50) {
+        ge_err("gunbarrel_bond_speed=\"%s\" - expected a number from 0.25 to 1.50%s", v, "");
+        return;
+    }
 
-œOH	È	È
-œOH	×	ÊHÈ
-ÊÎÈB‚ˆYˆ
-İ]ØÛÛ[Y[YOH•S
-HÈ
-›İ]ØÛÛ[Y[YHÛÛ[Y[YÈBˆ™]\›ˆ
-[
-H
-H[™JNÂŸB‚‹ÊˆÚ\™HÙPÛÛ™šYÔØ]™J
-HÜš]\Ëˆ™]™\ˆ•SÈ[\HÚ[ˆ›Èš[HØ\ÈØØ]YS‘›Û™Bˆ
-ˆÛİ[™HXÙYÚXÚHØ[\ˆ]\İ™X]\ÈœØ]š[™È\È[˜]˜Z[X›Hˆ˜]\ˆ[‚ˆ
-ˆÜš][™ÈÈHÛÜšÚ[™È\™XİÜKˆ
-‹Â˜ÛÛœİÚ\ˆ
-™ÙPÛÛ™šYÔ]
-›ÚY
-BÂˆİ]XÈÚ\ˆ˜[˜XÚÖÌLNÂ‚ˆYˆ
-×ØÙ™Ü]ÌHOH	×	ÊHÈ™]\›ˆ×ØÙ™Ü]ÈB‚ˆÊˆ›Èš[HØ\È™XY\È[ˆKHHš\œİ][˜ÚÜˆÛ™Hİ\YÚ]HÛÛ™šYÂˆ
-ˆ[]YˆØ]š[™È]\İİ[ÛÜšË[™]]\İ[™Ú\™HH™^][˜ÚÚ[ˆ
-ˆÛÚËÚXÚ\ÈHØ[YH\Ù\‹Y]H\™XİÜHØØ]J
-H˜[È›İYÚËˆ
-‹ÂˆYˆ
-ÙTÜ\Ù\‘]Q\Š‘ÛÛ[™^YKS˜]]™H‹‘ÛÛ[™^YKS˜]]™H‹ˆ˜[˜XÚËÚ^™[Ùˆ˜[˜XÚÊHOH
-HÂˆ™]\›ˆˆÂˆBˆYˆ
-ÙTÜXZÙQ\•™YJ˜[˜XÚËÍÍÊHOH
-HÂˆš[Š–ÙÙ]—VØÛÛ™šY×HZÙ\ˆ˜Z[Yˆ	\×ˆ‹˜[˜XÚÊNÂˆ™]\›ˆˆÂˆBˆYˆ
-İ›[Š˜[˜XÚÊH
-ÈH
-Èİ›[ŠÑWĞÑ‘×ĞTÑSSQJH
-ÈHˆÚ^™[Ùˆ˜[˜XÚÊHÂˆ™]\›ˆˆÂˆBˆİ˜Ø]
-˜[˜XÚË‹ÈˆÑWĞÑ‘×ĞTÑSSQJNÂˆ™]\›ˆ˜[˜XÚÎÂŸB‚‹ÊˆY\™ÙHÛİ[Ù^Kİ˜[YHZ\œÈ[ÈHÛÛ™šYÈš[K‚ˆ
-‚ˆ
-ˆH•SÜˆ[\H˜[YHSUTÈHÙ^HKHH[™H\ÈÛÛ[Y[Yİ]˜]\ˆ[‚ˆ
-ˆ™[[İ™YÛÈHÛÛ[Y[]Øİ[Y[È]İ\š]™\È[™H^Y\ˆØ[ˆÙYHÚ]Ø\Âˆ
-ˆ\›™YÙ™‹ˆ™]\›œÈÛˆİXØÙ\ÜË‚ˆ
-‚ˆ
-ˆÜš][ˆ›İYÚH[\Ü˜\Hš[H[™™[˜[YYˆHÜ˜\ÚÜˆH[\ÚÈZYØ^H›İYÚˆ
-ˆH\™Xİ™]Üš]HÛİ[X]™HH[˜Ø]YÛÛ™šYË[™H™^][˜ÚÛİ[ÛÛYH\ˆ
-ˆÚ][ˆ]ÈÙ][™ÜÈZ\ÜÚ[™È[™›È[™XØ][ÛˆÚNÈ™[˜[YJ
-H\È]ÛZXÈÛˆ]™\Bˆ
-ˆ]›Ü›H\ÈÚ\ÈËÛÈHš[H\ÈZ]\ˆHÛÛ™HÜˆH™]ÈÛ™K‚ˆ
-‹Âš[ÙPÛÛ™šYÔØ]™JÛÛœİÚ\ˆ
-˜ÛÛœİ
-šÙ^\ËÛÛœİÚ\ˆ
-˜ÛÛœİ
-˜[Y\Ë[Ûİ[
-BÂˆÛÛœİÚ\ˆ
-œ]HÙPÛÛ™šYÔ]
+    put("GETV_GUNBARREL_BOND_SPEED", v, over);
+}
 
-NÂˆÚ\ˆ\ÌLNÂˆ’SH
-š[Âˆ’SH
-›İ]ÂˆÚ\ˆ[™VÌŒNÂˆ[
-Üš][Âˆ[NÂˆ[˜ÈHÂ‚ˆYˆ
-]OH•S
-œ]OH	×	ÊHÂˆš[Š–ÙÙ]—VØÛÛ™šY×H›İÚ\™HÈØ]™H×ˆŠNÂˆ™]\›ˆNÂˆBˆYˆ
-Ûİ[
-HÈÛİ[HÈB‚ˆÜš][ˆH
-[
-ŠHØ[ØÊ
-Ú^™Wİ
-H
-Ûİ[ˆÈÛİ[ˆJKÚ^™[ÙŠ[
-JNÂˆYˆ
-Üš][ˆOH•S
-HÈ™]\›ˆNÈB‚ˆYˆ
-Ûœš[Š\Ú^™[Ùˆ\‰\Ë\‹]
-HH
-[
-HÚ^™[Ùˆ\
-HÂˆœ™YJÜš][ŠNÂˆ™]\›ˆNÂˆBˆİ]H›Ü[Š\ÈŠNÂˆYˆ
-İ]OH•S
-HÂˆš[Š–ÙÙ]—VØÛÛ™šY×HØ[››İÜš]H	\×ˆ‹\
-NÂˆœ™YJÜš][ŠNÂˆ™]\›ˆNÂˆB‚ˆ[ˆH›Ü[Š]œˆŠNÂˆYˆ
-[ˆOH•S
-HÂˆÚ[H
-™Ù]Ê[™KÚ^™[Ùˆ[™K[ŠHOH•S
-HÂˆ[[™YHÂ‚ˆ›Üˆ
-HHÈHÛİ[ÈJÊÊHÂˆ[ÛÛ[Y[YHÂˆ[Ù™Â‚ˆYˆ
-Üš][–ÚWJHÈÛÛ[YNÈBˆYˆ
-Ù^\ÖÚWHOH•S
-HÈÛÛ[YNÈBˆÙ™ˆHÙ™×Û[™WÛX]Ú\Ê[™KÙ^\ÖÚWK	˜ÛÛ[Y[Y
-NÂˆYˆ
-Ù™ˆ
-HÈÛÛ[YNÈB‚ˆÊˆ[˜Ú[™ÙY˜[YNˆÙY\H[™H]H›Üˆ]K‚ˆ
-‚ˆ
-ˆÚ]İ]\È]™\HØ]™H™]Ü›İHXXÚÙ^H]Ø\È[™YÛÈH]™Bˆ
-ˆš\™HHØ[YH˜XÚÈ\Èš\™HHKHHÛÛ[[ˆ[YÛ›Y[[™ˆ
-ˆ[H˜Z[[™ÈÈ›İXÛÛ™HKHÛˆH[™HÚÜÙHÙ][™ÈY›İÚ[™ÙYˆ
-ˆ][ˆÛ›HH[™HÚÜÙH˜[YHXİX[HY™™\œÈ\ÈÛÜ™]Üš][™Ëˆ
-‹ÂˆYˆ
-XÛÛ[Y[Y	‰ˆ˜[Y\ÖÚWHOH•S	‰ˆ˜[Y\ÖÚWVÌHOH	×	ÊHÂˆÛÛœİÚ\ˆ
-ˆH[™H
-ÈÙ™ÂˆÚ^™WİˆHÂˆÚ[H
-–Û—HOH	×	È	‰ˆ–Û—HOH	ÈÉÈ	‰ˆ–Û—HOH	ÎÉÈ	‰‚ˆ–Û—HOH	×‰È	‰ˆ–Û—HOH	×‰ÊHÈŠÊÎÈBˆÚ[H
-ˆˆ	‰ˆ
-–ÛˆHWHOH	È	È–ÛˆHWHOH	×	ÊJHÈ‹KNÈBˆYˆ
-İ›[Š˜[Y\ÖÚWJHOHˆ	‰ˆİ›˜Û\
-‹˜[Y\ÖÚWKŠHOH
-HÂˆœ]Ê[™Kİ]
-NÂˆÜš][–ÚWHHNÂˆ[™YHNÂˆœ™XZÎÂˆBˆB‚ˆÊˆÙY\HXY[™ÈÚ]\ÜXÙHÛÈ[ˆ[™[Y›ØÚÈİ^\È[™[Yˆ
-‹ÂˆÂˆÛÛœİÚ\ˆ
-›XYH[™NÂˆÚ^™Wİ›XYHÂˆÚ[H
-XYÛ›XYHOH	È	ÈXYÛ›XYHOH	×	ÊHÈ›XY
-ÊÎÈBˆÜš]J[™KK›XYİ]
-NÂˆB‚ˆYˆ
-˜[Y\ÖÚWHOH•S˜[Y\ÖÚWVÌHOH	×	ÊHÂˆÊˆÛÛ[Y[Yİ]˜]\ˆ[ˆ[]YˆHİ\œ›İ[™[™ÈÛÛ[Y[]ˆ
-ˆ^Z[œÈHÙ^Hİ^\ÈYX[š[™Ù[[™H^Y\ˆØ[ˆÙYHÚ]ˆ
-ˆØ\È\›™YÙ™ˆ[œİXYÙˆš[™[™ÈHÛKˆ
-‹Âˆœš[Šİ]ˆÈ	\ÈWˆ‹Ù^\ÖÚWJNÂˆH[ÙHÂˆœš[Šİ]‰\ÈH	\×ˆ‹Ù^\ÖÚWK˜[Y\ÖÚWJNÂˆBˆÜš][–ÚWHHNÂˆ[™YHNÂˆœ™XZÎÂˆB‚ˆYˆ
-Z[™Y
-HÈœ]Ê[™Kİ]
-NÈBˆBˆ˜ÛÜÙJ[ŠNÂˆB‚ˆÊˆ[][™ÈHš[HY›İ[™XYHY[[Û‹]™HÜˆÛÛ[Y[YÛÙ\È[ˆH›ØÚÈ]ˆ
-ˆH[™ˆX™[Y™XØ]\ÙHH^Y\ˆÚÈÜ[œÈHš[HY\ˆ\Ú[™ÈH][˜Ú\‚ˆ
-ˆÚİ[™HX›HÈ[]HÛ[˜ÙHÚXÚ[™\È^HÜ›İH[™ÚXÚH][˜Ú\‚ˆ
-ˆYˆ
-‹ÂˆÂˆ[[HHÂˆ›Üˆ
-HHÈHÛİ[ÈJÊÊHÂˆYˆ
-Üš][–ÚWHÙ^\ÖÚWHOH•S
-HÈÛÛ[YNÈBˆYˆ
-˜[Y\ÖÚWHOH•S˜[Y\ÖÚWVÌHOH	×	ÊHÈÛÛ[YNÈBˆYˆ
-X[JHÂˆœ]Ê—ˆÈKKHÜš][ˆHH][˜Ú\ˆKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKH‚ˆ‹KKKKKKKKKKKKKWˆ‹İ]
-NÂˆ[HHNÂˆBˆœš[Šİ]‰\ÈH	\×ˆ‹Ù^\ÖÚWK˜[Y\ÖÚWJNÂˆBˆB‚ˆYˆ
-˜ÛÜÙJİ]
-HOH
-HÂˆš[Š–ÙÙ]—VØÛÛ™šY×HÜš]H˜Z[Yˆ	\×ˆ‹\
-NÂˆ™[[İ™J\
-NÂˆœ™YJÜš][ŠNÂˆ™]\›ˆNÂˆB‚ˆÊˆÚ[™İÜÉÈ™[˜[YJ
-H˜Z[ÈYˆH\İ[˜][Ûˆ^\İË[›ZÙHÔÒVˆ™[[İš[™Èš\œİˆ
-ˆÜ[œÈHÚ[™İÈÚ\™H™Z]\ˆš[H\È]]ÚXÚ\ÈÚHH[\Ü˜\H\Âˆ
-ˆÙ\[[H™[˜[YHİXØÙYYÈKHH˜Z[Y™[˜[YHX]™\ÈH]H™XÛİ™\˜X›H]ˆ
-ˆ]‹\[™Ø^\ÈÛË˜]\ˆ[ˆÜÚ[™È]ˆ
-‹ÂˆÚYˆYš[™Y
-ÕÒSŒÌŠBˆ™[[İ™J]
-NÂˆÙ[™Y‚ˆYˆ
-™[˜[YJ\]
-HOH
-HÂˆš[Š–ÙÙ]—VØÛÛ™šY×HØ[››İ™\XÙH	\ÈKH[İ\ˆÙ][™ÜÈ\™H[ˆ	\×ˆ‹]\
-NÂˆ˜ÈHNÂˆH[ÙHÂˆš[Š–ÙÙ]—VØÛÛ™šY×HØ]™Y	\×ˆ‹]
-NÂˆB‚ˆœ™YJÜš][ŠNÂˆ™›\Ú
-İİ]
-NÂˆ™]\›ˆ˜ÎÂŸB‚‹ÊˆKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKH[š]
-‹Â‚‹Êˆ™]\›™YHÙPÛÛ™šYÒ[š]
+static void key_gunbarrel_sequence_speed(const char *v, int over)
+{
+    char *end = NULL;
+    double speed = strtod(v, &end);
 
-HÚ[ˆH›YÈ\ÈÛ™H]ÈÚÛH›Øˆ[™H›ØÙ\ÜÈÚİ[ˆ
-ˆİÜİXØÙ\ÜÙ[H
-KZ[K]Üš]KXÛÛ™šYËK[\İXÚX]ÊKˆ\İ[˜İœ›ÛHHÜÚ]]™Bˆ
-ˆ™]\›‹ÚXÚYX[œÈH˜][ÛÛ™šYÈ\œ›Ü‹ˆ
-‹ÂˆÙYš[™HÑWĞÓÓ‘’Q×ÔÕÔ
-LJB‚š[ÙPÛÛ™šYÒ[š]
-[\™ØËÚ\ˆ
-Š˜\™İŠBÂˆÛÛœİÚ\ˆ
-˜ÛT]H•SÂˆÛÛœİÚ\ˆ
-Üš]T]H•SÂˆ[ÕÜš]HHÒ[HÂˆ[NÂ‚ˆÊˆ™Y›Ü™H[][™È\È™XY™XØ]\ÙHY\ˆHš[H\È™Y[ˆ\œÙY\™H\È›ÈØ^HYˆ
-ˆÈ[H˜[YHH[š\›Û›Y[İ\YYœ›ÛHÛ™H\Èš[H]\™Kˆ
-‹ÂˆÙWÜ™\Ù]ÜÛ˜\Úİ
+    if (end == v || *end != '\0' || speed != speed || speed < 0.25 || speed > 1.0) {
+        ge_err("gunbarrel_sequence_speed=\"%s\" - expected a number from 0.25 to 1.0%s", v, "");
+        return;
+    }
 
-NÂ‚ˆÊˆ\ÜÈHHÛ›HH›YÜÈ]Ú[™ÙHÚ]\[œÈ™^ˆ›İ[™È\È\YYY]ˆ
-ˆ™XØ]\ÙHKXÛÛ™šYÈ]\İ™HÛ›İÛˆ™Y›Ü™HHš[H\È™XY[™]™\Hİ\ˆ›YÈ]\İˆ
-ˆ™H\YYY\ˆ]‚ˆ
-‚ˆ
-ˆK\™\Ù]\ÈÜİY\™H\ÈÙ[\È\œÙY]\‹™XØ]\ÙHH™\Ù]\ÈÈ™H\YYˆ
-ˆ‘UÑQSˆHš[H[™\ÜÈÈ›ÜˆHÛÛ[X[™[™HÈÙY\™X][™È]ˆÛ›İÚ[™ÈX›İ]]ˆ
-ˆÛ›HÚ[ˆ\ÜÈÈ™XXÚ\È]Ûİ[™HÛÈ]Kˆ
-‹Âˆ›Üˆ
-HHNÈH\™ØÎÈJÊÊHÂˆÛÛœİÚ\ˆ
-˜HH\™İ–ÚWNÂˆYˆ
-İ›˜Û\
-K‹K\™\Ù]H‹JHOHİ›˜Û\
-K‹K\›Ùš[OH‹L
-HOH
-HÂˆÛÛœİÚ\ˆ
-œˆHİ˜ÚŠK	ÏIÊH
-ÈNÂˆYˆ
-İ˜Û\
-‹™[š[˜ÙYŠHOHİ˜Û\
-‹œ\ÈŠHOHˆİ˜Û\
-‹™ÛÛ[™^YJÈŠHOHİ˜Û\
-‹™ÙJÈŠHOH
-HÈ×Ü™\Ù]Ü\ÈHNÈBˆ[ÙHÈ×Ü™\Ù]Ü\ÈHÈBˆBˆYˆ
-İ›˜Û\
-K‹KXÛÛ™šYÏH‹JHOH
-HÈÛT]HH
-ÈNÈBˆ[ÙHYˆ
-İ˜Û\
-K‹KXÛÛ™šYÈŠHOH	‰ˆH
-ÈH\™ØÊHÈÛT]H\™İ–ÊÊÚWNÈBˆ[ÙHYˆ
-İ›˜Û\
-K‹K]Üš]KXÛÛ™šYÏH‹MJHOH
-HÈÕÜš]HHNÈÜš]T]HH
-ÈMNÈBˆ[ÙHYˆ
-İ˜Û\
-K‹K]Üš]KXÛÛ™šYÈŠHOH
-HÈÕÜš]HHNÈBˆ[ÙHYˆ
-İ˜Û\
-K‹KZ[ŠHOHİ˜Û\
-K‹ZŠHOH
-HÈÒ[HNÈBˆ[ÙHYˆ
-İ˜Û\
-K‹K[\İXÚX]ÈŠHOH
-HÈ\İØÚX]Ê
-NÈ™]\›ˆÑWĞÓÓ‘’Q×ÔÕÔÈB‚ˆBˆYˆ
-Ò[
-HÈ\ØYÙJ
-NÈ™]\›ˆÑWĞÓÓ‘’Q×ÔÕÔÈBˆÊˆÜš]WÙY˜][
+    put("GETV_GUNBARREL_SEQUENCE_SPEED", v, over);
+}
 
-H\Ù\ÈH^]XÛÙHÛÛ™[[Ûˆ
-HİXØÙ\ÜÊK]HØ[\‚ˆ
-ˆ™X]È›Û™\›È\ÈœİÜ‹ˆ™]\›š[™È]˜]ÈÛİ[XZÙHHİXØÙ\ÜÙ[ˆ
-ˆK]Üš]KXÛÛ™šYÈ˜[›İYÚ[™›ÛİHØ[YHÚ[HH˜Z[YÛ™H^]YÛX[›Kˆ
-ˆK™Kˆ^XİH˜XÚİØ\™ËˆX\›İÛÈH^XÚ]İÜÙ[[™[ˆ
-‹ÂˆYˆ
-ÕÜš]JHÈ™]\›ˆÜš]WÙY˜][
-Üš]T]
-HOHÈÑWĞÓÓ‘’Q×ÔÕÔˆNÈB‚ˆÊˆX\›Y\ˆZ[ÈÜ›İHHÛÛ™šYÈÈH\™XİÜH˜[YY‘ÛÛ[‘^YHˆÚ[HØ]™\ÈÙ[ˆ
-ˆÈ‘ÛÛ[™^YKS˜]]™H‹ˆHÛÈ\™H[šYšYY›İË][ˆ^\İ[™È[œİ[\ÈH[™Yˆ
-ˆÛÛ™šYÈ[™\ˆHÛ˜[YNÈYÜ]˜]\ˆ[ˆ™\Ù[[™ÈHœ™\ÚÛ™Kˆ›İ[™È\Âˆ
-ˆÛÜYYÜˆ[]YKHHš[HÙY\ÈÛÜšÚ[™ÈÚ\™H]\Ëˆ
-‹ÂˆYˆ
-ÛT]OH•S
-HÂˆÛÛœİÚ\ˆ
-šÛYHHÙ][Š’ÓQHŠNÂˆYˆ
-ÛYHOH•S	‰ˆ
-šÛYHOH	×	ÊHÂˆİ]XÈÚ\ˆÛÌLNÂˆÚ\ˆ™]ÜÌLNÂˆÚ\ˆ™]ÛYØXŞVÌLNÂˆİXİİ]İÂˆÛœš[ŠÛÚ^™[ÙˆÛˆ‰\ËÓXœ˜\KĞ\XØ][Ûˆİ\ÜÑÛÛ[‘^YKÈˆÑWĞÑ‘×ÓQĞPÖWĞTÑSSQKÛYJNÂˆÛœš[Š™]ÜÚ^™[Ùˆ™]Üˆ‰\ËÓXœ˜\KĞ\XØ][Ûˆİ\ÜÑÛÛ[™^YKS˜]]™KÈˆÑWĞÑ‘×ĞTÑSSQKÛYJNÂˆÛœš[Š™]ÛYØXŞKÚ^™[Ùˆ™]ÛYØXŞKˆ‰\ËÓXœ˜\KĞ\XØ][Ûˆİ\ÜÑÛÛ[™^YKS˜]]™KÈˆÑWĞÑ‘×ÓQĞPÖWĞTÑSSQKÛYJNÂˆYˆ
-İ]
-Û	œİ
-HOH	‰ˆİ]
-™]Ü	œİ
-HOH	‰ˆİ]
-™]ÛYØXŞK	œİ
-HOH
-HÂˆš[Š–ÙÙ]—VØÛÛ™šY×H\Ú[™ÈH™K\™[˜[YHÛÛ™šYÎˆ	\×ˆ‹Û
-NÂˆÛT]HÛÂˆBˆBˆB‚ˆÊˆ\ÜÈˆHHš[KÚ]İ™\Üš]OLÛÈH[š\›Û›Y[[Ø^\ÈÚ[œËˆ
-‹ÂˆYˆ
-ØØ]J\™ØÈˆÈ\™İ–ÌHˆ•SÛT]
-JHÂˆ™XYÙš[J
-NÂˆH[ÙHYˆ
-ÛT]OH•S
-HÂˆš[Š–ÙÙ]—VØÛÛ™šY×HKXÛÛ™šYÏI\È›İ›İ[™ˆ‹ÛT]
-NÂˆ×Ù\œ›ÜœÊÊÎÂˆH[ÙHÂˆÊˆš\œİ[ˆ›ÈÛÛ™šYÈ[]Ú\™H[™›Û™H\ÚÙY›Ü‹ÛÈÜš]HH[\]H[™ˆ
-ˆ[ˆ™XY]ˆ\È\È›İHÛÛ™[šY[˜ÙNÈ]\ÈİÈHÜ	ÜÈ[™YY˜][Âˆ
-ˆ™XXÚH^Y\ˆ][‚ˆ
-‚ˆ
-ˆHY˜][]Û›H^\İÈ[œÚYHHš[HH\Ù\ˆ\È™]™\ˆÙ[™\˜]Y\È›İˆ
-ˆHY˜][ˆ[™\ÛÛÚÈHX\ÈHØ\ÙH[ˆÚ[ˆH\Ù\ˆÚ]›ÈÛÛ™šYÈš[Bˆ
-ˆÙ]È™]Z[	ÜÈY˜][[œİXY[™™]Z[ÛZ]ÈÔSÓ—ÒS•‘T•ÓÒËÚXÚˆ
-ˆXZÙ\ÈİXÚË]\š]™H]ÚİÛˆ][˜]H[™[ˆ]HNLYÜ™YHÛ[\ˆ
-ˆÚ][ˆX›İ]KHÙXÛÛ™ËˆHœ™\Ú[œİ[[ˆÜ[œÈÚ]HØ[Y\˜Hİ\š[™Âˆ
-ˆ]H›ÛÜ‹‚ˆ
-‚ˆ
-ˆ˜Z[\™H\È[X™\˜][H›Û‹Y˜][[™™X\‹\Ú[[ˆH™XY[Û›HÓQH]\İˆ
-ˆİ[›ÛİÛˆZ[Z[ˆY˜][Ëˆ
-‹ÂˆYˆ
-Üš]WÙY˜][
-•S
-HOH	‰‚ˆØØ]J\™ØÈˆÈ\™İ–ÌHˆ•S•S
-JHÂˆš[Š–ÙÙ]—VØÛÛ™šY×Hš\œİ[ˆKHÜ›İHHY˜][ÛÛ™šYÎÈY]]È\İWˆŠNÂˆ™XYÙš[J
-NÂˆBˆB‚ˆÊˆH™\Ù]Ú]È\™HÛˆ\œÜÙNˆY\ˆHš[K™Y›Ü™HHÛÛ[X[™[™KˆÙYBˆ
-ˆÙWÜ™\Ù]Ø\J
-H›ÜˆÚH]ÜÚ][Ûˆ\ÈHÚÛH[Kˆ
-‹ÂˆÙWÜ™\Ù]Ø\J
-NÂ‚ˆÊˆ\ÜÈÈHHÛÛ[X[™[™KÚ]İ™\Üš]OLHÛÈ]™X]ÈH[š\›Û›Y[ˆ
-‹Âˆ›Üˆ
-HHNÈH\™ØÎÈJÊÊHÂˆÚ\ˆ
-˜HH\™İ–ÚWNÂˆÚ\ˆİ–ÍLL—K
-™\NÂˆYˆ
-İ›˜Û\
-K‹KH‹ŠHOH
-HÈÛÛ[YNÈBˆYˆ
-İ›˜Û\
-K‹KXÛÛ™šYÈ‹
-HOHİ›˜Û\
-K‹K]Üš]KXÛÛ™šYÈ‹M
-HOHˆİ˜Û\
-K‹KZ[ŠHOHİ˜Û\
-K‹K[\İXÚX]ÈŠHOH
-HÈÛÛ[YNÈBˆÊˆÛÛœİ[YYHÙWÛ][˜Ú\‹˜ÜÚXÚ[œÈY\ˆ\È™]\›œËˆÚÚ\Y˜]\‚ˆ
-ˆ[ˆ[™YˆH][˜Ú\ˆ™YYÈHÛÛ™šYÈ^Y\ˆÈ]™Hš[š\ÚYš\œİÛÂˆ
-ˆ]]™\HÛÛ›ÛÜ[œÈÚİÚ[™ÈH˜[YHHš[H[™[š\›Û›Y[™\ÛÛ™Yˆ
-ˆËˆ\İ[™È]\™HÛ›HİÜÈ]™Z[™È™\ÜY\ÈHX[›Ü›YYKZÙ^O]˜[YKˆ
-‹ÂˆYˆ
-İ˜Û\
-K‹K[][˜Ú\ˆŠHOH
-HÈÛÛ[YNÈBˆÛœš[Šİ‹Ú^™[Ùˆİ‹‰\È‹H
-ÈŠNÂˆ\HHİ˜ÚŠİ‹	ÏIÊNÂˆYˆ
-\HOH•S
-HÂˆYˆ
-H
-ÈH\™ØÈ	‰ˆ\™İ–ÚH
-ÈWVÌHOH	ËIÊHÂˆÚ\ˆ›Ú[™YÍŒNÂˆÛœš[Š›Ú[™YÚ^™[Ùˆ›Ú[™Y‰\ÏI\È‹İ‹\™İ–ÊÊÚWJNÂˆÛœš[Šİ‹Ú^™[Ùˆİ‹‰\È‹›Ú[™Y
-NÂˆ\HHİ˜ÚŠİ‹	ÏIÊNÂˆH[ÙHÂˆš[Š–ÙÙ]—VØÛÛ™šY×HYÛ›Üš[™È‰\×ˆ^XİYKZÙ^O]˜[YWˆ‹JNÂˆÛÛ[YNÂˆBˆBˆ
-™\HH	×	ÎÂˆÂˆÚ\ˆ–ÍLL—NÂˆÛœš[Š‹Ú^™[Ùˆ‹‰\È‹\H
-ÈJNÂˆYˆ
-İ›˜Û\
-İ‹‘ÑU—È‹JHOH	‰‚ˆİ˜Û\
-İ‹œØ]™WÙ\ˆŠHOH	‰ˆİ˜Û\
-İ‹œØ]™Y\ˆŠHOH
-HÂˆİÙ\ŠŠNÂˆBˆYˆ
-X\Jİ‹‹Ê›İ™\Üš]OJ‹ÌJJHÂˆš[Š–ÙÙ]—VØÛÛ™šY×HYÛ›Üš[™È[šÛ›İÛˆ›YÈKI\×ˆ‹İŠNÂˆBˆBˆB‚ˆÊˆÑU—ĞÒPUË\YY\İÛÈ]™X]È›İHš[H[™HÓK‚ˆ
-‚ˆ
-ˆÚX]È\™HHÛ™H\ÙˆHÛÛ™šYÈ]\È›İ^™\ÜÙY\ÈHÑU—ÈØ]NˆÙ^WØÚX]Âˆ
-ˆÜš]\ÈHØ[YIÜÈÚX]›YÈ\œ˜^H\™XİK\™K]\œÙH[YKˆ]ÛÜšÜÈ›ÜˆBˆ
-ˆÛÛ™šYÈš[K]]YX[œÈHÚX]Ø[››İİ\š]™H[ˆ^XÊ
-HKH[™H][˜Ú\ˆ™[][˜Ú\Âˆ
-ˆHš[˜\H™XÚ\Ù[H™XØ]\ÙH[ÜİØ]\È\™H™XYÛ˜ÙH[ÈHİ]XÈ[™Ø[››İ™HÚ[™ÙYˆ
-ˆY\Ø\™Ëˆ\ÈØ]H\ÈİÈHÚX]Ù[Xİ[ÛˆÜ›ÜÜÙ\È]›İ[™\KˆØ[YHÛÛ[XK\Ù\\˜]Yˆ
-ˆŞ[^\ÈHÚX]ØÙ^K[™]\ÈÚ[\H[™YÈHØ[YH\œÙ\‹ˆ
-‹ÂˆÂˆÛÛœİÚ\ˆ
-™[˜ÚX]ÈHÙ][Š‘ÑU—ĞÒPUÈŠNÂˆYˆ
-[˜ÚX]ÈOH•S	‰ˆ
-™[˜ÚX]ÈOH	×	ÊHÂˆÙ^WØÚX]Ê[˜ÚX]ËJNÂˆBˆB‚ˆÙPÛÛ™šYĞ\S][˜Ú\”›Ùš[J
-NÂ‚ˆš[Š–ÙÙ]—VØÛÛ™šY×H	\É\ÈÚ[™İÏI\ÈœÏI\ÈÜÏI\ÈÛÛ›ÛÏIYš[\š[™ÏI]Wˆ‹ˆÙWØÛÛ™šY×ÛØYYÈ™š[Hˆˆ››ÈÛÛ™šYÈš[H‹ˆÙWØÛÛ™šY×ÛØYYÈ×ØÙ™Ü]ˆˆ‹ˆÙ][Š‘ÑU—ÕÒS‘ÕÈŠHÈÙ][Š‘ÑU—ÕÒS‘ÕÈŠHˆ™Y˜][‹ˆÙ][Š‘ÑU—Ñ”ÈŠHÈÙ][Š‘ÑU—Ñ”ÈŠHˆ™Y˜][‹ˆÙ][Š‘ÑU—ÔÕTT”ĞSTHŠHÈÙ][Š‘ÑU—ÔÕTT”ĞSTHŠHˆ™Y˜][‹ˆÙWØÛÛ™šY×ØÛÛ›ÛËÛÛ™šYÑš[\š[™ÊNÂˆYˆ
-×Ù\œ›ÜœÈˆ
-HÂˆš[Š–ÙÙ]—VØÛÛ™šY×H	YÙ][™ÊÊHÙ\™H™Z™XİYHÙYHX›İ™Kˆˆ•HØ[YHÚ[İ\Ú]HY˜][È›ÜˆÜÙK—ˆ‹×Ù\œ›ÜœÊNÂˆBˆ™›\Ú
-İİ]
-NÂˆ™]\›ˆÂŸB
+static void key_aspect(const char *v, int over)
+{
+    /* This key only ever picks/validates a WINDOW SHAPE; it does not decide what the
+     * renderer does with that shape. That is the separate `widescreen` key
+     * (GETV_WIDESCREEN, configWidescreen in port_support.c): on, gfx_pc.c's ge_scale() /
+     * gfx_adjust_x_for_aspect_ratio() fill the window at its own aspect; off, they
+     * pillarbox to the console's 4:3 regardless of window shape, same as before that gate
+     * existed. Setting a 16:9 window with widescreen off is a legitimate combination (a
+     * pillarboxed 4:3 image inside a wider window) so this key deliberately does not
+     * touch GETV_WIDESCREEN itself. */
+ const char *win = getenv("GETV_WINDOW");
+ int aw = 0, ah = 0;
+
+ if (strcmp(v, "4:3") == 0 || strcmp(v, "43") == 0)        { aw = 4; ah = 3;  }
+ else if (strcmp(v, "16:9") == 0 || strcmp(v, "169") == 0) { aw = 16; ah = 9;  }
+ else if (strcmp(v, "auto") == 0)                           { return; }
+ else {
+ ge_err("aspect=\"%s\" - only 4:3, 16:9 and auto are supported%s", v, "");
+ return;
+    }
+ put("GETV_ASPECT", (aw == 4) ? "4:3" : "16:9", over);
+
+ if (win != NULL && *win != '\0') {
+ unsigned w = 0, h = 0;
+ if (sscanf(win, "%ux%u", &w, &h) == 2 && h != 0) {
+ double want = (double)aw / (double)ah;
+ double got  = (double)w / (double)h;
+ if (got < want * 0.97 || got > want * 1.03) {
+ printf("[getv][config] note: resolution %ux%u is not %d:%d ""(%.3f vs %.3f). The renderer follows the WINDOW, so the ""window shape wins and `aspect` is advisory here.\n",
+ w, h, aw, ah, got, want);
+            }
+        }
+ return;   /* an explicit resolution always wins over an implied one */
+    }
+    /* No explicit resolution: give the aspect a sane default window.
+     * 4:3 = 1280x960 is port_support.c's own declared default. */
+ put("GETV_WINDOW", (aw == 4) ? "1280x960" : "1600x900", over);
+}
+
+static void key_framerate(const char *v, int over)
+{
+ int n;
+
+ if (is_false(v) || strcmp(v, "uncapped") == 0 || strcmp(v, "unlimited") == 0) {
+ put("GETV_FPS", "0", over);
+    /* Uncapped implies the real clock, because uncapped on the synthetic one is the worst
+     * configuration this port can be put in. The synthetic counter advances a fixed amount
+     * per call, so one rendered frame is one video field by construction and the world runs
+     * as fast as the renderer does: measured at 811.9 fields a second against the correct
+     * 60, a game running thirteen times too fast.
+     *
+     * The real timebase makes a field a unit of real time, and waitForNextFrame's free-run
+     * path (frametiming.c) then lets the renderer run ahead of it instead of blocking on the
+     * field boundary. Measured together: 60.5 fields a second at 416 fps. That pairing is
+     * the only one that delivers a fast display and correct game speed at once, which is
+     * why asking for one here sets the other rather than leaving it to be discovered.
+     *
+     * put() will not overwrite, so GETV_REALCLOCK=0 in the environment still wins for
+     * anyone deliberately measuring the synthetic behaviour. */
+ put("GETV_REALCLOCK", "1", over);
+ return;
+    }
+ n = atoi(v);
+
+    /* A CAP above 60 cannot be right, and this is measured rather than inherited caution.
+     *
+     * With the synthetic counter a rendered frame is a video field by construction, so a
+     * 120 cap runs the world at 117.6 fields a second against the correct 60. The tick
+     * divider does not rescue that: it changes how often the simulation ticks and hands the
+     * skipped fields to the tick that runs, so total game time per real second still follows
+     * the render rate.
+     *
+     * With the real clock a cap is worse than useless. waitForNextFrame only free-runs when
+     * the cap is off; with a 120 cap it blocks on the field boundary and delivers 60 fps
+     * anyway, measured at 60.3 fields a second and 60 fps. So a capped rate above 60 is
+     * either wrong or pointless, depending on the clock, and there is no third case.
+     *
+     * `framerate = off` is the configuration that works, and it now implies the real clock:
+     * 60.5 fields a second at 416 fps. That is what this message points at. */
+ if (n > 60) {
+ ge_err("framerate=%s is not supported: a frame cap above 60 either runs the game fast "
+        "(117.6 fields/sec against the correct 60, on the synthetic clock) or is ignored "
+        "(60 fps anyway, on the real clock).\n"
+        "For a high-refresh display use `framerate = off`, which uncaps the renderer and "
+        "switches to the real timebase: measured 60.5 fields/sec at 416 fps.\n"
+        "Supported: 30, 50, 60, or off%s", v, "");
+ return;
+    }
+ if (n != 30 && n != 50 && n != 60) {
+ ge_err("framerate=%s is not one of 30, 50, 60 or off%s", v, "");
+ return;
+    }
+    /* 30 needs a second setting to be correct, and used to ship without it.
+     *
+     * Capping the renderer alone leaves each update reporting one elapsed field, so the
+     * world advances 30 fields a second instead of 60 and everything runs at half speed.
+     * The note here used to describe that as inherent. It is not; it was a missing factor.
+     *
+     * GETV_TICKFIELDS=2 makes waitForNextFrame report two elapsed fields per update, so
+     * g_ClockTimer and g_GlobalTimerDelta become 2 and the thirteen files that scale by the
+     * delta -- animation, recoil, sway, camera -- plus the mission clock advance at the same
+     * real rate they do at 60. Thirty updates a second times two fields is sixty fields a
+     * second, which is real time.
+     *
+     * The frame-quantised systems, the other 122 files under src/game, then run at 30 Hz
+     * rather than 60. That is the point rather than a side effect: an enemy's rate of fire
+     * is a frame count, chraction.c:6694 firing on firecount % automaticFiringRate, so at 60
+     * it is roughly twice what the console produced. Thirty is far closer to the cadence the
+     * game was tuned against.
+     *
+     * put() will not overwrite an existing value, so GETV_TICKFIELDS set by hand still wins. */
+ if (n == 30) {
+ put("GETV_TICKFIELDS", "2", over);
+ printf("[getv][config] framerate=30 also sets GETV_TICKFIELDS=2: the simulation ticks at ""30 Hz while game time runs at real speed. Frame-counted systems (enemy fire ""rate, ammunition, AI stepping) run at the cadence the game was tuned for ""rather than the doubled one 60 produces.\n");
+    }
+    {
+ char buf[16];
+ snprintf(buf, sizeof buf, "%d", n);
+ put("GETV_FPS", buf, over);
+    }
+}
+
+static void key_supersample(const char *v, int over)
+{
+ int n = atoi(v);
+ if (n != 1 && n != 2) {
+ ge_err("supersample=%s - only 1 and 2 are supported%s", v, "");
+ return;
+    }
+    /* Not a neutral speed knob: it changes the framebuffer size and therefore the heap
+     * layout, so two runs at different settings are not directly comparable. For a
+     * player it is simply anti-aliasing against speed. */
+ put("GETV_SUPERSAMPLE", (n == 2) ? "2" : "1", over);
+}
+
+static void key_filtering(const char *v, int over)
+{
+ const char *mode;
+
+    /* Two independent mechanisms exist and they do not mean the same thing:
+     * configFiltering (port_support.c:107)  0=nearest 1=bilinear 2=three-point,
+     * read by gfx_opengl.c:391 / gfx_pc.c:1966
+     * GETV_POINT_FILTER (gfx_pc.c:1963) forces the literal N64 point-sample
+     * We set both consistently so they cannot disagree. */
+ if (strcmp(v, "point") == 0 || strcmp(v, "nearest") == 0 || strcmp(v, "n64") == 0) {
+ mode = "0";
+    } else if (strcmp(v, "bilinear") == 0 || strcmp(v, "linear") == 0) {
+ mode = "1";
+    } else if (strcmp(v, "three-point") == 0 || strcmp(v, "threepoint") == 0 ||
+ strcmp(v, "3point") == 0 || strcmp(v, "default") == 0) {
+ mode = "2";   /* what the N64 RDP actually did */
+    } else {
+ ge_err("filtering=\"%s\" - expected point, bilinear or three-point%s", v, "");
+ return;
+    }
+
+    /* Filtering is the one friendly key whose consumer is a global rather than a getenv()
+     * call. Put the numeric form into the same precedence mechanism as every other setting,
+     * then read back the value that actually won before updating that global. In particular,
+     * a file pass uses overwrite=0, so filtering=three-point must not displace a process that
+     * started with GETV_FILTERING=0. Publishing the value also lets the launcher see a choice
+     * that came from the file rather than falling back to its compiled-in default. */
+ put("GETV_FILTERING", mode, over);
+ {
+ const char *effective = getenv("GETV_FILTERING");
+ if (effective && *effective >= '0' && *effective <= '2' && effective[1] == '\0') {
+ configFiltering = (unsigned int)(*effective - '0');
+        } else {
+            /* An invalid raw environment value is ignored by port_support.c's constructor;
+             * keep the same fallback here rather than letting it suppress a valid friendly
+             * config line. */
+ configFiltering = (unsigned int)(*mode - '0');
+        }
+    }
+ put("GETV_POINT_FILTER", configFiltering == 0 ? "1" : "0", over);
+}
+
+static void key_widescreen(const char *v, int over)
+{
+ const char *mode;
+
+ if (is_true(v))       { mode = "1"; }
+ else if (is_false(v)) { mode = "0"; }
+ else {
+ ge_err("widescreen=%s - expected 0 or 1%s", v, "");
+ return;
+    }
+
+    /* Like filtering above, widescreen is consumed through a global that its constructor
+     * resolves before main(). A config file is read later, so setting only the environment
+     * left configWidescreen at its compiled-in default. Read back the winning value after
+     * put(): overwrite=0 preserves a higher-priority environment value, while overwrite=1
+     * lets the command line replace it. */
+ put("GETV_WIDESCREEN", mode, over);
+ {
+ const char *effective = getenv("GETV_WIDESCREEN");
+ if (effective && *effective >= '0' && *effective <= '1' && effective[1] == '\0') {
+ configWidescreen = (unsigned int)(*effective - '0');
+        } else {
+            /* Match port_support.c's constructor: ignore an invalid raw environment value
+             * and keep the valid friendly setting. */
+ configWidescreen = (unsigned int)(*mode - '0');
+        }
+    }
+}
+
+/* ---- gamepad profile / bindings / deadzone / invert-look ------------------------
+ *
+ * These nine keys are this file's own names for gates that already exist:
+ * `GETV_GAMEPAD`, the six `GETV_BIND_*` action sources (port_os.c:458-471),
+ * `GETV_DEADZONE` (port_os.c:673-694) and `GETV_INVERTLOOK`
+ * (vendor/ge-decomp/src/game/file2.c:1413). Same choke point as every other key here:
+ * parse, validate, put(). No consumer changes; port_os.c, port_input.c and file2.c are
+ * untouched by this block. */
+
+static void key_gamepad(const char *v, int over)
+{
+ if (strcmp(v, "auto") == 0 || strcmp(v, "xbox") == 0 ||
+ strcmp(v, "playstation") == 0 || strcmp(v, "switch") == 0 ||
+ strcmp(v, "generic") == 0) {
+ put("GETV_GAMEPAD", v, over);
+ return;
+    }
+ ge_err("gamepad=\"%s\" - expected auto, xbox, playstation, switch or generic%s",
+ v, "");
+}
+
+/* Button names are positional, not label-based. "a" always means the bottom face
+ * button on the player's pad, whatever it happens to be labelled: SDL maps the
+ * physically-bottom face button to `_BUTTON_A` on every controller it knows, including
+ * Nintendo's (where that same button is printed "B"). See the note next to
+ * `geParseSrc()` in port_os.c. The `gamepad=` profile above only changes what gets
+ * printed as an on-screen prompt glyph; it never changes what any binding below
+ * actually does. */
+static int is_bind_value(const char *v)
+{
+    /* Generated from GE_SOURCE_LIST rather than spelled out, so adding a pad source
+     * cannot leave the validator rejecting a value the binding layer accepts. That was
+     * a real hazard while the list was hand-maintained here AND in port_os.c AND in
+     * the launcher: the d-pad and the stick clicks had to be added to three places. */
+#define M(id, lo) if (strcmp(v, lo) == 0) { return 1; }
+    GE_SOURCE_LIST(M)
+#undef M
+    return 0;
+}
+
+static void key_bind(const char *gate, const char *key, const char *v, int over)
+{
+ if (is_bind_value(v)) { put(gate, v, over); return; }
+ ge_err("%s=\"%s\" - expected a/b/x/y/lb/rb/lt/rt/start/back/"
+        "dup/ddown/dleft/dright/lstick/rstick/none", key, v);
+}
+
+static void key_deadzone(const char *v, int over)
+{
+    /* Clamp rather than reject: port_os.c:683-685 clamps the same way, so a value
+     * outside 0..40 still does something sane instead of erroring out over what is
+     * only an out-of-range percentage. */
+ int n = atoi(v);
+ if (n < 0)  { n = 0; }
+ if (n > 40) { n = 40; }
+    {
+ char buf[8];
+ snprintf(buf, sizeof buf, "%d", n);
+ put("GETV_DEADZONE", buf, over);
+    }
+}
+
+static void key_invert_look(const char *v, int over)
+{
+    /* Absent must mean "no override", not "off". apply() is only ever called for a key
+     * actually present in the file or on the CLI, so never writing an `invert_look`
+     * line already leaves GETV_INVERTLOOK unset, and file2.c:1413 treats unset as "the     * save file's own Look Up/Down option wins", which is retail behaviour. Setting
+     * invert_look=0 here is therefore an explicit override to non-inverted, not a
+     * no-op. Do not fold this into key_bool_gate()'s pattern: that would make 0 and
+     * unset indistinguishable and silently break the in-game watch option. */
+ if (is_true(v))       { put("GETV_INVERTLOOK", "1", over); }
+ else if (is_false(v)) { put("GETV_INVERTLOOK", "0", over); }
+ else                  { ge_err("invert_look=\"%s\" - expected 0/1%s", v, ""); }
+}
+
+/* The 8 styles, in CONTROLLER_CONFIG_* order - src/bondconstants.h:1337-1364 and the
+ * menu table at src/game/front.c:726-735, which also supplies the controller count. */
+static const struct { const char *num; const char *name; int pads; } GE_CONTROL_STYLES[8] = {
+    { "1.1", "honey",     1 },
+    { "1.2", "solitaire", 1 },
+    { "1.3", "kissy",     1 },
+    { "1.4", "goodnight", 1 },
+    { "2.1", "plenty",    2 },
+    { "2.2", "galore",    2 },   /* true dual-analog: move on pad 2, look on pad 1 */
+    { "2.3", "domino",    2 },
+    { "2.4", "goodhead",  2 },   /* true dual-analog */
+};
+
+static void key_controls(const char *v, int over)
+{
+ int i;
+ for (i = 0; i < 8; i++) {
+ if (strcmp(v, GE_CONTROL_STYLES[i].num) == 0 ||
+ strcmp(v, GE_CONTROL_STYLES[i].name) == 0) {
+ char buf[8];
+ snprintf(buf, sizeof buf, "%d", i);
+ put("GETV_CONTROLS", buf, over);
+ ge_config_controls = i;
+ if (GE_CONTROL_STYLES[i].pads == 2) {
+ printf("[getv][config] controls=%s %s is a TWO-CONTROLLER style ""(front.c:726-735). On a single modern gamepad this is the ""dual-analog layout; with 3-4 players front.c:4733 forces ""everyone back to 1.1 Honey.\n",
+ GE_CONTROL_STYLES[i].num, GE_CONTROL_STYLES[i].name);
+            }
+ return;
+        }
+    }
+ ge_err("controls=\"%s\" - expected one of 1.1/honey 1.2/solitaire 1.3/kissy ""1.4/goodnight 2.1/plenty 2.2/galore 2.3/domino 2.4/goodhead%s", v, "");
+}
+
+static void key_cheats(const char *v, int over)
+{
+ char buf[1024];
+ char *tok, *save;
+ int applied = 0, deferred = 0;
+
+    (void)over;   /* cheats accumulate; there is no "unset a cheat" to overwrite */
+ snprintf(buf, sizeof buf, "%s", v);
+
+ for (tok = strtok_r(buf, ",", &save); tok != NULL; tok = strtok_r(NULL, ",", &save)) {
+ char *n = trim(tok);
+ int i, hit = -1;
+ if (*n == '\0') { continue; }
+ for (i = 0; i < GE_CHEAT_COUNT; i++) {
+ if (strcmp(n, GE_CHEATS[i].name) == 0) { hit = i; break; }
+        }
+ if (hit < 0) {
+ ge_err("cheats: unknown cheat \"%s\" - run --list-cheats for the full set%s",
+ n, "");
+ continue;
+        }
+ if (GE_CHEATS[hit].id > GE_CHEAT_MAX_ID) { continue; }   /* belt and braces */
+
+ g_CheatPlayerTextRelated[GE_CHEATS[hit].id] = GE_CHEAT_ALL_PLAYERS;
+ applied++;
+
+ if (GE_CHEATS[hit].id == 1) {
+            /* CHEAT_EXTRA_MP_CHARS. Its switch arm is one line - front.c:4428's
+             * unlock_all_mp_chars(), which just sets num_chars_selectable_mp = 0x40 -
+             * so we can do it here and skip the unsafe call entirely.
+             * 0x40 is sticky: front.c:5327 re-derives the roster every frame on the
+             * character-select screen but guards the whole block with
+             * `if (num_chars_selectable_mp != 0x40)`, so 0x40 short-circuits it
+             * permanently. 0x21 would not stick - see key_roster(). */
+ num_chars_selectable_mp = 0x40;
+        } else if (!GE_CHEATS[hit].live) {
+ deferred++;
+ printf("[getv][config] cheats: \"%s\" - flag SET, but this cheat has no live ""cheatIsActive() consumer: its effect is applied once inside the ""turn-on switch (cheat.c:1084-1445), which needs a player context ""that does not exist at startup. Toggle it in-game for the effect.\n", n);
+        }
+    }
+ if (applied > 0) {
+ printf("[getv][config] cheats: %d set by name, %d of which are flag-only and ""need in-game activation. ""These are GE's OWN cheat flags (g_CheatPlayerTextRelated, ""bondconstants.h:1249), not GameShark addresses.\n", applied, deferred);
+    }
+}
+
+void geConfigApplyLauncherProfile(void)
+{
+    const char *base = getenv("GETV_LAUNCHER_BASE");
+    const char *pick = getenv("GETV_PICKSTAGE");
+    /* An explicit original-start choice must survive the child re-reading a
+     * configured stage. Direct selection remains available in either mode. */
+    if (base && (!strcmp(base, "0") || !strcmp(base, "1")) &&
+        pick && !strcmp(pick, "0")) unsetenv("GETV_STAGE");
+    if (!base || strcmp(base, "1") != 0) return;
+
+    /* A launcher mode is a promise, not a gap-filling config preset. Apply last,
+     * otherwise forwarded CLI arguments and the re-read file can undo it. Keep
+     * display, timing, input bindings, mouse response, audio and save location under user control. */
+    static const struct { const char *key, *value; } original[] = {
+        {"GETV_PROFILE_PLUS", "0"}, {"GETV_BASE_GAME", "1"},
+        {"GETV_GIBS", "off"}, {"GETV_RULESET", "classic"},
+        {"GETV_HORDE", "0"}, {"GETV_COOP", "0"},
+        {"GETV_UNLOCKALL", "0"},
+        {"GETV_SUPERSAMPLE", "1"}, {"GETV_FOV", "100"},
+        {"GETV_MSAA", "0"}, {"GETV_ANISO", "0"},
+        {"GETV_FILTERING", "2"}, {"GETV_POINT_FILTER", "0"},
+        {"GETV_WIDESCREEN", "0"}, {"GETV_MIPMAPS", "0"},
+        {"GETV_HD_TEXTURES", "0"}, {"GETV_PARALLAX", "0"},
+        {"GETV_FXAA", "0"}, {"GETV_CRT", "0"},
+        {"GETV_CROSSHAIR_SCALE", "1"}, {"GETV_CROSSHAIR_COLOR", "FFFFFF"},
+        {"GETV_RS_ENEMY_HEALTH", "100"}, {"GETV_RS_ENEMY_DAMAGE", "100"},
+        {"GETV_RS_ENEMY_ACCURACY", "100"}, {"GETV_RS_ENEMY_REACTION", "100"},
+        {"GETV_RS_PLAYER_HEALTH", "100"}, {"GETV_RS_PLAYER_ARMOUR", "100"},
+        {"GETV_RS_AMMO", "100"}, {"GETV_RS_EXPLOSION_DAMAGE", "100"},
+        {"GETV_RS_TURRET_DAMAGE", "100"}
+    };
+    static const char *const clear[] = {
+        "GETV_CHEATS", "GETV_NET_HOST", "GETV_NET_JOIN",
+        "GETV_DEBUGPOS"
+    };
+    size_t i;
+    for (i = 0; i < sizeof original / sizeof original[0]; ++i)
+        setenv(original[i].key, original[i].value, 1);
+    for (i = 0; i < sizeof clear / sizeof clear[0]; ++i) unsetenv(clear[i]);
+    configFiltering = 2;
+    configWidescreen = 0;
+    /* These globals were populated by constructors before config parsing. */
+    ge_crosshair_r = ge_crosshair_g = ge_crosshair_b = 255;
+    ge_crosshair_scale = 1.0f;
+    memset(g_CheatPlayerTextRelated, 0, GE_CHEAT_MAX_ID + 1);
+    num_chars_selectable_mp = 8; /* The retail menu derives unlocks from the save. */
+    set_debug_testingmanpos_flag(0);
+}
+
+static void key_roster(const char *v, int over)
+{
+ int n = atoi(v);
+    (void)over;
+ if (n == 64) {
+        /* Same mechanism as cheats=extra_mp_chars, and sticky for the same reason. */
+ num_chars_selectable_mp = 0x40;
+ g_CheatPlayerTextRelated[1] = GE_CHEAT_ALL_PLAYERS;
+ printf("[getv][config] roster=64 - full multiplayer character list ""(CHEAT_EXTRA_MP_CHARS, front.c:4428).\n");
+ return;
+    }
+ if (n == 8) { return; }   /* the shipped default; nothing to do */
+ if (n == 33) {
+        /* Refused rather than faked. 33 (0x21) is not a settable state:
+         * front.c:5327-5335 recomputes the roster every frame from the save file
+         * (fileIsStageUnlockedAtDifficulty(..., SP_LEVEL_CRADLE, DIFFICULTY_AGENT)) for
+         * any value that is not 0x40. Writing 0x21 here would be overwritten on the
+         * first character-select frame and the setting would appear to do nothing. */
+ ge_err("roster=33 cannot be forced. 33 is derived from the SAVE FILE - it ""unlocks by completing Cradle on Agent (front.c:5329) and is recomputed ""every frame. Only 8 (default) and 64 (cheat) are settable; use ""roster=64%s%s", "", "");
+ return;
+    }
+ ge_err("roster=%s - expected 8 or 64 (33 is save-derived; see roster=33)%s", v, "");
+}
+
+static void list_cheats(void)
+{
+ int i;
+ printf("Named cheats - GoldenEye's OWN cheat flags, set by name.\n""cheats = invincibility, dk_mode, paintball\n""\n""These are NOT GameShark codes. A GameShark code is a raw N64 RDRAM address\n""and this port has no RDRAM, so the published code lists cannot work here.\n""The names below drive the game's own cheat array instead, which is\n""layout-independent, ASLR-proof and survives relinking and modding.\n""\n""[live] takes effect straight from the config - the game reads this flag\n""directly via cheatIsActive() while it runs.\n""[flag] the flag is set, but the effect is applied once by the in-game\n""turn-on path, so toggle it in-game to actually get it.\n\n");
+ for (i = 0; i < GE_CHEAT_COUNT; i++) {
+ printf("%-22s id %-3d %s\n", GE_CHEATS[i].name, GE_CHEATS[i].id,
+ GE_CHEATS[i].live ? "[live]" : "[flag]");
+    }
+ printf("\n roster = 8 | 64 multiplayer character count ""(33 is save-derived and cannot be forced)\n");
+}
+
+static void key_bool_gate(const char *gate, const char *key, const char *v, int over)
+{
+ if (is_true(v))       { put(gate, "1", over); }
+ else if (is_false(v)) { put(gate, "0", over); }
+ else                  { ge_err("%s=\"%s\" - expected 0/1 (or on/off)", key, v); }
+}
+
+/* ==================================================================== *
+ * Enhancement keys -- a reserved seam, not yet implemented.
+ *
+ * These parse, validate, and export their GETV_* gate exactly like every other key, but
+ * nothing consumes them yet. They exist so the option surface is stable before the
+ * features land, so a config written today keeps working, and so none of them are
+ * foreclosed by accident.
+ *
+ * Every one defaults off / faithful, deliberately:
+ *   1. the N64 look is the product -- an option is a feature, a changed default is a
+ * different game;
+ *   2. QA here is comparison against real N64 captures, and anything that silently
+ * alters output removes the ability to check correctness;
+ *   3. `getv/port/fast3d/` is licence-contested (see PROVENANCE.md), so prefer new
+ * passes in our own files over edits to inherited Fast3D internals.
+ *
+ * Enabling one prints a not-yet-implemented notice rather than silently doing nothing.
+ * A key that accepts a value and ignores it is worse than no key.
+ *
+ * Do not implement any of these while correctness work is in flight: apparent
+ * regressions are easily confused with artefacts of the comparison itself
+ * (PORTING_PLAYBOOK.md Â§2.10-Â§2.16). Finish the faithful port, freeze a reference
+ * capture set from this build, then enhance against that baseline.
+ */
+static void key_todo_flag(const char *gate, const char *key, const char *v, int over,
+ const char *what)
+{
+ if (is_false(v)) { put(gate, "0", over); return; }
+ if (is_true(v)) {
+ put(gate, "1", over);
+ printf("[getv][config] %s=1 accepted, but %s IS NOT IMPLEMENTED YET -- the gate ""is reserved and currently has no effect.\n", key, what);
+ return;
+    }
+ ge_err("%s=\"%s\" - expected 0/1 (or on/off)", key, v);
+}
+
+/* An integer gate that is actually implemented: same parsing and clamping as key_todo_int,
+ * without the notice saying it does nothing. */
+static void key_int(const char *gate, const char *key, const char *v, int over, int lo, int hi)
+{
+ char buf[32];
+ char *end = NULL;
+ long n = strtol(v, &end, 10);
+ if (end == v || (end && *end != '\0')) {
+ ge_err("%s=\"%s\" - expected an integer", key, v); return;
+    }
+ if (n < lo) { n = lo; }
+ if (n > hi) { n = hi; }
+ snprintf(buf, sizeof buf, "%ld", n);
+ put(gate, buf, over);
+}
+
+static void key_todo_int(const char *gate, const char *key, const char *v, int over,
+ int lo, int hi, const char *what)
+{
+ char buf[32];
+ long n;
+ char *end = NULL;
+ n = strtol(v, &end, 10);
+ if (end == v || (end && *end != '\0')) {
+ ge_err("%s=\"%s\" - expected an integer", key, v); return;
+    }
+ if (n < lo) { n = lo; }
+ if (n > hi) { n = hi; }
+ snprintf(buf, sizeof buf, "%ld", n);
+ put(gate, buf, over);
+ if (n > 0) {
+ printf("[getv][config] %s=%ld accepted, but %s IS NOT IMPLEMENTED YET -- the ""gate is reserved and currently has no effect.\n", key, n, what);
+    }
+}
+
+/* ------------------------------------------------------------ the dispatcher */
+
+/* Returns 1 if the key was recognised. */
+/* -1 = nobody asked, 0 = faithful, 1 = GoldenEye+. Recorded during parsing and acted on
+ * between the file and the command line; see key_preset and ge_preset_apply. */
+static int g_preset_plus = -1;
+
+/* What GoldenEye+ turns on. Kept as a table rather than a run of put() calls because the
+ * environment has to be sampled for exactly these names before the config file is read, and
+ * two hand-maintained lists of the same eight strings is how they drift apart.
+ *
+ * These match apply_profile() in ge_launcher.cpp deliberately. Two paths to one profile that
+ * disagree about what it means is worse than either alone, and that was the state this
+ * replaced: the launcher's profile turned on real settings while the config file's `preset`
+ * key printed an apology for not being implemented.
+ *
+ * FOV is absent because the launcher's floor and this file's default are both 100. */
+static const struct { const char *name; const char *val; } kPresetPlus[] = {
+    { "GETV_MSAA",        "4" },
+    { "GETV_ANISO",       "8" },
+    { "GETV_MIPMAPS",     "1" },
+    { "GETV_SUPERSAMPLE", "2" },
+    { "GETV_HD_TEXTURES", "1" },   /* a silent no-op when no pack is installed */
+    { "GETV_FXAA",        "1" },
+    /* Only does anything with a pack that ships `<hash>_h.png` height maps, and there is no
+     * height data in the game's own assets. It is here so the same installed pack means
+     * different things under the two profiles: texture resolution under 97 Console,
+     * resolution and displacement under this one. */
+    { "GETV_PARALLAX",    "1" },
+    /* A 32-pixel sight was sized for 320x240 on a CRT across a room. At a desk it covers
+     * noticeably more of what you are aiming at than it did in 1997. 1.0 is retail exactly
+     * and stays the default outside this profile. */
+    { "GETV_CROSSHAIR_SCALE", "0.6" },
+    /* Uncapped, and the real clock it has to travel with. On the synthetic counter one
+     * rendered frame is one video field by construction, so uncapping alone runs the world as
+     * fast as the renderer draws: measured at 811.9 fields a second against the correct 60.
+     * Vsync stays on, so this means "as fast as the display" rather than "as fast as
+     * possible"; GETV_VSYNC=0 releases it and measures 449 fps on DAM. */
+    { "GETV_FPS",         "0" },
+    { "GETV_REALCLOCK",   "1" },
+};
+static const int kPresetPlusCount = (int)(sizeof kPresetPlus / sizeof kPresetPlus[0]);
+
+/* Set for each entry above that was already in the environment when geConfigInit() started,
+ * which is the only moment the real environment can be told apart from what this file puts
+ * there. */
+static int g_preset_env_had[sizeof kPresetPlus / sizeof kPresetPlus[0]];
+
+static void ge_preset_snapshot(void)
+{
+    int i;
+    for (i = 0; i < kPresetPlusCount; i++) {
+        const char *e = getenv(kPresetPlus[i].name);
+        g_preset_env_had[i] = (e != NULL && *e != '\0');
+    }
+}
+
+/* Applied between the config file and the command line, and it fills gaps rather than
+ * displacing anything:
+ *
+ *     command line  >  environment  >  your own config lines  >  preset
+ *
+ * Every one of those beats the preset, which is the behaviour the template promises and the
+ * only one that is not surprising: somebody who writes `preset = plus` and then `fxaa = 0`
+ * means both lines, and getting FXAA anyway would be the config layer overruling them.
+ *
+ * Telling the three apart needs the snapshot above, taken before the file is read. After
+ * pass 2 a preset key is in the environment for one of two reasons, and they need opposite
+ * treatment: it was there when the process started, or this file's own put() put it there
+ * from a config line. Both look identical to getenv() by then.
+ *
+ * A skipped key is REPORTED rather than passed over quietly. The template ships with
+ * `supersample` and `framerate` commented out precisely so the profile can reach them, but an
+ * install predating that has them as live lines, and a preset that silently declined to
+ * uncap the frame rate would look exactly like a preset that did not work. */
+static void ge_preset_apply(void)
+{
+    int i;
+    char held[512];
+    size_t heldlen = 0;
+
+    held[0] = '\0';
+
+    if (g_preset_plus < 0 && getenv("GETV_PROFILE_PLUS") != NULL) {
+        g_preset_plus = (atoi(getenv("GETV_PROFILE_PLUS")) != 0);
+    }
+    if (g_preset_plus != 1) {
+        return;
+    }
+    for (i = 0; i < kPresetPlusCount; i++) {
+        const char *cur;
+
+        /* Already there when the process started. The launcher's own doing, most of the
+         * time: it writes every setting explicitly and then execs. Leave it alone. */
+        if (g_preset_env_had[i]) {
+            continue;
+        }
+        /* Not in the environment at entry but set now, so a config line put it there. That
+         * is a deliberate choice and outranks the profile, but say which ones. */
+        cur = getenv(kPresetPlus[i].name);
+        if (cur != NULL && *cur != '\0') {
+            int n = snprintf(held + heldlen, sizeof held - heldlen, "%s%s",
+                             heldlen ? ", " : "", kPresetPlus[i].name + 5);
+            if (n > 0 && (size_t) n < sizeof held - heldlen) { heldlen += (size_t) n; }
+            continue;
+        }
+        setenv(kPresetPlus[i].name, kPresetPlus[i].val, 1);
+    }
+
+    printf("[getv][config] preset: GoldenEye+ (msaa 4, aniso 8, mipmaps, ss 2, HD textures, "
+           "parallax, FXAA, a 0.6 reticle, uncapped on the real clock)\n");
+    if (heldlen > 0) {
+        printf("[getv][config] preset: your own settings kept for %s. Comment those lines out "
+               "to let the profile have them.\n", held);
+    }
+}
+
+static int apply(const char *key_in, const char *val, int over)
+{
+ char key[128];
+ snprintf(key, sizeof key, "%s", key_in);
+ lower(key);
+
+    /* Raw escape hatch: any gate by its real name, uppercased. Kept first so a raw
+     * name is never shadowed by a friendly one. */
+ if (strncmp(key_in, "GETV_", 5) == 0) { put(key_in, val, over); return 1; }
+
+ if (strcmp(key, "resolution") == 0)  { key_resolution(val, over); return 1; }
+ if (strcmp(key, "aspect") == 0)      { key_aspect(val, over); return 1; }
+ if (strcmp(key, "framerate") == 0)   { key_framerate(val, over); return 1; }
+ if (strcmp(key, "fov") == 0)         { key_int("GETV_FOV", key, val, over, 50, 160); return 1; }
+ if (strcmp(key, "coop") == 0)        { key_int("GETV_COOP", key, val, over, 0, 4); return 1; }
+    /* Co-op team rules. Only read when coop >= 2; the game gates both on gePortCoopPlayers().
+     * friendly fire defaults off, which is the opposite of multiplayer and the point of co-op. */
+ if (strcmp(key, "coop_friendly_fire") == 0)
+                                      { key_bool_gate("GETV_COOP_FRIENDLYFIRE", key, val, over); return 1; }
+ if (strcmp(key, "coop_respawn") == 0) { key_int("GETV_COOP_RESPAWN", key, val, over, 0, 30); return 1; }
+ if (strcmp(key, "supersample") == 0) { key_supersample(val, over); return 1; }
+ if (strcmp(key, "controls") == 0)    { key_controls(val, over); return 1; }
+ if (strcmp(key, "filtering") == 0)   { key_filtering(val, over); return 1; }
+ if (strcmp(key, "widescreen") == 0)  { key_widescreen(val, over); return 1; }
+ if (strcmp(key, "pd_renderer") == 0 || strcmp(key, "perfect_dark_renderer") == 0) {
+     key_bool_gate("GETV_PD_RENDERER", key, val, over); return 1;
+ }
+ if (strcmp(key, "gunbarrel_bond_speed") == 0 || strcmp(key, "gunbarrel_walk_speed") == 0) {
+     key_gunbarrel_bond_speed(val, over); return 1;
+ }
+ if (strcmp(key, "gunbarrel_sequence_speed") == 0 || strcmp(key, "gunbarrel_speed") == 0) {
+     key_gunbarrel_sequence_speed(val, over); return 1;
+ }
+ /* hd_textures: off by default (configHDTextures, port_support.c) -- unlike widescreen and
+  * filtering above, this path has had no compiler available to verify it against. texpack
+  * is a bare directory path, same pass-through shape as moddir below. */
+ if (strcmp(key, "hd_textures") == 0) { key_bool_gate("GETV_HD_TEXTURES", key, val, over); return 1; }
+ if (strcmp(key, "texpack") == 0)     { put("GETV_TEXPACK", val, over); return 1; }
+
+    /* ---- gamepad / bindings / deadzone / invert-look -------------------------- */
+ if (strcmp(key, "gamepad") == 0) { key_gamepad(val, over); return 1; }
+
+    /* The whole binding surface, generated from the lists in ge_actions.h.
+     *
+     * Six actions used to be written out by hand here, and the per-player forms as a
+     * seventh table just below. Adding crouch, stand and reload would have meant three
+     * more lines in each, plus the matching rows in port_os.c and the launcher, with
+     * nothing to catch a spelling that only got added to two of the four. Driving all
+     * of it from GE_ACTION_LIST removes the possibility.
+     *
+     *   fire        = rt          pad binding, all players
+     *   p2.fire     = rb          pad binding, player 2 only
+     *   key.reload  = R           keyboard/mouse binding
+     *   key.forward = W           keyboard movement axis
+     */
+    {
+#define M(id, lo, up)                                                             \
+        if (strcmp(key, lo) == 0) {                                               \
+            key_bind("GETV_BIND_" up, key, val, over); return 1;                  \
+        }
+        GE_ACTION_LIST(M)
+#undef M
+    }
+
+    /* Per-player: `p2.fire = rb`. The bare `fire` above stays the setting for all four
+     * and a p<n>. key overrides it for that player only -- the same two-level fallback
+     * geBindSrc() applies, expressed the way a config file wants to read. */
+    if (key[0] == 'p' && key[1] >= '1' && key[1] <= '4' && key[2] == '.') {
+        const char *act = key + 3;
+#define M(id, lo, up)                                                             \
+        if (strcmp(act, lo) == 0) {                                               \
+            char gate[64];                                                        \
+            snprintf(gate, sizeof gate, "GETV_P%c_BIND_%s", key[1], up);           \
+            key_bind(gate, key, val, over);                                       \
+            return 1;                                                             \
+        }
+        GE_ACTION_LIST(M)
+#undef M
+    }
+
+    /* Keyboard and mouse bindings, `key.<action>` and `key.<axis>`.
+     *
+     * Namespaced under `key.` because the bare names are already taken by the pad, and
+     * the two are genuinely independent now -- `aim = lt` and `key.aim = mouse2` are
+     * both in force at once, which is the point of splitting them.
+     *
+     * The VALUE is passed through verbatim, deliberately. It is a comma-separated list
+     * of SDL scancode names ("C,Left Ctrl") plus this port's mouse names, and SDL only
+     * resolves a name once the window exists and the platform key table is populated.
+     * Validating here would mean shipping a second copy of SDL's table that could
+     * disagree with it. port_input.c warns per unrecognised name at resolution time
+     * instead, which is where the authoritative answer lives. Same reasoning as
+     * console_key below, which has always worked this way. */
+    if (strncmp(key, "key.", 4) == 0) {
+        const char *what = key + 4;
+        char gate[64];
+#define M(id, lo, up)                                                             \
+        if (strcmp(what, lo) == 0) {                                              \
+            snprintf(gate, sizeof gate, "GETV_KEY_%s", up);                        \
+            put(gate, val, over); return 1;                                        \
+        }
+        GE_ACTION_LIST(M)
+        GE_AXIS_LIST(M)
+#undef M
+        ge_err("key.%s - not an action or a movement axis", what, "");
+        return 1;
+    }
+
+    /* Which set of defaults everything above falls back to. */
+    if (strcmp(key, "input_preset") == 0 || strcmp(key, "preset_input") == 0) {
+        if (strcmp(val, "modern") == 0 || strcmp(val, "n64") == 0 ||
+            strcmp(val, "classic") == 0) {
+            put("GETV_INPUT_PRESET", val, over);
+        } else {
+            ge_err("input_preset=\"%s\" - expected modern|n64%s", val, "");
+        }
+        return 1;
+    }
+
+    /* Hold vs toggle.
+     *
+     * crouch_mode is enforced in the port (ge_bindings.c) because the engine has no
+     * crouch button to latch. aim_mode is enforced in the ENGINE: the retail options
+     * menu already carries a per-player aim-control setting that bondview2.c reads as
+     * a rising edge rather than a level, so this sets that option (via the older
+     * GETV_AIM_TOGGLE gate and the 0015 patch) rather than adding a second latch that
+     * would fight it. */
+    if (strcmp(key, "crouch_mode") == 0) {
+        if (strcmp(val, "hold") == 0 || strcmp(val, "toggle") == 0) {
+            put("GETV_CROUCH_MODE", val, over);
+        } else {
+            ge_err("crouch_mode=\"%s\" - expected hold|toggle%s", val, "");
+        }
+        return 1;
+    }
+    if (strcmp(key, "aim_mode") == 0) {
+        if (strcmp(val, "hold") == 0) {
+            put("GETV_AIM_MODE", "hold", over);
+            put("GETV_AIM_TOGGLE", "0", over);
+        } else if (strcmp(val, "toggle") == 0) {
+            put("GETV_AIM_MODE", "toggle", over);
+            put("GETV_AIM_TOGGLE", "1", over);
+        } else {
+            ge_err("aim_mode=\"%s\" - expected hold|toggle%s", val, "");
+        }
+        return 1;
+    }
+
+    /* The dedicated crouch key as a feature switch, for faithful-only play. */
+    if (strcmp(key, "crouch_key") == 0) {
+        key_bool_gate("GETV_CROUCH_KEY", key, val, over); return 1;
+    }
+
+    /* Does the USE button still reload when nothing is in reach?
+     *
+     * Left UNSET by default on purpose, because the sensible answer depends on whether
+     * a reload key exists: ge_bindings.c infers it (off once reload is bound, on under
+     * input_preset = n64). Writing a value here overrides that inference in both
+     * directions -- use_reloads = 1 keeps the retail double duty even with R bound. */
+    if (strcmp(key, "use_reloads") == 0) {
+        key_bool_gate("GETV_USE_RELOADS", key, val, over); return 1;
+    }
+
+    /* ---- mods ---------------------------------------------------------------- */
+    /* Both are passed through verbatim: a directory path and a list of names have no
+     * enumerable value set to validate against, and rejecting an unrecognised mod name here
+     * would mean the config could not be written before the mod was installed. ge_lua.c
+     * matches names whole and simply loads everything it does not recognise as disabled. */
+ if (strcmp(key, "moddir") == 0)   { put("GETV_MODDIR", val, over); return 1; }
+ if (strcmp(key, "mods_off") == 0) { put("GETV_MODS_OFF", val, over); return 1; }
+
+ if (strcmp(key, "mouse") == 0) {
+     key_bool_gate("GETV_MOUSE", key, val, over); return 1;
+ }
+ if (strcmp(key, "mouse_mode") == 0) {
+     if (strcmp(val, "modern") == 0 || strcmp(val, "classic") == 0)
+         put("GETV_MOUSE_MODE", val, over);
+     else ge_err("mouse_mode=\"%s\" - expected modern|classic%s", val, "");
+     return 1;
+ }
+ if (strcmp(key, "mouse_sens") == 0 || strcmp(key, "mouse_sensitivity") == 0) {
+     key_int("GETV_MOUSE_SENS", key, val, over, 1, 1000); return 1;
+ }
+ if (strcmp(key, "mouse_invert") == 0) {
+     key_bool_gate("GETV_MOUSE_INVERT", key, val, over); return 1;
+ }
+ if (strcmp(key, "keyboard") == 0) {
+     key_bool_gate("GETV_KEYBOARD", key, val, over); return 1;
+ }
+ if (strcmp(key, "deadzone") == 0) { key_deadzone(val, over); return 1; }
+ if (strcmp(key, "invert_look") == 0 || strcmp(key, "invertlook") == 0) {
+ key_invert_look(val, over); return 1;
+    }
+
+    /* Secondary but genuinely useful. Each is an existing gate. */
+ if (strcmp(key, "fullscreen") == 0) { key_bool_gate("GETV_FULLSCREEN", key, val, over); return 1; }
+ if (strcmp(key, "developer_tools") == 0 || strcmp(key, "developer_overlay") == 0) {
+ key_bool_gate("GETV_IMGUI", key, val, over); return 1;
+    }
+ if (strcmp(key, "console_key") == 0) {
+        /* SDL resolves the name at window initialisation, where the platform key table exists.
+         * Keep the config layer transport-only so every SDL-supported scancode name works. */
+ put("GETV_CONSOLE_KEY", val, over); return 1;
+    }
+
+    /* --- reserved enhancement seam; see the block above. Parsed, gated, unconsumed. --- */
+ if (strcmp(key, "depth_bits") == 0) {
+ key_int("GETV_DEPTH_BITS", key, val, over, 16, 32); return 1;
+    }
+ if (strcmp(key, "anisotropic") == 0) {
+ key_int("GETV_ANISO", key, val, over, 0, 16); return 1;
+    }
+ if (strcmp(key, "msaa") == 0) {
+ key_int("GETV_MSAA", key, val, over, 0, 8); return 1;
+    }
+ if (strcmp(key, "mipmaps") == 0) { key_bool_gate("GETV_MIPMAPS", key, val, over); return 1; }
+    /* FXAA had a launcher checkbox and a place in the GoldenEye+ profile and no config key at
+     * all, so a config file asking for it got "unknown key" and the profile was the only way
+     * to reach it. Every other setting the profile touches is individually settable here; this
+     * one now is too. */
+ if (strcmp(key, "fxaa") == 0) { key_bool_gate("GETV_FXAA", key, val, over); return 1; }
+ if (strcmp(key, "crosshair_color") == 0) { key_crosshair_color(val, over); return 1; }
+ /* Aim as a toggle instead of a hold. Aliased because people reaching for this call it both
+  * things, and a setting nobody can find is a setting that does not exist. */
+ if (strcmp(key, "aim_toggle") == 0 || strcmp(key, "toggle_aim") == 0) {
+     key_bool_gate("GETV_AIM_TOGGLE", key, val, over); return 1;
+ }
+ if (strcmp(key, "crosshair_scale") == 0 || strcmp(key, "reticle_scale") == 0) {
+ key_crosshair_scale(val, over); return 1;
+    }
+ if (strcmp(key, "parallax") == 0) { key_bool_gate("GETV_PARALLAX", key, val, over); return 1; }
+ if (strcmp(key, "fog_per_pixel") == 0) {
+ key_todo_flag("GETV_FOG_PERPIXEL", key, val, over,
+ "per-pixel fog (N64 fog is per-VERTEX; FRIGATE is the one fogless level)");
+ return 1;
+    }
+ if (strcmp(key, "muzzle_lights") == 0) {
+ key_todo_flag("GETV_MUZZLE_LIGHTS", key, val, over,
+ "dynamic muzzle-flash lighting"); return 1;
+    }
+ if (strcmp(key, "audio_3d") == 0 || strcmp(key, "hrtf") == 0) {
+ key_todo_flag("GETV_AUDIO_3D", key, val, over, "positional 3D audio / HRTF"); return 1;
+    }
+ if (strcmp(key, "ssao") == 0) {
+ key_todo_flag("GETV_SSAO", key, val, over, "screen-space ambient occlusion"); return 1;
+    }
+ if (strcmp(key, "shadows") == 0) {
+ key_todo_flag("GETV_SHADOWS", key, val, over,
+ "real-time shadow maps (GE ships blob shadows)"); return 1;
+    }
+ if (strcmp(key, "per_pixel_lighting") == 0) {
+ key_todo_flag("GETV_PERPIXEL_LIGHT", key, val, over,
+ "per-pixel lighting -- this one changes the LOOK most of any enhancement; ""N64 lighting is per-vertex Gouraud");
+ return 1;
+    }
+ if (strcmp(key, "preset") == 0 || strcmp(key, "profile") == 0) {
+        /* This used to accept enhanced and then print that no enhancement was implemented,
+         * which was true when it was written and stopped being true without anyone coming
+         * back to it. The launcher had meanwhile grown a GoldenEye+ profile that turns on
+         * real settings, under a different variable, so the two names for one idea did
+         * different things: the launcher's worked and the config file's printed an apology.
+         *
+         * Both are the same idea now. The token stays `faithful` for the plain profile so
+         * existing files keep parsing, and enhanced / plus / goldeneye+ all select the other
+         * one. Nothing is set here: what a preset turns on is decided in ge_preset_apply(),
+         * after every explicit key has been read, so that a file saying both `preset = plus`
+         * and `fxaa = 0` gets the second one honoured rather than whichever came first. */
+ if (strcmp(val, "faithful") == 0 || strcmp(val, "97") == 0 ||
+ strcmp(val, "console") == 0) {
+ put("GETV_PRESET", "faithful", over);
+ g_preset_plus = 0;
+        } else if (strcmp(val, "enhanced") == 0 || strcmp(val, "plus") == 0 ||
+ strcmp(val, "goldeneye+") == 0 || strcmp(val, "ge+") == 0) {
+ put("GETV_PRESET", "enhanced", over);
+ put("GETV_PROFILE_PLUS", "1", over);
+ g_preset_plus = 1;
+        } else {
+ ge_err("preset=\"%s\" - expected faithful|enhanced", val, "");
+        }
+ return 1;
+    }
+ if (strcmp(key, "unlock_all") == 0 || strcmp(key, "unlockall") == 0) {
+ key_bool_gate("GETV_UNLOCKALL", key, val, over); return 1;
+    }
+ if (strcmp(key, "save_dir") == 0 || strcmp(key, "savedir") == 0) {
+ put("GETV_SAVEDIR", val, over); return 1;
+    }
+ if (strcmp(key, "audio") == 0) {
+        /* inverted gate: GETV_NO_AUDIO is presence-tested, so it must be UNSET to
+         * mean "on", never set to "0". */
+ if (is_false(val))     { put("GETV_NO_AUDIO", "1", over); }
+ else if (!is_true(val)) { ge_err("audio=\"%s\" - expected 0/1%s", val, ""); }
+ return 1;
+    }
+ if (strcmp(key, "realclock") == 0 || strcmp(key, "real_clock") == 0) {
+ key_bool_gate("GETV_REALCLOCK", key, val, over); return 1;
+    }
+ if (strcmp(key, "gibs") == 0) { key_gibs(val, over); return 1; }
+ if (strcmp(key, "base_game") == 0 || strcmp(key, "base_only") == 0) {
+ key_bool_gate("GETV_BASE_GAME", key, val, over); return 1;
+ }
+ if (strcmp(key, "blood") == 0) {
+ if (strcmp(val, "original") == 0 || is_false(val)) put("GETV_BLOOD", "original", over);
+ else if (strcmp(val, "enhanced") == 0 || strcmp(val, "excessive") == 0) put("GETV_BLOOD", val, over);
+ else ge_err("blood=\"%s\" - expected original|enhanced|excessive%s", val, "");
+ return 1;
+ }
+ if (strcmp(key, "blood_limit") == 0) {
+ key_int("GETV_BLOOD_LIMIT", key, val, over, 16, 512); return 1;
+ }
+
+    /* ---- Rare's own left-in developer features ------------------------------ */
+
+ if (strcmp(key, "cheats") == 0) { key_cheats(val, over); return 1; }
+ if (strcmp(key, "roster") == 0) { key_roster(val, over); return 1; }
+
+    /* Rulesets. These are pure pass-through to the gates ge_ruleset.c reads, so the config
+     * file, the environment and a launcher all name the same thing and there is no second
+     * copy of the defaults to drift. Validation lives in ge_ruleset.c, which is where an
+     * unknown ruleset name is reported along with the list of known ones. */
+ if (strcmp(key, "ruleset") == 0)          { put("GETV_RULESET", val, over); return 1; }
+ if (strcmp(key, "horde") == 0)            { put("GETV_HORDE", val, over); return 1; }
+ if (strcmp(key, "enemy_health") == 0)     { put("GETV_RS_ENEMY_HEALTH", val, over); return 1; }
+ if (strcmp(key, "enemy_damage") == 0)     { put("GETV_RS_ENEMY_DAMAGE", val, over); return 1; }
+ if (strcmp(key, "enemy_accuracy") == 0)   { put("GETV_RS_ENEMY_ACCURACY", val, over); return 1; }
+ if (strcmp(key, "enemy_reaction") == 0)   { put("GETV_RS_ENEMY_REACTION", val, over); return 1; }
+ if (strcmp(key, "player_health") == 0)    { put("GETV_RS_PLAYER_HEALTH", val, over); return 1; }
+ if (strcmp(key, "player_armour") == 0)    { put("GETV_RS_PLAYER_ARMOUR", val, over); return 1; }
+ if (strcmp(key, "ammo") == 0)             { put("GETV_RS_AMMO", val, over); return 1; }
+ if (strcmp(key, "explosion_damage") == 0) { put("GETV_RS_EXPLOSION_DAMAGE", val, over); return 1; }
+ if (strcmp(key, "turret_damage") == 0)    { put("GETV_RS_TURRET_DAMAGE", val, over); return 1; }
+
+ if (strcmp(key, "debug_position") == 0 || strcmp(key, "debugpos") == 0) {
+ if (is_true(val)) {
+ put("GETV_DEBUGPOS", "1", over);
+ set_debug_testingmanpos_flag(1);
+ printf("[getv][config] debug_position=1 - Rare's room + XYZ + heading ""readout is ON (debugmenu_handler.c:1018 -> bondview2.c:10367). ""Works in a stock build; no DEBUGMENU needed.\n");
+        } else if (is_false(val)) {
+ set_debug_testingmanpos_flag(0);
+        } else {
+ ge_err("debug_position=\"%s\" - expected 0/1%s", val, "");
+        }
+ return 1;
+    }
+
+ if (strcmp(key, "debug_menu") == 0 || strcmp(key, "debugmenu") == 0) {
+        /* Not a runtime toggle. This branch exists to say so rather than to silently
+         * do nothing.
+         *
+         * The roughly 1,100-line menu (src/debugmenu.c + src/game/debugmenu_handler.c)
+         * is already compiled into every binary by -DLEFTOVERDEBUG. What is missing is
+         * the trigger: src/boss.c:565 gates the C-Up + C-Down opener on `DEBUGMENU`, a
+         * macro the decomp's own Makefile:101 defines but our build scripts do not.
+         *
+         * It cannot be a config key because it is not a branch that can be taken at
+         * runtime - it changes codegen in two places:
+         * boss.c:565-576 adds an `else if (joyGetButtons(0, START_BUTTON) == 0)`
+         * arm that hijacks START into `g_DebugMode = <highlighted>`
+         * debugmenu.c:419 turns `if ((randomGetNext() & 0xFF) < g_DebugMenuPercentage)`
+         * into a literal `if (1)`
+         *
+         * The equivalent build knob is
+         * GETV_DEBUGMENU=1 ./build_mac.sh lib && ./build_mac.sh app
+         * (build_mac.sh:93-96 - note `lib`, not `port`: it is a game-object flag.) */
+ if (is_true(val)) {
+ printf("[getv][config] debug_menu cannot be enabled at runtime - it is a ""BUILD option because it changes codegen (boss.c:565 repurposes START, ""debugmenu.c:419 becomes if(1)). Rebuild with:\n""GETV_DEBUGMENU=1 ./build_mac.sh lib && ./build_mac.sh app\n""Also note there is NO working level select in it: ""DEB_LEVEL/DEB_REGION/DEB_SCALE are gutted no-ops ""(debugmenu_handler.c:511-521). Use GETV_STAGE=<n> instead.\n");
+        }
+ return 1;
+    }
+
+ return 0;
+}
+
+/* ------------------------------------------------------------- file location */
+
+static int try_path(const char *p)
+{
+ FILE *f;
+ if (p == NULL || *p == '\0') { return 0; }
+ f = fopen(p, "r");
+ if (f == NULL) { return 0; }
+ fclose(f);
+ snprintf(g_cfgpath, sizeof g_cfgpath, "%s", p);
+ return 1;
+}
+
+static int locate(const char *argv0, const char *cliPath)
+{
+ char buf[1024];
+ char dir[1024];
+
+ if (try_path(getenv("GETV_CONFIG"))) { return 1; }
+ if (try_path(cliPath)) { return 1; }
+
+#if defined(__APPLE__) && defined(GE_PLATFORM_MAC)
+ /* The Finder app selects separate binaries but shares OpenGL's existing config.
+  * Explicit GETV_CONFIG/--config still win; direct executable launches never set this. */
+ const char *appDir = getenv("GETV_MAC_APP_CONFIG_DIR");
+ char appArgv0[1024];
+ if (appDir && appDir[0] && snprintf(appArgv0, sizeof appArgv0, "%s/goldeneye", appDir) < (int)sizeof appArgv0)
+     argv0 = appArgv0;
+#endif
+
+ if (argv0 != NULL) {
+        /* Both separators. This looked for '/' only, which on Windows means argv[0] --
+         * "C:\...\goldeneye.exe" -- contains no match at all, so step 3 silently degraded to
+         * a bare "goldeneye.cfg" relative to the WORKING directory and then fell through to
+         * the per-user config in step 4.
+         *
+         * That is invisible while the working directory happens to be the one holding the
+         * binary, which is what a shell in the build directory and a double-click from
+         * Explorer both give. Launch the same folder from a shortcut with a different "start
+         * in", or from a terminal anywhere else, and the goldeneye.cfg sitting beside the
+         * executable was ignored -- which makes a distributed folder's own config file
+         * decorative. Found by running -Target dist from outside its directory. */
+ const char *fw = strrchr(argv0, '/');
+ const char *bw = strrchr(argv0, '\\');
+ const char *slash = (bw != NULL && (fw == NULL || bw > fw)) ? bw : fw;
+ if (slash != NULL) {
+ size_t n = (size_t)(slash - argv0);
+ if (n < sizeof buf - sizeof(GE_CFG_BASENAME) - 2) {
+ memcpy(buf, argv0, n);
+ buf[n] = '\0';
+                /* Published for everything else that has to find a file beside the binary
+                 * but never sees argv -- ge_lua.c's mods directory is the first. This layer
+                 * already exists to turn one lookup into an environment gate, so the
+                 * alternative would be a second, platform-specific way to ask the same
+                 * question. Not overridden if already set, so a caller can point it
+                 * elsewhere. */
+                if (getenv("GETV_EXEDIR") == NULL) { put("GETV_EXEDIR", buf, 0); }
+                strcat(buf, "/" GE_CFG_BASENAME);
+                if (try_path(buf)) { return 1; }
+                buf[n] = '\0';
+                strcat(buf, "/" GE_CFG_LEGACY_BASENAME);
+                if (try_path(buf)) { return 1; }
+            }
+        } else {
+            if (try_path(GE_CFG_BASENAME)) { return 1; }
+            if (try_path(GE_CFG_LEGACY_BASENAME)) { return 1; }
+        }
+    }
+
+    /* Search step 4: the per-user config directory. On macOS this is
+     * "$HOME/Library/Application Support/Goldeneye-Native/goldeneye.cfg"; see
+     * getv/port/src/port_paths.c for the other hosts. */
+    if (gePortUserDataDir("Goldeneye-Native", "Goldeneye-Native", dir, sizeof dir) == 0) {
+        snprintf(buf, sizeof buf, "%s/" GE_CFG_BASENAME, dir);
+        if (try_path(buf)) { return 1; }
+        snprintf(buf, sizeof buf, "%s/" GE_CFG_LEGACY_BASENAME, dir);
+        if (try_path(buf)) { return 1; }
+    }
+ return 0;
+}
+
+static void read_file(void)
+{
+ FILE *f = fopen(g_cfgpath, "r");
+ char line[1024];
+ int lineno = 0;
+
+ if (f == NULL) { return; }
+ while (fgets(line, sizeof line, f) != NULL) {
+ char *k, *eq, *v;
+ lineno++;
+        /* '#' and ';' start a comment anywhere on the line. There is no escape for
+         * them: no GETV_* value needs one, and a quoting rule is easy to get wrong. */
+ k = strchr(line, '#'); if (k != NULL) { *k = '\0'; }
+ k = strchr(line, ';'); if (k != NULL) { *k = '\0'; }
+
+ k  = trim(line);
+ if (*k == '\0') { continue; }
+ eq = strchr(k, '=');
+ if (eq == NULL) {
+ printf("[getv][config] %s:%d: no '=' on this line, ignored: \"%s\"\n",
+ g_cfgpath, lineno, k);
+ continue;
+        }
+        *eq = '\0';
+ v = trim(eq + 1);
+ k = trim(k);
+        {
+ char lv[512];
+ snprintf(lv, sizeof lv, "%s", v);
+            /* Values are lowercased for matching except where case is meaningful:
+             * paths, raw GETV_* passthrough, and key NAMES.
+             *
+             * Key names are the addition. SDL's own spellings are capitalised ("Left
+             * Ctrl", "Keypad Enter", "F1") and SDL_GetScancodeFromName is
+             * case-insensitive, so lowercasing them still RESOLVED correctly -- but
+             * geConfigSave() writes back what it reads, so a launcher save turned every
+             * "Left Ctrl" in the file into "left ctrl". Working but progressively
+             * uglier is not a good trade against one line here. */
+ if (strncmp(k, "GETV_", 5) != 0 &&
+ strcmp(k, "save_dir") != 0 && strcmp(k, "savedir") != 0 &&
+ strcmp(k, "console_key") != 0 &&
+ strncmp(k, "key.", 4) != 0) {
+ lower(lv);
+            }
+ if (!apply(k, lv, /*overwrite=*/0)) {
+ printf("[getv][config] %s:%d: unknown key \"%s\" (ignored). ""Prefix a raw gate with GETV_ to set it directly.\n",
+ g_cfgpath, lineno, k);
+            }
+        }
+    }
+ fclose(f);
+ ge_config_loaded = 1;
+}
+
+/* ------------------------------------------------------------------- CLI + help */
+
+static void usage(void)
+{
+ printf(
+"GoldenEye 007 - native port\n"
+"\n"
+"goldeneye [--key=value ...]\n"
+"\n"
+"Settings come from, in DECREASING order of priority:\n"
+"1. these command-line flags\n"
+"2. GETV_* environment variables      (unchanged; every existing gate works)\n"
+"3. " GE_CFG_BASENAME " beside the binary, or\n"
+"the platform user-data directory\n"
+"4. built-in defaults\n"
+"\n"
+"--config=PATH read this config file instead of searching\n"
+"--write-config[=P] write a commented default config file and exit\n"
+"--help this text\n"
+"\n"
+"Day-0 keys (same names on the CLI and in the file):\n"
+"resolution=WxH window size, min 320x240; or \"fullscreen\"[1280x960]\n"
+"aspect=4:3|16:9|auto picks a default window shape if resolution is unset\n"
+"framerate=30|50|60|off                                             [60]\n"
+"120 is REJECTED - see the note in the written config\n"
+"supersample=1|2      2 = render at 2x and downsample                [1 on macOS]\n"
+"controls=1.1..2.4 or honey/solitaire/kissy/goodnight/plenty/galore/\n"
+"domino/goodhead.  2.2 and 2.4 are dual-analog.\n"
+"GE's own default is 1.1 Honey; the shipped template picks\n"
+	"2.2 Galore because this port presents one modern pad as\n"
+	"N64 ports 0+1.\n"
+	"filtering=point|bilinear|three-point                               [three-point]\n"
+	"gunbarrel_bond_speed=0.25..1.50  Bond walk animation only         [0.91]\n"
+	"gunbarrel_sequence_speed=0.25..1.0 pre-shot authored cadence      [0.692308]\n"
+	"gamepad=auto|xbox|playstation|switch|generic changes PROMPT GLYPHS only  [auto]\n"
+"input_preset=modern|n64  the defaults every binding falls back to       [modern]\n"
+"aim_mode=hold|toggle [hold]   crouch_mode=hold|toggle [toggle]\n"
+"use_reloads=0|1 use also reloads with nothing in reach [auto: off once reload is bound]\n"
+"fire=aim=use=reload=crouch=weapon_next=weapon_prev=pause=\n"
+"    a|b|x|y|lb|rb|lt|rt|start|back|dup|ddown|dleft|dright|lstick|rstick|none\n"
+"p1.<action> .. p4.<action>  the same eight, for one player only; falls back to\n"
+"                            the bare key above, then to the preset\n"
+"key.<action>  keyboard/mouse binding, comma-separated SDL scancode names plus\n"
+"              mouse1..mouse5, wheelup, wheeldown -- e.g. key.crouch=C,Left Ctrl\n"
+"key.forward|backward|strafe_left|strafe_right|look_up|look_down|look_left|\n"
+"              look_right   movement, same value syntax\n"
+"crouch_key=0|1 the port's dedicated crouch key; 0 = retail gesture only     [1]\n"
+"moddir=<dir>  mods_off=<name,name>  Lua mods: where to scan, and which to skip\n"
+"pad names are POSITIONAL (a = bottom face button), not label\n"
+"[modern: fire=rt aim=lt use=a reload=x crouch=b weapon_next=y pause=start]\n"
+"deadzone=0..40 stick deadzone, percent, clamped to range          [20]\n"
+"invert_look=0|1 forces look inversion; UNSET = save file decides   [unset]\n"
+"mouse_mode=modern|classic selects direct mouse angles or N64 stick response [modern]\n"
+"mouse=0|1 mouse_sens=1..1000 mouse_invert=0|1 keyboard=0|1\n"
+"fullscreen=0|1 audio=0|1 unlock_all=0|1 save_dir=PATH\n"
+"base_game=on disables all Brutal GoldenEye effects while preserving their settings [off]\n"
+"blood=original|enhanced|excessive controls added gib blood [enhanced]; blood_limit=16..512 [128]\n"
+"gibs=off|explosions|high_damage|always controls which deaths produce physics chunks [off]\n"
+"cheats=a,b,c GE's OWN named cheat flags (NOT GameShark addresses)\n"
+"roster=8|64 multiplayer character count\n"
+"debug_position=0|1 Rare's room + XYZ + heading readout\n"
+"\n"
+"--list-cheats every named cheat and what it needs\n"
+"\n"
+"Any raw gate can be set by its real name, e.g. GETV_STAGE=34 or --GETV_STAGE=34.\n");
+}
+
+static const char *DEFAULT_CFG =
+	"# goldeneye.ini - GoldenEye 007, native port\n"
+"#\n"
+"# Lines are key = value.  '#' and ';' start a comment.\n"
+"# Precedence: command line  > GETV_* environment  > this file  > defaults.\n"
+"# An environment variable ALWAYS beats this file, so measurement harnesses that\n"
+"# export GETV_* keep working exactly as before.\n"
+"\n"
+"# --- display ---------------------------------------------------------------\n"
+"resolution  = 1280x960     # WIDTHxHEIGHT (min 320x240), or \"fullscreen\"\n"
+"aspect      = 4:3          # 4:3 | 16:9 | auto. Only used if resolution is unset.\n"
+"fullscreen  = 0\n"
+"# supersample = 1          # 1 or 2. 2 renders at double size and downsamples.\n"
+	"#                          # Commented so `preset = plus` can raise it. Uncomment to\n"
+	"#                          # pin it and the profile will leave it alone.\n"
+	"filtering   = three-point  # point | bilinear | three-point (three-point = real N64)\n"
+	"pd_renderer = 0            # experimental Perfect Dark-derived desktop GL backend; off by default\n"
+	"gunbarrel_bond_speed = 0.91 # Bond's walk animation in the gunbarrel intro only\n"
+	"                            # Lower = slower; barrel motion and blood timing are unchanged.\n"
+	"gunbarrel_sequence_speed = 0.692308 # calibrated to ~13s N64 Rare-logo-to-shot reference\n"
+	"                                    # 0.25..1.0; barrel and Bond stay on the same authored cadence.\n"
+	"\n"
+"# --- framerate -------------------------------------------------------------\n"
+"# 30, 50, 60, or off.\n"
+"#\n"
+"# GoldenEye counts time in WHOLE VIDEO FRAMES rather than seconds. On the default\n"
+"# synthetic clock one rendered frame IS one video field, so the world runs as fast\n"
+"# as the renderer: a 120 cap was measured at 117.6 fields/sec against the correct\n"
+"# 60. A cap above 60 is therefore refused rather than quietly played wrong.\n"
+"#\n"
+"# For a high-refresh display use `off`. It uncaps the renderer AND switches to the\n"
+"# real timebase, where a field is a unit of real time and waitForNextFrame stops\n"
+"# blocking on the field boundary. Measured together: 60.5 fields/sec at 456 fps,\n"
+"# i.e. correct game speed on a fast display.\n"
+"#\n"
+"# The cost of `off` is reproducibility: elapsed fields become load-dependent, so\n"
+"# two runs are no longer frame-for-frame comparable. That is why it is not the\n"
+"# default. Set `realclock = 0` alongside it to force the synthetic clock back, but\n"
+"# expect the game to run many times too fast.\n"
+"# framerate = 60           # 30 | 50 | 60 | off. Commented for the same reason as\n"
+"#                          # supersample above: `preset = plus` uncaps it, and a live\n"
+"#                          # line here would outrank the profile and keep it at 60.\n"
+"\n"
+"# --- controls --------------------------------------------------------------\n"
+"# All eight of Rare's control styles are selectable:\n"
+"#   1.1 honey   1.2 solitaire   1.3 kissy    1.4 goodnight   (one controller)\n"
+"#   2.1 plenty  2.2 galore      2.3 domino   2.4 goodhead    (two controllers)\n"
+"# 2.2 galore and 2.4 goodhead are the true dual-analog layouts and are what a\n"
+"# modern gamepad maps to, so 2.2 is the PORT default -- one physical pad is\n"
+"# presented as N64 ports 0+1 (right stick looks, left stick moves). Set 1.1 for\n"
+"# Rare's shipped single-controller scheme.\n"
+"controls    = 2.2\n"
+"\n"
+"# --- input preset ----------------------------------------------------------\n"
+"# The set of defaults every binding below falls back to.\n"
+"#   modern  WASD + mouse, RMB aims, E interacts, R reloads, C crouches, wheel\n"
+"#           changes weapon. On a pad: south interacts, west reloads, east\n"
+"#           crouches, north cycles weapon.\n"
+"#   n64     the port's earlier action layout, apart from the removed V stand key:\n"
+"#           Q aims, R cycles weapon, no reload key, pad use on the east face\n"
+"#           button. Pick this rather than rebinding sixteen inputs.\n"
+"# An explicit binding always beats the preset, so you can start from either one\n"
+"# and change only what you care about.\n"
+"input_preset = modern\n"
+"\n"
+"# --- hold or toggle --------------------------------------------------------\n"
+"# aim_mode toggle sets the retail per-player aim-control option, which the\n"
+"# engine itself reads as a press rather than a hold -- it is GoldenEye's own\n"
+"# setting, not something bolted on. crouch_mode is enforced by the port,\n"
+"# because the engine has no crouch button to latch.\n"
+"# There is NO stand key. Crouch toggles: press it again to stand up. In hold\n"
+"# mode, releasing it stands you up instead.\n"
+"aim_mode    = hold        # hold | toggle\n"
+"crouch_mode = toggle      # hold | toggle\n"
+"\n"
+"# --- gamepad / bindings ------------------------------------------------------\n"
+"# gamepad picks which glyphs get PRINTED for prompts (auto|xbox|playstation|\n"
+"# switch|generic) -- it never changes what a binding below does.\n"
+"gamepad     = auto\n"
+"#\n"
+"# Binding values are POSITIONAL, not label-based: \"a\" always means the\n"
+"# BOTTOM face button on the pad, whatever it is labelled -- SDL maps the\n"
+"# physically-bottom button to _BUTTON_A on every controller it knows, including\n"
+"# Nintendo's (where that same button is printed \"B\"). On a DualSense that makes\n"
+"# a=Cross, b=Circle, x=Square, y=Triangle. Valid values: a b x y lb rb lt rt\n"
+"# start back dup ddown dleft dright lstick rstick none.\n"
+"#\n"
+"# Commented out because the preset above already supplies them. Uncomment a\n"
+"# line to override just that one.\n"
+"# fire        = rt\n"
+"# aim         = lt\n"
+"# use         = a\n"
+"# reload      = x\n"
+"# crouch      = b\n"
+"# weapon_next = y\n"
+"# weapon_prev defaults to NONE on the pad -- GoldenEye has no back-cycle button.\n"
+"# The retail gesture is hold-inventory + tap-fire (bondview2.c); the synthesised\n"
+"# single-button version (port_os.c) is faithful to that gesture but unverified\n"
+"# on real hardware, so it stays opt-in on a face button. The mouse wheel binds\n"
+"# to it by default, where one notch is unambiguous.\n"
+"# weapon_prev = none\n"
+"# pause       = start\n"
+"#\n"
+"# Per player, for split-screen with mixed controllers. p<n>. beats the bare key.\n"
+"# p2.fire = rb\n"
+"\n"
+"# --- keyboard and mouse ------------------------------------------------------\n"
+"# key.<action> takes a comma-separated list; any one of them fires the action.\n"
+"# Names are SDL's own (\"Left Ctrl\", \"Space\", \"Keypad Enter\", \"F1\"), and this\n"
+"# port adds mouse1..mouse5, wheelup and wheeldown. Short forms lctrl, lshift,\n"
+"# lalt, esc, enter, pgup, pgdn are accepted too. Use \"none\" to unbind.\n"
+"#\n"
+"# Commented out because the preset supplies them. These are the modern values.\n"
+"# key.fire        = Space,mouse1\n"
+"# key.aim         = mouse2\n"
+"# key.use         = E,F\n"
+"# key.reload      = R\n"
+"# key.crouch      = C,Left Ctrl\n"
+"# key.weapon_next = Q,wheelup,Return\n"
+"# key.weapon_prev = wheeldown\n"
+"# key.pause       = Tab,Keypad Enter\n"
+"#\n"
+"# Movement and look. LOOK_* drive the right stick, which is also how a keyboard\n"
+"# player moves the menu cursor -- worth keeping bound even with the mouse on.\n"
+"# key.forward      = W\n"
+"# key.backward     = S\n"
+"# key.strafe_left  = A\n"
+"# key.strafe_right = D\n"
+"# key.look_up      = Up\n"
+"# key.look_down    = Down\n"
+"# key.look_left    = Left\n"
+"# key.look_right   = Right\n"
+"#\n"
+"# crouch_key = 0 removes the port's dedicated crouch key entirely and leaves\n"
+"# only the retail gesture (hold aim, push down).\n"
+"# crouch_key = 1\n"
+"#\n"
+"# Retail reload is the USE button with nothing in reach, so E near a door opens\n"
+"# the door and E near nothing reloads. Once a reload key is bound that double\n"
+"# duty is turned off automatically, because the same key doing two things\n"
+"# depending on where you stand is what a dedicated key replaces. Set\n"
+"# use_reloads = 1 to keep it anyway, or 0 to drop it even without a reload key.\n"
+"# use_reloads = 1\n"
+"#\n"
+"# Saved with the rest of the Controls page. Raw GETV_* spellings still work.\n"
+"# mouse        = 1      # enable mouse input\n"
+"# mouse_mode   = modern # modern | classic\n"
+"# mouse_sens   = 100    # percent, 1..1000\n"
+"# mouse_invert = 0\n"
+"# keyboard     = 1\n"
+"\n"
+"deadzone    = 20          # percent, 0-40, clamped -- worn-pad drift trimmer\n"
+"invert_look = 1           # stick UP looks UP. MEASURED, not a preference toggle:\n"
+"#                         # GE's DEFAULT_OPTIONS omits OPTION_INVERTLOOK, which makes\n"
+"#                         # invertPitch=1, so stick-up drives pitch DOWN at full rate\n"
+"#                         # and pins at the -90 deg clamp in ~1.5s -- the camera ends up\n"
+"#                         # staring at the floor with nothing to recentre it. Spawn\n"
+"#                         # pitch itself is correct (-4.0 deg) and the sign in our code\n"
+"#                         # is correct; it is the retail DEFAULT that is hostile to a\n"
+"#                         # modern stick. Comment this line out for retail behaviour\n"
+"#                         # (save file decides); set 0 to force non-inverted.\n"
+"\n"
+"# --- mods ------------------------------------------------------------------\n"
+"# Every subdirectory of moddir containing a mod.lua is loaded at startup.\n"
+"# mods_off is a DENYLIST: a mod dropped into the folder later is enabled by\n"
+"# default, and only the names listed here are skipped. The launcher's Mods page\n"
+"# writes this key.\n"
+"# moddir   = mods\n"
+"# mods_off = spawn_logger, frame_counter\n"
+"\n"
+"# --- misc ------------------------------------------------------------------\n"
+"audio       = 1\n"
+"# base_game  = off        # on disables all Brutal GoldenEye effects. Alias: base_only.\n"
+"# blood      = enhanced   # original | enhanced | excessive. Only affects gib deaths for now.\n"
+"# blood_limit = 128       # maximum persistent stains, clamped to 16..512.\n"
+"# gibs       = explosions # off | explosions | high_damage | always. Default: off.\n"
+"# unlock_all = 1          # show every mission on the file-select screen\n"
+"# save_dir   = /path/to/saves\n"
+"\n"
+"# --- named cheats ----------------------------------------------------------\n"
+"# These are GoldenEye's OWN cheat flags, exposed BY NAME - not GameShark codes.\n"
+"# A GameShark code is a raw N64 RDRAM address, and this port has no RDRAM, so the\n"
+"# published code lists cannot be applied here at all. Driving the game's own cheat\n"
+"# system instead is layout-independent, ASLR-proof, and still correct after a\n"
+"# relink or a mod that moves things around. Run --list-cheats for the full set.\n"
+"# Six take effect straight from this file: dk_mode, infinite_ammo, paintball,\n"
+"# no_radar, enemy_rockets, extra_mp_chars. The rest set the flag but need to be\n"
+"# toggled in-game to apply - --list-cheats marks which is which.\n"
+"# cheats = dk_mode, paintball, infinite_ammo\n"
+"#\n"
+"# roster = 64             # full multiplayer character list.\n"
+"#                         # 8 = default, 64 = cheat. 33 is NOT settable: it is\n"
+"#                         # derived from the save (complete Cradle on Agent).\n"
+"\n"
+"# --- Rare's own leftover developer features --------------------------------\n"
+"# debug_position = 1      # room id + X/Y/Z + compass heading on screen.\n"
+"#                         # Works in a stock build. Rare's own readout.\n"
+"# debug_menu     = 1      # NOT a runtime setting - it changes codegen and\n"
+"#                         # repurposes START. Rebuild instead:\n"
+"#                         # GETV_DEBUGMENU=1 ./build_mac.sh lib && ./build_mac.sh app\n"
+"#                         # Its level select does NOT work (gutted no-ops).\n"
+"#                         # Use GETV_STAGE = <n> to pick a level.\n"
+"# developer_tools = 1     # optional performance/debug overlay; console is always available\n"
+"# console_key    = grave # SDL scancode name; default backquote/grave\n"
+"\n"
+"# --- GoldenEye+ ------------------------------------------------------------\n"
+"# One switch for everything this port added and verified. Uncomment it and the\n"
+"# rest of this section happens; leave it and you get the 1997 game.\n"
+"#\n"
+"# preset = plus            # faithful | plus   (aliases: 97 / console, enhanced / ge+)\n"
+"#\n"
+"# It turns on supersampling 2x, MSAA 4x, anisotropic 8x, mipmaps, HD texture\n"
+"# packs, parallax, FXAA, a 0.6 reticle, and uncapped frames on the real clock.\n"
+"#\n"
+"# Anything you set yourself still wins, wherever it appears in this file: the\n"
+"# preset is applied after the file is read and before the command line, so the\n"
+"# order is  command line > environment > preset > this file.  Set one line back\n"
+"# to taste and the rest of the profile stays.\n"
+"#\n"
+"# Faithful is the default and stays the default. The N64 look is the product, and\n"
+"# the way correctness gets checked here is comparison against real N64 captures,\n"
+"# so anything that alters output has to be something you asked for.\n"
+"#\n"
+"# Individually, if you would rather not take the lot:\n"
+"# anisotropic     = 8      # 0-16. Tiny textures at grazing angles; biggest cheap win.\n"
+"# msaa            = 4      # 0 | 2 | 4 | 8. The N64 HAD AA; we currently do not.\n"
+"# mipmaps         = 1      # kills distant-texture shimmer\n"
+"# fxaa            = 1      # edge antialiasing over the finished frame\n"
+"# hd_textures     = 1      # use a texture pack if one is installed\n"
+"# parallax        = 1      # let that pack's height maps displace the diffuse UVs\n"
+"# crosshair_scale = 0.6    # 0.25-2.0, where 1.0 is the retail sight size\n"
+"# framerate       = off    # uncapped, on the real clock. See docs/FRAME_TIMING.md\n"
+"#\n"
+"# --- still a reserved seam: these parse and validate, nothing consumes them ---\n"
+"# depth_bits    = 24       # 16 | 24 | 32. N64 z-fighting is a 16-bit Z limit.\n"
+"# fog_per_pixel = 1        # N64 fog is per-VERTEX. Frigate is the one fogless level.\n"
+"#\n"
+"# Tier 2 -- cheap and dramatic, no new art:\n"
+"# muzzle_lights = 1        # dynamic light on muzzle flashes. Best value on the list:\n"
+"#                          # firing in a dark level currently lights nothing.\n"
+"# audio_3d      = 1        # positional audio / HRTF (alias: hrtf)\n"
+"#\n"
+"# Tier 3 -- real work, and the point where it stops being GoldenEye:\n"
+"# ssao               = 1   # needs the depth buffer; strong in corridors\n"
+"# shadows            = 1   # GE ships blob shadows; real shadow maps are a scope trap\n"
+"# per_pixel_lighting = 1   # CHANGES THE LOOK MOST. N64 lighting is per-vertex Gouraud.\n"
+"\n"
+"# --- raw escape hatch ------------------------------------------------------\n"
+"# Any of the port's ~100 GETV_* development gates can be set by its real name:\n"
+"# GETV_STAGE = 34\n"
+"# GETV_EXIT_FRAME = 61\n";
+
+static int write_default(const char *path)
+{
+ char buf[1024];
+ FILE *f;
+ if (path == NULL || *path == '\0') {
+ if (gePortUserDataDir("Goldeneye-Native", "Goldeneye-Native", buf, sizeof buf) != 0) {
+ printf("[getv][config] no $HOME\n"); return 1;
+        }
+        /* Created in-process rather than by shelling out to `mkdir -p`, which would be
+         * a hard dependency on a POSIX shell and on /bin/mkdir existing, and would
+         * interpolate a path straight into a command line. gePortMakeDirTree() uses the
+         * same 0777 & ~umask mode that mkdir(1) does, so an untouched umask 022 still
+         * yields 0755. Unlike the save directory, this one is created recursively,
+         * because --write-config is explicitly a "set this machine up" command. */
+ if (gePortMakeDirTree(buf, 0777) != 0) {
+ printf("[getv][config] mkdir failed: %s\n", buf);
+        }
+ strcat(buf, "/" GE_CFG_BASENAME);
+ path = buf;
+    }
+ f = fopen(path, "w");
+ if (f == NULL) { printf("[getv][config] cannot write %s\n", path); return 1; }
+ fputs(DEFAULT_CFG, f);
+ fclose(f);
+ printf("[getv][config] wrote %s\n", path);
+ return 0;
+}
+
+/* ---- writing settings back ----------------------------------------------
+ *
+ * The gap that made remapping unusable. The launcher has always applied settings by
+ * setenv() and then re-exec'ing the game, so a rebound key lasted exactly as long as
+ * the process: quit, and it was gone. Nothing in the port had ever written
+ * goldeneye.cfg except --write-config, which emits the static template and would
+ * discard whatever the file already held.
+ *
+ * This is a rewrite-in-place, not a regeneration. Comments, ordering, spacing and
+ * every key this port does not recognise are preserved, because a config file is a
+ * document the player edits too -- silently reformatting it, or dropping a key added
+ * by a newer build, would make the launcher unsafe to use on a file anyone had touched
+ * by hand. A key that is present but commented out is uncommented in place, so the
+ * template's own "# key.reload = R" lines become live at the position they document
+ * rather than being appended somewhere else.
+ */
+
+/* Is `line` the key `key`, live or commented out? Returns the offset of the value, or
+ * -1. Accepts leading space, an optional '#' with optional space after it, the key,
+ * optional space, '=', optional space. */
+static int cfg_line_matches(const char *line, const char *key, int *out_commented)
+{
+    size_t klen = strlen(key);
+    const char *p = line;
+    int commented = 0;
+
+    while (*p == ' ' || *p == '\t') { p++; }
+    if (*p == '#') {
+        commented = 1;
+        p++;
+        while (*p == ' ' || *p == '\t') { p++; }
+    }
+    /* Case-insensitively, because apply() lowercases keys and a hand-written file may
+     * not have. */
+    {
+        size_t i;
+        for (i = 0; i < klen; i++) {
+            char a = p[i];
+            char b = key[i];
+            if (a >= 'A' && a <= 'Z') { a = (char) (a - 'A' + 'a'); }
+            if (b >= 'A' && b <= 'Z') { b = (char) (b - 'A' + 'a'); }
+            if (a != b) { return -1; }
+        }
+        p += klen;
+    }
+    while (*p == ' ' || *p == '\t') { p++; }
+    if (*p != '=') { return -1; }
+    p++;
+    while (*p == ' ' || *p == '\t') { p++; }
+
+    if (out_commented != NULL) { *out_commented = commented; }
+    return (int) (p - line);
+}
+
+/* Where geConfigSave() writes. Never NULL; empty when no file was located AND none
+ * could be placed, which the caller must treat as "saving is unavailable" rather than
+ * writing to the working directory. */
+const char *geConfigPath(void)
+{
+    static char fallback[1024];
+
+    if (g_cfgpath[0] != '\0') { return g_cfgpath; }
+
+    /* No file was read this run -- a first launch, or one started with the config
+     * deleted. Saving must still work, and it must land where the next launch will
+     * look, which is the same user-data directory locate() falls through to. */
+    if (gePortUserDataDir("Goldeneye-Native", "Goldeneye-Native",
+                          fallback, sizeof fallback) != 0) {
+        return "";
+    }
+    if (gePortMakeDirTree(fallback, 0777) != 0) {
+        printf("[getv][config] mkdir failed: %s\n", fallback);
+        return "";
+    }
+    if (strlen(fallback) + 1 + strlen(GE_CFG_BASENAME) + 1 > sizeof fallback) {
+        return "";
+    }
+    strcat(fallback, "/" GE_CFG_BASENAME);
+    return fallback;
+}
+
+/* Merge `count` key/value pairs into the config file.
+ *
+ * A NULL or empty value DELETES the key -- the line is commented out rather than
+ * removed, so the comment that documents it survives and the player can see what was
+ * turned off. Returns 0 on success.
+ *
+ * Written through a temporary file and renamed. A crash or a full disk midway through
+ * a direct rewrite would leave a truncated config, and the next launch would come up
+ * with half its settings missing and no indication why; rename() is atomic on every
+ * platform this ships to, so the file is either the old one or the new one.
+ */
+int geConfigSave(const char *const *keys, const char *const *values, int count)
+{
+    const char *path = geConfigPath();
+    char tmp[1088];
+    FILE *in;
+    FILE *out;
+    char line[2048];
+    int *written;
+    int i;
+    int rc = 0;
+
+    if (path == NULL || *path == '\0') {
+        printf("[getv][config] nowhere to save to\n");
+        return 1;
+    }
+    if (count < 0) { count = 0; }
+
+    written = (int *) calloc((size_t) (count > 0 ? count : 1), sizeof(int));
+    if (written == NULL) { return 1; }
+
+    if (snprintf(tmp, sizeof tmp, "%s.tmp", path) >= (int) sizeof tmp) {
+        free(written);
+        return 1;
+    }
+    out = fopen(tmp, "w");
+    if (out == NULL) {
+        printf("[getv][config] cannot write %s\n", tmp);
+        free(written);
+        return 1;
+    }
+
+    in = fopen(path, "r");
+    if (in != NULL) {
+        while (fgets(line, sizeof line, in) != NULL) {
+            int handled = 0;
+
+            for (i = 0; i < count; i++) {
+                int commented = 0;
+                int off;
+
+                if (written[i]) { continue; }
+                if (keys[i] == NULL) { continue; }
+                off = cfg_line_matches(line, keys[i], &commented);
+                if (off < 0) { continue; }
+
+                /* Unchanged value: keep the line byte for byte.
+                 *
+                 * Without this every save rewrote each key it was handed, so a live
+                 * `fire        = rt` came back as `fire = rt` -- the column alignment and
+                 * any trailing `# note` gone -- on a line whose setting had not changed
+                 * at all. Only a line whose value actually differs is worth rewriting. */
+                if (!commented && values[i] != NULL && values[i][0] != '\0') {
+                    const char *v = line + off;
+                    size_t n = 0;
+                    while (v[n] != '\0' && v[n] != '#' && v[n] != ';' &&
+                           v[n] != '\n' && v[n] != '\r') { n++; }
+                    while (n > 0 && (v[n - 1] == ' ' || v[n - 1] == '\t')) { n--; }
+                    if (strlen(values[i]) == n && strncmp(v, values[i], n) == 0) {
+                        fputs(line, out);
+                        written[i] = 1;
+                        handled = 1;
+                        break;
+                    }
+                }
+
+                /* Keep the leading whitespace so an indented block stays indented. */
+                {
+                    const char *lead = line;
+                    size_t nlead = 0;
+                    while (lead[nlead] == ' ' || lead[nlead] == '\t') { nlead++; }
+                    fwrite(line, 1, nlead, out);
+                }
+
+                if (values[i] == NULL || values[i][0] == '\0') {
+                    /* Commented out rather than deleted: the surrounding comment that
+                     * explains the key stays meaningful, and the player can see what
+                     * was turned off instead of finding a hole. */
+                    fprintf(out, "# %s =\n", keys[i]);
+                } else {
+                    fprintf(out, "%s = %s\n", keys[i], values[i]);
+                }
+                written[i] = 1;
+                handled = 1;
+                break;
+            }
+
+            if (!handled) { fputs(line, out); }
+        }
+        fclose(in);
+    }
+
+    /* Anything the file did not already mention, live or commented, goes in a block at
+     * the end. Labelled, because a player who opens the file after using the launcher
+     * should be able to tell at a glance which lines they wrote and which the launcher
+     * did. */
+    {
+        int any = 0;
+        for (i = 0; i < count; i++) {
+            if (written[i] || keys[i] == NULL) { continue; }
+            if (values[i] == NULL || values[i][0] == '\0') { continue; }
+            if (!any) {
+                fputs("\n# --- written by the launcher ---------------------------------"
+                      "--------------\n", out);
+                any = 1;
+            }
+            fprintf(out, "%s = %s\n", keys[i], values[i]);
+        }
+    }
+
+    if (fclose(out) != 0) {
+        printf("[getv][config] write failed: %s\n", tmp);
+        remove(tmp);
+        free(written);
+        return 1;
+    }
+
+    /* Windows' rename() fails if the destination exists, unlike POSIX. Removing first
+     * opens a window where neither file is at `path`, which is why the temporary is
+     * kept until the rename succeeds -- a failed rename leaves the data recoverable at
+     * <path>.tmp and says so, rather than losing it. */
+#if defined(_WIN32)
+    remove(path);
+#endif
+    if (rename(tmp, path) != 0) {
+        printf("[getv][config] cannot replace %s -- your settings are in %s\n", path, tmp);
+        rc = 1;
+    } else {
+        printf("[getv][config] saved %s\n", path);
+    }
+
+    free(written);
+    fflush(stdout);
+    return rc;
+}
+
+/* ---------------------------------------------------------------------- init */
+
+/* Returned by geConfigInit() when a flag has done its whole job and the process should
+ * stop successfully (--help, --write-config, --list-cheats). Distinct from a positive
+ * return, which means a fatal config error. */
+#define GE_CONFIG_STOP (-1)
+
+int geConfigInit(int argc, char **argv)
+{
+ const char *cliPath = NULL;
+ const char *writePath = NULL;
+ int doWrite = 0, doHelp = 0;
+ int i;
+
+    /* Before anything is read, because after the file has been parsed there is no way left
+     * to tell a value the environment supplied from one this file put there. */
+ ge_preset_snapshot();
+
+    /* Pass 1 - only the flags that change what happens next. Nothing is applied yet,
+     * because --config must be known before the file is read and every other flag must
+     * be applied after it.
+     *
+     * --preset is spotted here as well as parsed later, because the preset has to be applied
+     * BETWEEN the file and pass 3 for the command line to keep beating it. Knowing about it
+     * only when pass 3 reaches it would be too late. */
+ for (i = 1; i < argc; i++) {
+ const char *a = argv[i];
+ if (strncmp(a, "--preset=", 9) == 0 || strncmp(a, "--profile=", 10) == 0) {
+ const char *pv = strchr(a, '=') + 1;
+ if (strcmp(pv, "enhanced") == 0 || strcmp(pv, "plus") == 0 ||
+ strcmp(pv, "goldeneye+") == 0 || strcmp(pv, "ge+") == 0) { g_preset_plus = 1; }
+ else                                                      { g_preset_plus = 0; }
+        }
+ if (strncmp(a, "--config=", 9) == 0)            { cliPath = a + 9; }
+ else if (strcmp(a, "--config") == 0 && i + 1 < argc) { cliPath = argv[++i]; }
+ else if (strncmp(a, "--write-config=", 15) == 0) { doWrite = 1; writePath = a + 15; }
+ else if (strcmp(a, "--write-config") == 0)       { doWrite = 1; }
+ else if (strcmp(a, "--help") == 0 || strcmp(a, "-h") == 0) { doHelp = 1; }
+ else if (strcmp(a, "--list-cheats") == 0) { list_cheats(); return GE_CONFIG_STOP; }
+
+    }
+ if (doHelp)  { usage(); return GE_CONFIG_STOP; }
+    /* write_default() uses the exit-code convention (0 = success), but the caller
+     * treats nonzero as "stop". Returning it raw would make a successful
+     * --write-config fall through and boot the game while a failed one exited cleanly,
+     * i.e. exactly backwards. Map both onto the explicit stop sentinel. */
+ if (doWrite) { return write_default(writePath) == 0 ? GE_CONFIG_STOP : 1; }
+
+    /* Earlier builds wrote the config to a directory named "GoldenEye" while saves went
+     * to "Goldeneye-Native". The two are unified now, but an existing install has a tuned
+     * config under the old name; adopt it rather than presenting a fresh one. Nothing is
+     * copied or deleted -- the file keeps working where it is. */
+    if (cliPath == NULL) {
+        const char *home = getenv("HOME");
+        if (home != NULL && *home != '\0') {
+            static char oldp[1024];
+            char newp[1024];
+            char newlegacy[1024];
+            struct stat st;
+            snprintf(oldp, sizeof oldp,
+                     "%s/Library/Application Support/GoldenEye/" GE_CFG_LEGACY_BASENAME, home);
+            snprintf(newp, sizeof newp,
+                     "%s/Library/Application Support/Goldeneye-Native/" GE_CFG_BASENAME, home);
+            snprintf(newlegacy, sizeof newlegacy,
+                     "%s/Library/Application Support/Goldeneye-Native/" GE_CFG_LEGACY_BASENAME, home);
+            if (stat(oldp, &st) == 0 && stat(newp, &st) != 0 && stat(newlegacy, &st) != 0) {
+                printf("[getv][config] using the pre-rename config: %s\n", oldp);
+                cliPath = oldp;
+            }
+        }
+    }
+
+    /* Pass 2 - the file, with overwrite=0 so the environment always wins. */
+ if (locate(argc > 0 ? argv[0] : NULL, cliPath)) {
+ read_file();
+    } else if (cliPath != NULL) {
+ printf("[getv][config] --config=%s not found\n", cliPath);
+ g_errors++;
+    } else {
+        /* First run: no config anywhere and none asked for, so write the template and
+         * then read it. This is not a convenience; it is how the port's tuned defaults
+         * reach a player at all.
+         *
+         * A default that only exists inside a file the user has never generated is not
+         * a default. `invert_look = 1` is the case in point: a user with no config file
+         * gets retail's default instead, and retail omits OPTION_INVERTLOOK, which
+         * makes stick-up drive pitch down at full rate and pin at the -90 degree clamp
+         * within about 1.5 seconds. A fresh install then opens with the camera staring
+         * at the floor.
+         *
+         * Failure is deliberately non-fatal and near-silent: a read-only HOME must
+         * still boot on built-in defaults. */
+ if (write_default(NULL) == 0 &&
+ locate(argc > 0 ? argv[0] : NULL, NULL)) {
+ printf("[getv][config] first run -- wrote a default config; edit it to taste\n");
+ read_file();
+        }
+    }
+
+    /* The preset sits here on purpose: after the file, before the command line. See
+     * ge_preset_apply() for why that position is the whole rule. */
+ ge_preset_apply();
+
+    /* Pass 3 - the command line, with overwrite=1 so it beats the environment. */
+ for (i = 1; i < argc; i++) {
+ char *a = argv[i];
+ char kv[512], *eq;
+ if (strncmp(a, "--", 2) != 0) { continue; }
+ if (strncmp(a, "--config", 8) == 0 || strncmp(a, "--write-config", 14) == 0 ||
+ strcmp(a, "--help") == 0 || strcmp(a, "--list-cheats") == 0) { continue; }
+            /* Consumed by ge_launcher.cpp, which runs after this returns. Skipped rather
+             * than handled: the launcher needs the config layer to have finished first, so
+             * that every control opens showing the value the file and environment resolved
+             * to. Listing it here only stops it being reported as a malformed --key=value. */
+ if (strcmp(a, "--launcher") == 0) { continue; }
+ snprintf(kv, sizeof kv, "%s", a + 2);
+ eq = strchr(kv, '=');
+ if (eq == NULL) {
+ if (i + 1 < argc && argv[i + 1][0] != '-') {
+ char joined[600];
+ snprintf(joined, sizeof joined, "%s=%s", kv, argv[++i]);
+ snprintf(kv, sizeof kv, "%s", joined);
+ eq = strchr(kv, '=');
+            } else {
+ printf("[getv][config] ignoring \"%s\": expected --key=value\n", a);
+ continue;
+            }
+        }
+        *eq = '\0';
+        {
+ char lv[512];
+ snprintf(lv, sizeof lv, "%s", eq + 1);
+ if (strncmp(kv, "GETV_", 5) != 0 &&
+ strcmp(kv, "save_dir") != 0 && strcmp(kv, "savedir") != 0) {
+ lower(lv);
+            }
+ if (!apply(kv, lv, /*overwrite=*/1)) {
+ printf("[getv][config] ignoring unknown flag --%s\n", kv);
+            }
+        }
+    }
+
+    /* GETV_CHEATS, applied last so it beats both the file and the CLI.
+     *
+     * Cheats are the one part of the config that is not expressed as a GETV_ gate: key_cheats
+     * writes the game's cheat flag array directly, here, at parse time. That works for a
+     * config file, but it means a cheat cannot survive an exec() -- and the launcher relaunches
+     * the binary precisely because most gates are read once into a static and cannot be changed
+     * afterwards. This gate is how a cheat selection crosses that boundary. Same comma-separated
+     * syntax as the `cheats` key, and it is simply handed to the same parser. */
+    {
+        const char *envcheats = getenv("GETV_CHEATS");
+        if (envcheats != NULL && *envcheats != '\0') {
+            key_cheats(envcheats, 1);
+        }
+    }
+
+ geConfigApplyLauncherProfile();
+
+ printf("[getv][config] %s%s | window=%s fps=%s ss=%s controls=%d filtering=%u\n",
+ ge_config_loaded ? "file " : "no config file",
+ ge_config_loaded ? g_cfgpath : "",
+ getenv("GETV_WINDOW")      ? getenv("GETV_WINDOW")      : "default",
+ getenv("GETV_FPS")         ? getenv("GETV_FPS")         : "default",
+ getenv("GETV_SUPERSAMPLE") ? getenv("GETV_SUPERSAMPLE") : "default",
+ ge_config_controls, configFiltering);
+ if (g_errors > 0) {
+ printf("[getv][config] %d setting(s) were rejected - see above. ""The game will start with the defaults for those.\n", g_errors);
+    }
+ fflush(stdout);
+ return 0;
+}

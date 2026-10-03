@@ -341,338 +341,451 @@ int gePortParallaxEnabled(void)
  * current behaviour. Defaults OFF, unlike configFiltering/configWidescreen above -- both
  * of those were verified by tracing the exact call order and, for widescreen, by working
  * through the arithmetic that proves ge_scale() collapses to a single uniform factor. This
- * one has had no such ver‹­¦ëm®éÜj×¢¸ Šv¥jšk£¦j×­¢G§r‹§·]yßŞÂˆ\ˆH™\ÛÛ™YÂˆYˆ
-ÙWİ^XÚ×İ˜XÙWÛÛŠ
-JHÂˆš[Š–ÙÙ]—Vİ^XÚ×HXÚÈ\™XİÜNˆ	\È
-^Y\‹\™[]]™JWˆ‹\ŠNÂˆ™›\Ú
-İİ]
-NÂˆBˆ™]\›ˆ\ÂˆBˆBˆB‚ˆYˆ
-ÙWİ^XÚ×İ˜XÙWÛÛŠ
-JHÂˆš[Š–ÙÙ]—Vİ^XÚ×H›ÈXÚÈ\™XİÜH›İ[™
-šYY‰\×ˆYØZ[œİİÙ[™ÑU—ÑVQTŠHKH‚ˆ’^\™\ÈÚ[™HH›Ë[Üˆ‹\ŠNÂˆ™›\Ú
-İİ]
-NÂˆBˆ\ˆH•SÂˆ™]\›ˆ\ÂŸB‚‹Êˆ˜\İÑ	ÜÈİÛˆVT“SÑUH]\ÚÜÈ›Üˆ”×ÕVT‘QTˆ
-™ÙŠHÜXÚYšXØ[H[™^XİÂˆ
-ˆHØ[ÈÈ™Xİ\œÙH[È]È\ÈXÚÈ\È›ÈİXÚİXİ\™K]\ÈÛ™H›]›Û\ˆÙ‚ˆ
-ˆ\Ú‹^ˆš[\ËÛÈH˜\ÙX˜[Z[™È[HİX™\™XİÜHYÚ][X][Hš[™È›İ[™Ëˆ
-‹Â™œ×İØ[×Ü™\İ[İœ×İØ[ÊÛÛœİÚ\ˆ
-˜˜\ÙKØ[×Ù›—İØ[Ù›‹›ÚY
-\Ù\‹ÛÛœİ›ÛÛ™Xİ\ŠBÂˆÛÛœİÚ\ˆ
-œ›ÛİHÙWİ^XÚ×Ù\Š
-NÂˆÚ\ˆ]ÌLNÂˆTˆ
-™ÂˆİXİ\™[
-™NÂˆœ×İØ[×Ü™\İ[İ™\İ[H”×ÕĞS×ÔÕPĞÑTÔÎÂ‚ˆ
-›ÚY
-\™Xİ\ÈÊˆ›]\™XİÜK›İ[™ÈÈ™Xİ\œÙH[È
-‹ÂˆYˆ
-›ÛİOH•S
-H™]\›ˆ”×ÕĞS×Ó“Õ“ÕS‘Â‚ˆYˆ
-˜\ÙHOH•S	‰ˆ
-˜˜\ÙHOH	×	È	‰ˆİ˜Û\
-˜\ÙK‹ˆŠHOH
-HÂˆÛœš[Š]Ú^™[ÙŠ]
-K‰\ËÉ\È‹›Ûİ˜\ÙJNÂˆH[ÙHÂˆÛœš[Š]Ú^™[ÙŠ]
-K‰\È‹›Ûİ
-NÂˆB‚ˆHÜ[™\Š]
-NÂˆYˆ
-OH•S
-H™]\›ˆ”×ÕĞS×Ó“Õ“ÕS‘Â‚ˆÚ[H
+ * one has had no such verification pass, because there has been no compiler available to
+ * run one against: it was written and reasoned through, not measured. An empty
+ * GETV_TEXPACK makes it a no-op regardless, so turning it on costs one failed file lookup
+ * per unique texture rather than anything worse.
+ *
+ * It has since been run, so that caveat is retired. Dumped the 56 textures DAM decodes in its
+ * first 121 frames with GETV_TEXPACK_DUMP, replaced every one with a flat magenta PNG of the
+ * same dimensions, and compared the frame against the same run without the pack: 91% of
+ * sampled pixels changed and 3,244 magenta pixels appeared where the baseline had none. The
+ * lookup, the hash naming and the upload path all work. It stays opt-in because faithful is
+ * the default, not because it is unproven.
+ *
+ * Lazy-resolved on first call, NOT a constructor like configFiltering/configWidescreen above
+ * -- those two are read directly as bare globals from multiple call sites with no accessor to
+ * hang a check off, so "before main()" is the only guarantee available to them. This one has
+ * exactly one reader (gfx_pc.c's ge_texpack_try_override()), which never runs before
+ * geConfigInit()/the launcher have already finished on any platform, so a lazy check costs
+ * nothing here and fixes a real bug the constructor form had: on desktop, the launcher's
+ * relaunch() execv()s into a fresh process so a constructor re-reads the corrected env var,
+ * but tvOS/iOS explicitly never execv() (relaunch() returns early there; GETV_LAUNCHER never
+ * calls it in the first place), so a value chosen in-app -- the config file, the GoldenEye+
+ * profile, a launcher toggle -- could never take effect: the constructor had already run and
+ * latched GETV_HD_TEXTURES's value from before the process even started. Matches
+ * gePortParallaxEnabled()'s shape immediately above. */
+unsigned int gePortHdTexturesEnabled(void)
+{
+    static int on = -1;
+    if (on < 0) {
+        const char *e = getenv("GETV_HD_TEXTURES");
+        on = (e && *e >= '0' && *e <= '1' && e[1] == '\0') ? (*e - '0') : 0;
+    }
+    return (unsigned int) on;
+}
 
-HH™XY\Š
-JHOH•S
-HÂˆÚ\ˆ[ÌMLÍ—NÂˆYˆ
-İ˜Û\
-KO™Û˜[YK‹ˆŠHOHİ˜Û\
-KO™Û˜[YK‹‹ˆŠHOH
-HÛÛ[YNÂˆÛœš[Š[Ú^™[ÙŠ[
-K‰\ËÉ\È‹]KO™Û˜[YJNÂˆYˆ
-]Ø[Ù›Š\Ù\‹[
-JHÂˆ™\İ[H”×ÕĞS×ÒS•T”•TQÂˆœ™XZÎÂˆBˆBˆÛÜÙY\Š
-NÂˆ™]\›ˆ™\İ[ÂŸB‚›ÚY
-™œ×ÛØYÙš[JÛÛœİÚ\ˆ
-œ]Z[İ
-›İ]Ú^™JBÂˆÛÛœİÚ\ˆ
-œ›ÛİHÙWİ^XÚ×Ù\Š
-NÂˆÚ\ˆ]ÌLNÂˆ’SH
-™ÂˆÛ™ÈÚ^™NÂˆ›ÚY
-˜YÂ‚ˆYˆ
-İ]Ú^™JH
-›İ]Ú^™HHÂˆYˆ
-›ÛİOH•Sœ]OH•S
-œ]OH	×	ÊH™]\›ˆ•SÂ‚ˆÊˆœ×İØ[Ê
-HX›İ™H[™È]ÈØ[˜XÚÈ[]È[™\ˆH™\ÛÛ™Y›ÛİÈHØ[\‚ˆ
-ˆ]\›œÈ\›İ[™[™ØYÈÛ™HÙˆÜÙH
-˜]\ˆ[ˆH˜\™H\Ú‹œ™ÈŠH\Âˆ
-ˆ\ÜÚ[™È[ˆ[™XYK\›ÛİY]˜XÚÈ[‹ÛÈ[ˆXœÛÛ]Hœ]\È\ÙY\ËZ\È[œİXYˆ
-ˆÙˆ™Z[™È›Ú[™YÛÈ›ÛİHÙXÛÛ™[YKˆ
-‹ÂˆYˆ
-œ]ÌHOH	ËÉÈœ]ÌHOH	×	È
-œ]ÌHOH	×	È	‰ˆœ]ÌWHOH	Î‰ÊJHÂˆÛœš[Š]Ú^™[ÙŠ]
-K‰\È‹œ]
-NÂˆH[ÙHÂˆÛœš[Š]Ú^™[ÙŠ]
-K‰\ËÉ\È‹›Ûİœ]
-NÂˆB‚ˆˆH›Ü[Š]œ˜ˆŠNÂˆYˆ
-ˆOH•S
-H™]\›ˆ•SÂ‚ˆYˆ
-œÙYZÊ‹ÑQR×ÑS‘
-HOH
-HÈ˜ÛÜÙJŠNÈ™]\›ˆ•SÈBˆÚ^™HH[
-ŠNÂˆYˆ
-Ú^™HœÙYZÊ‹ÑQR×ÔÑU
-HOH
-HÈ˜ÛÜÙJŠNÈ™]\›ˆ•SÈB‚ˆYˆHX[ØÊ
-Ú^™Wİ
-HÚ^™JNÂˆYˆ
-YˆOH•S
-HÈ˜ÛÜÙJŠNÈ™]\›ˆ•SÈB‚ˆYˆ
-Ú^™Hˆ	‰ˆœ™XY
-Y‹K
-Ú^™Wİ
-HÚ^™KŠHOH
-Ú^™Wİ
-HÚ^™JHÂˆœ™YJYŠNÂˆ˜ÛÜÙJŠNÂˆ™]\›ˆ•SÂˆBˆ˜ÛÜÙJŠNÂ‚ˆYˆ
-İ]Ú^™JH
-›İ]Ú^™HH
-Z[İ
-HÚ^™NÂˆ™]\›ˆYÂŸB‚‹ÊˆKKKHÚ]İÛˆKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKH
-‹Â‚‹Êˆ˜\İÑ	ÜÈÑ˜XÚÙ[™Ø[È\ÙHÚ[ˆHÔÈ\ÚÜÈH\È]Z]ˆ\™H\È›Âˆ
-ˆØ[YHİ]HÈX\ˆİÛˆY]KHHXÛÛ\	ÜÈİÛˆ›Ûİ]\È›İÚ\™YKHÛÈBˆ
-ˆ\›™\ÜÈ\İX]™\ÈÛX[›Kˆ
-‹Â›ÚYØ[YWÙZ[š]
-›ÚY
-HÈB‚›ÚYØ[YWÙ^]
-›ÚY
-BÂˆš[Š–ÙÙ]—HØ[YWÙ^]™\]Y\İYˆŠNÂˆ™›\Ú
-İİ]
-NÂˆ^]
-
-NÂŸB‚‹ÊˆKKKH[œ]KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKH
-‹Â‚‹ÊˆH\Hˆ\È›ÈÙ^X›Ø\™È˜\İÑ	ÜÈÑ˜XÚÙ[™™YÚ\İ\œÈ\ÙH™YØ\™\ÜË‚ˆ
-ˆ™]\›š[™È˜[ÙHYX[œÈ››İ[™Y‹ÚXÚ\ÈÛÜœ™Xİ\™KˆØ[Y\Y[œ]ÛÙ\Âˆ
-ˆ›İYÚÑ	ÜÈ›Ş\İXÚËÑØ[YPÛÛ›Û\ˆ]Ú[ˆHØ[YH\ÈÚ\™Y\ˆ
-‹Â˜›ÛÛÙ^X›Ø\™ÛÛ—ÚÙ^WÙİÛŠ[ØØ[˜ÛÙJHÈ
-›ÚY
-\ØØ[˜ÛÙNÈ™]\›ˆ˜[ÙNÈB˜›ÛÛÙ^X›Ø\™ÛÛ—ÚÙ^Wİ\
-[ØØ[˜ÛÙJHÈ
-›ÚY
-\ØØ[˜ÛÙNÈ™]\›ˆ˜[ÙNÈB›ÚYÙ^X›Ø\™ÛÛ—Ø[ÚÙ^\×İ\
-›ÚY
-HÈB‚‹ÊˆKKKH›Ûİ˜XÚ[™È
-[\Ü˜\JHKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKH
-‹Â‚‹ÊˆØ[Yœ›ÛH›ÜÜÒ[š]XZ[™XY]J
-H™Y›Ü™HXXÚ[š]İ\ÛÈH]šXÙHÛÛœÛÛBˆ
-ˆÚİÜÈ^XİHİÈ˜\ˆİ\\Ù]Ëˆ™[[İ™H[Û™ÈÚ]HØ[È[ˆ›ÜÜË˜ÈÛ˜ÙHBˆ
-ˆ›Ûİ]ÛÛ\]\Ëˆ
-‹Â‹Êˆ\‹]YÈš[YÙ]›ÜˆÙTÜ›ÛİX\šÊ
-NÈÙYHH›İH\™KˆYÜÈ\™Hİš[™Âˆ
-ˆ]\˜[ËÛÈÛÛ\\š[™ÈHÚ[\ˆ\È›İÛÜœ™Xİ[™ÚX\ˆ
-‹Â˜ÛÛœİÚ\ˆ
-™ÙWÛ\İÛX\šÈHŠ›Û™JHÂ[œÚYÛ™YÛ™ÈÙWÛX\š×ÜÙ\HHÂ‚ˆÙYš[™HÑWÓPT’×Ô‘TPUÈÂˆÙYš[™HÑWÓPT’×ÓPVLL‚‚œİ]XÈ[ÙWÛX\š×ÜÚİ[Üš[
-ÛÛœİÚ\ˆ
-Ú]
-BÂˆİ]XÈÛÛœİÚ\ˆ
-YÜÖÑÑWÓPT’×ÓPVNÂˆİ]XÈ[]ÖÑÑWÓPT’×ÓPVNÂˆİ]XÈ[YÜÈHÂˆ[NÂ‚ˆ›Üˆ
-HHÈHYÜÎÈJÊÊHÂˆYˆ
-YÜÖÚWHOHÚ]
-HÂˆYˆ
-]ÖÚWHÑWÓPT’×Ô‘TPUÊHÂˆ]ÖÚWJÊÎÂˆYˆ
-]ÖÚWHOHÑWÓPT’×Ô‘TPUÊHÂˆš[Š–ÙÙ]—H
-\\ˆ	É\ÉÈX\šÜÈİ\™\ÜÙY
-Wˆ‹Ú]
-NÂˆBˆ™]\›ˆNÂˆBˆ™]\›ˆÂˆBˆBˆYˆ
-YÜÈÑWÓPT’×ÓPV
-HÂˆYÜÖÛYÜ×HHÚ]Âˆ]ÖÛYÜ×HHNÂˆYÜÊÊÎÂˆBˆ™]\›ˆNÂŸB‚›ÚYÙTÜ›ÛİX\šÊÛÛœİÚ\ˆ
-Ú]
-BÂˆÊˆÚXÚÚ[™ÈHİXˆØ[˜\šY\È\™H\ÈÚ]XZÙ\ÈHİXˆİ™\™›İÈš[™X›KˆBˆ
-ˆ×Ô›ÜÈİ™\œ[ˆÛÜœ\YHY[[ÜK\ÛÛ˜[šÈX›H[™Û›Hİ\™˜XÙY™YBˆ
-ˆİXœŞ\İ[\È]\‹\ÈHÚ[[Ú[JJNØ[œÚYHY[\[ØĞ]\Ò[˜[šËˆÚXÚÚ[™Âˆ
-ˆÛˆ]™\H›ÛİX\šÈ˜[Y\È›İHÙ™™[™[™ÈŞ[X›Û[™Hİ\]Y]ˆ
-‹Âˆ^\›ˆÛÛœİÚ\ˆ
-™ÙTÜİXÚXÚÊ›ÚY
-NÂˆİ]XÈ[™\ÜYHÂˆÛÛœİÚ\ˆ
-˜˜YÂ‚ˆÊˆ˜]K[[Z]Yˆ[˜ÛÛ™][Û˜[X\šÜÈš[Ûˆ]™\Hœ˜[YHÛ˜ÙHH›Ûİ]™XXÚ\Âˆ
-ˆHœ˜[YHÛÜÚXÚ›ÙXÙY][KYÚYØX]HÙÜÈœ›ÛH[œÈÙˆHÛİ\HÙ‚ˆ
-ˆZ[]\ËˆXXÚ\İ[˜İYÈš[È]Èš\œİÑWÓPT’×Ô‘TPUÈØØİ\œ™[˜Ù\È[™\Âˆ
-ˆ[ˆİ\™\ÜÙYÙY\[™ÈHÛ™K\Úİ›Ûİ˜XÙH[XİÚ[HXZÚ[™ÈBˆ
-ˆİXYK\İ]HÛÜÛÜİ›İ[™Ë‚ˆ
-‚ˆ
-ˆ]™\HX\šÈ\Èİ[™XÛÜ™Y]™[ˆHİ\™\ÜÙYÛ™Kˆ˜]K[[Z][™ÈÙY\ÈHÙÂˆ
-ˆÛX[]Ûİ[İ\Ú\ÙHYHÚ\™HHÜ˜\Ú\[™YÛ˜ÙHHœ˜[YHÛÜ\Âˆ
-ˆ[›š[™ËÚ[˜ÙHH\İ[™Èš[YÛİ[™HÙ]™\˜[]\˜][ÛœÈİ[KˆBˆ
-ˆÜ˜\Ú[™\ˆš[ÈÙWÛ\İÛX\šÈ[œİXYÛÈİ\™\ÜÚ[ÛˆÛÜİÈ›İ[™Âˆ
-ˆXYÛ›ÜİXØ[Kˆ
-‹ÂˆÙWÛ\İÛX\šÈHÚ]ÂˆÙWÛX\š×ÜÙ\JÊÎÂ‚ˆYˆ
-ÙWÛX\š×ÜÚİ[Üš[
-Ú]
-JHÂˆš[Š–ÙÙ]—H›ÛİOˆ	\×ˆ‹Ú]
-NÂˆB‚ˆÊˆØ[YHYXH\ÈHİXˆØ[˜\K›ÜˆHY[[ÜK\ÛÛ˜[šÈX›Nˆ™\ÜHš\œİˆ
-ˆ›Ûİİ\Y\ˆÚXÚ[HÛÛ\È[™İ\ˆ
-‹ÂˆÂˆ^\›ˆ[ÙTÜY[\Ø[™J›ÚY
-NÂˆİ]XÈ[Y[\Ü™\ÜYHÂˆYˆ
-[Y[\Ü™\ÜY	‰ˆYÙTÜY[\Ø[™J
-JHÂˆY[\Ü™\ÜYHNÂˆš[Š–ÙÙ]—H
-ŠŠˆÓÓP“HÓÔ”•TQ\š[™È	É\ÉÈ
-X\šÈÉ[JWˆ‹ˆÚ]ÙWÛX\š×ÜÙ\JNÂˆBˆB‚ˆYˆ
-\™\ÜY	‰ˆ
-˜YHÙTÜİXÚXÚÊ
-JHOH•S
-HÂˆ™\ÜYHNÈÊˆÛ˜ÙNˆY\ˆHš\œİİ™\œ[ˆ]™\H]\ˆÚXÚÈ[ÛÈš\È
-‹Âˆš[Š–ÙÙ]—H
-ŠŠˆÕPˆÕ‘T‘“ÕÎˆ	\Èİ™\œ˜[ˆ]È	YX]HİÜ˜YÙK]XİY]‚ˆ‰É\ÉËˆ]È™X[Ú^™H\È\™Ù\ˆKHÚ]™H]H™X[Yš[š][Û‹—ˆ‹ˆ˜YMˆ
-ˆLÚ]
-NÂˆBˆ™›\Ú
-İİ]
-NÂŸB‚‹ÊˆKKKHÜÔŞ[˜Ôš[ˆKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKH
-‹Â‚‹ÊˆX[˜IÜÈXYÈš[ˆÛˆH]Ù[ÈHÜİİ™\ˆHXYÈÜÈ\™H]ˆ
-ˆÛÙ\ÈÈH]šXÙHÛÛœÛÛHZÙH]™\][™È[ÙKˆ[\[Y[Y›Üˆ™X[˜]\ˆ[‚ˆ
-ˆİX˜™Y™XØ]\ÙH]\ÈHXÛÛ\	ÜÈÕÓˆXYÛ›ÜİXÈÚ[›™[KHHİÙˆHØ[YIÜÂˆ
-ˆ\œ›Üˆ]È™\Ü›İYÚ][™HİXˆÚ[[H\ØØ\™È[Ùˆ[Kˆ
-‹Â‹Êˆ›Û‹\İ]XÈÛÈ›XÚİÜÈHY™™\š[™ÈXÚ\Ú[ÛˆXİX[HÛÚËHØ[YH™X\ÛÛš[™È\Âˆ
-ˆÙWÙY\›ÛWÙ›\Ú\ÎˆHİ]XÈÛİ[[›[™H]Ø^H[™X]™H›È]šY[˜ÙHÚXÚ[ÙHH[ˆ\ÙYˆ
-‹Âš[ÙWÛÙ×Ù›\ÚÙXXÚHÂ›ÚYÙWÛÙ×Ù›\ÚÛ›İÊ›ÚY
-NÂ‚‹ÊˆH™›\Ú\™HØ\ÈHœ˜[YH˜]K[™Ø][™ÈHØ[\œÈÛİ[]™H™Y[ˆHÜ›Û™Èš^‚ˆ
-‚ˆ
-ˆLMˆXÛÛ\Ø[Ú]\È[›™[›İYÚ\È[˜İ[Ûˆ[™]™\HÛ™HÙˆ[H›Ü˜ÙYH›\Ú‚ˆ
-ˆYX\İ\™YÛˆ\È›ŞH›\ÚYİİ][™HÛÜİÈX›İ]\ÈÚ[ˆİİ]\È™Y\™XİYÈBˆ
-ˆš[KÛÈHŒKŒ[™\ÈH˜Z[ˆ[ˆ[Z]ÈÛÜİ›İYÚHÙXÛÛ™ÈÙˆHL\ÙXÛÛ™[‹ˆÚ]ˆ
-ˆİİ]\ØØ\™Y[\™[HHØ[YH[ˆÙ\ÈLœÈYØZ[œİN‚ˆ
-‚ˆ
-ˆHØš[İ\È™\ÜÛœÙHKH]XXÚÚ]HXYÛ›ÜİXÈ™Z[™]ÈİÛˆ[ˆØ]HKH›İÜÈ]Ø^Bˆ
-ˆ[™›Ü›X][ÛˆÈ^HÜYY[™HÛÛ[Y[X›İ™HØ^\ÈÚH]\ÈH˜Y˜YH\™Nˆ\È\ÈBˆ
-ˆXÛÛ\	ÜÈÕÓˆ\œ›ÜˆÚ[›™[[™HİÙˆHØ[YIÜÈ˜Z[\™H]È™\Ü›İYÚ]ˆHÛÜİˆ
-ˆØ\È™]™\ˆHQTÔĞQÑTË]Ø\ÈH›\ÚˆÛÎˆÙY\]™\H[™KİÜŞ[˜Ú[™ÈY\ˆXXÚÛ™K‚ˆ
-‚ˆ
-ˆİİ]\ÈÚ]™[ˆH™X[Y™™\ˆ[™›\ÚY]^][œİXYˆİ]]İ[\œš]™\Ëİ[[‚ˆ
-ˆÜ™\‹[™H›Ü›X[[ˆ^\È›ÜˆH[™[ÙˆÜš]\È˜]\ˆ[ˆÚ^Y[ˆ[™™Y‚ˆ
-‚ˆ
-ˆH›\Ú^\İY›ÜˆH™X\ÛÛ‹ÛÈ]\Èİ[]˜Z[X›KˆH\™Ü˜\ÚØ[ˆÜÙHÚ]]™\ˆÚ]Âˆ
-ˆ[ˆHY™™\‹ÚXÚ\È^XİHÚ[ˆHXYÈÚ[›™[X]\œÈ[ÜİKHÑU—ÓÑÑ“TÒLH™\İÜ™\Âˆ
-ˆ\‹[[™H›\Ú[™È›ÜˆÚ\Ú[™ÈH[™ÈÜˆH˜][ˆY˜][[™È]Ñ‘ˆ\ÈHšYÚØ^H›İ[™ˆ
-ˆ™XØ]\ÙH[ˆ[œ™\›ÙXÚX›HÜ˜\Ú\È˜\™H[™HŞÛİÙİÛˆ\È]™\HÚ[™ÛH[‹]HÚÚXÙBˆ
-ˆ\ÈÈİ^H]˜Z[X›HÜˆ\È™XÛÛY\ÈHš^]ÛÜİÈÛÛY[Û™HH^H]\‹‚ˆ
-‹Âœİ]XÈ›ÚYÙWÛÙ×ÜÙ]\
-›ÚY
-BÂˆİ]XÈ[Û™HHÂˆYˆ
-Û™JHÈ™]\›ÈBˆÛ™HHNÂˆÂˆÛÛœİÚ\ˆ
-™HHÙ][Š‘ÑU—ÓÑÑ“TÒŠNÂˆÙWÛÙ×Ù›\ÚÙXXÚH
-HOH•S	‰ˆ
-™HOH	ÌIÊNÂˆBˆYˆ
-YÙWÛÙ×Ù›\ÚÙXXÚ
-HÂˆÊˆĞˆX›İ]›ÜHÙˆ\È›Ú™Xİ	ÜÈÛ™Ù\ˆXYÛ›ÜİXÈ[™\È\ˆÜš]Kˆ[ØØ]YBˆ
-ˆHÔ•˜]\ˆ[ˆHİ]XÈÙˆİ\œËÛÈ›İ[™È\™H\ÈÈİ]]™H^]
+/* ---- filesystem -------------------------------------------------------- */
 
-Kˆ
-‹ÂˆÙ]˜YŠİİ]•SÒSÑ‘‹
-ˆL
-NÂˆÊˆY™™\™Yİ]]]\È™]™\ˆ›\ÚY\Èİ]]]Ø\È›İÛˆ]Ø^K[™H[ˆ]ˆ
-ˆ[™ÈH^]
+/* Pack format, chosen: a flat directory of override texture files, named by content
+ * hash -- ge_texhash() in gfx_pc.c hashes the raw N64 texel bytes plus fmt/siz, so the
+ * name is stable across runs and independent of where the ROM data happens to sit in
+ * memory. GETV_TEXPACK_DUMP=<dir> (also gfx_pc.c; not GETV_TEXDUMP, which is already
+ * image.c's own unrelated byte-count debug gate) writes a same-named .ppm baseline the
+ * first time each texture is decoded, so a pack starts life as a copy of a dump with
+ * individual files replaced by an upscaler, not as a guessing game over what to name things.
+ *
+ * GETV_TEXPACK names the root explicitly; "hdtextures" is the default so a pack folder
+ * dropped next to the executable with no configuration at all is picked up. Same
+ * GETV_EXEDIR fallback as gePortLuaInit() (ge_lua.c) and ge_config.c's own config-file
+ * search, and for the same reason: a relative path is tried against the working directory
+ * first (an explicit relative GETV_TEXPACK should mean what the user typed, standing in
+ * the right place), then against the executable's own directory, which is where a
+ * distributed folder's pack actually lives when launched from a shortcut or from
+ * somewhere else entirely. No pack directory is the normal case -- most players have not
+ * installed one -- and stays silent rather than logging on every missed lookup. */
+static int ge_texpack_trace_on(void)
+{
+    static int on = -1;
+    if (on < 0) {
+        const char *e = getenv("GETV_TEXPACK_TRACE");
+        on = (e && *e == '1');
+    }
+    return on;
+}
 
-H˜]\ˆ[ˆH™]\›š[™Èœ›ÛHXZ[ˆ\ÈH›Ü›X[Ø\ÙH\™Bˆ
-ˆ
-ÑU—ÑVUÑ”SQJKˆ™YÚ\İ\š[™ÈH›\Ú\ÈÚ]XZÙ\ÈšÙY\]™\H[™HˆYKˆ
-‹Âˆ]^]
-ÙWÛÙ×Ù›\ÚÛ›İÊNÂˆBŸB‚›ÚYÙWÛÙ×Ù›\ÚÛ›İÊ›ÚY
-BÂˆ™›\Ú
-İİ]
-NÂŸB‚‹ÊˆÑU—ÓĞQPÑHKHH\‹[[Ù[\ÜÙ]Ú]\‹Ù™ˆHY˜][‚ˆ
-‚ˆ
-ˆ\İ[˜İœ›ÛHHY™™\š[™ÈX›İ™K[™ÛÜÙY\[™È\İ[˜İˆY™™\š[™ÈXYHHÙÈÒPTÂˆ
-ˆ\ÈXZÙ\È]ÒÔ•ˆ^HÛÛ™HY™™\™[›Ø›[\È[™™Z]\ˆ™\XÙ\ÈHİ\ˆHÚX\ÙÂˆ
-ˆİ[\šY\ÈHÛ™H[™H[İHØ\™HX›İ][™\ˆÚ^Y[ˆ[™™Y[İHÈ›İ[™HÚÜÙÈ]ˆ
-ˆŞ[˜ÙYY\ˆ]™\H[™HÛİ[İ[ÛÜİHœ˜[YH˜]K‚ˆ
-‚ˆ
-ˆÚ]]Ûİ™\œÈ\ÈÛ™HØ]YÛÜHKHXYÛ›ÜİXÜÈ[Z]YÛ˜ÙH\ˆ[Ù[Üˆ\ˆ\ÜÙ]\È]ØYÎ‚ˆ
-ˆ[Ù[ÛÛ‹İØ\^›İË[Ù[^[š]ËÙ^ÙÙ^ØØ[KÙÙÜËÙÙ›ÛÜQSTšYËˆ
-ˆ™ÓØY[™™ÙÙˆÚ^Y[ˆØ[Ú]\Ë‚ˆ
-‚ˆ
-ˆQPTÕT‘Q›İ\İ[X]YˆHLYœ˜[YH˜Z[ˆ[ˆÛÙ\Èœ›ÛHKŒˆ[™\ÈÈKMˆKHˆ[™\Ëˆ
-ˆX›İ]ÎIKˆ[ˆX\›Y\ˆ˜YÙˆ\ÈÛÛ[Y[İY\ÜÙY˜X›İ]KLÙˆŒKŒˆ™Y›Ü™H[[Û™Bˆ
-ˆÛİ[YÚXÚÛİ[]™H™Y[ˆH™YY›Ûİ™\œİ][Y[Ú][™È[ˆH™YH\ÈØİ[Y[][Û‹‚ˆ
-ˆH™\İÙˆHÙÈ\ÈÙ[Z[™[H˜\šYYˆÜ[ËÛÜœË›Ûİİ\ËH[›È™XÛÜ™È[™Bˆ
-ˆ\š[ÙXÈ[[YHÙ[œİ\Ù\ËXXÚH[™[Ùˆ[™\Èœ›ÛHHY™™\™[XÙKÚ]›ÈÚ[™ÛBˆ
-ˆØ]YÛÜHYÛÜØ][™Ë‚ˆ
-‚ˆ
-ˆHœ˜[YK\˜]HY™™Xİ\È“ÕYX\İ\˜X›HÛˆ\È›Ş[™›ÈšYİ\™H\ÈÛZ[YY›Üˆ]ˆÚ]ˆ
-ˆİİ][™XYHY™™\™Y\ÙH[™\ÈÛÜİ[[Üİ›İ[™Ë[™H[‹]Ë\[ˆÜ™XY\™H\Âˆ
-ˆ\™Ù\ˆ[ˆ[HØZ[ˆKHÛÈY[XØ[ÛÛ™šYİ\˜][ÛœÈYX\İ\™YŒÈ[™MHœËˆ\ÈØ]HXZÙ\Âˆ
-ˆHÙÈÒÔ•ÚXÚ\ÈH™XYXš[]HÚ[ÈHÔQQØ[YHœ›ÛHHY™™\š[™ÈX›İ™Kˆ™\Ù[[™Âˆ
-ˆH›Ú\ŞH[H\ÈHÜYY\\ÈİÈHXÙX›ÈÙ]ÈÛÛ[Z]Y‚ˆ
-‚ˆ
-ˆU[X™\˜][HÙ\È›İÛİ™\ˆ\œ›Üˆ]ËˆÜÔŞ[˜Ôš[ˆ\ÈLMˆØ[Ú]\È[™[ÜİÙˆ[Bˆ
-ˆ\™HHXÛÛ\™\Ü[™È]ÛÛY][™ÈÙ[Ü›Û™ÎÈØ][™ÈÜÙHÚÛ\Ø[H\ÈİÈH˜Z[\™Bˆ
-ˆ™XÛÛY\È[š\ÚX›KˆÛ›HHÚ]\È]™\ÜÕPĞÑTÔÑ•S“ÕUS‘HÛÜšÈ\™HÜ˜\Y[™XXÚˆ
-ˆÛ™HØ\ÈXÚÙYH™XY[™È]˜]\ˆ[ˆHX]Ú[™ÈH™Yš^‚ˆ
-‹Âš[ÙTÜØY˜XÙJ›ÚY
-BÂˆİ]XÈ[ÛˆHLNÂˆYˆ
-Ûˆ
-HÈÛÛœİÚ\ˆ
-™HHÙ][Š‘ÑU—ÓĞQPÑHŠNÈÛˆH
-HOH•S	‰ˆ
-™HOH	ÌIÊNÈBˆ™]\›ˆÛÂŸB‚›ÚYÜÔŞ[˜Ôš[ŠÛÛœİÚ\ˆ
-™›]‹‹ŠBÂˆ˜WÛ\İ\ÂˆÙWÛÙ×ÜÙ]\
+static const char *ge_texpack_dir(void)
+{
+    static char resolved[1024];
+    static const char *dir;
+    static int done;
+    struct stat st;
+    const char *requested;
 
-NÂˆ˜WÜİ\
-\›]
-NÂˆœš[Š›]\
-NÂˆ˜WÙ[™
-\
-NÂˆYˆ
-ÙWÛÙ×Ù›\ÚÙXXÚ
-HÈ™›\Ú
-İİ]
-NÈBŸB‚‹ÊˆKKH×Ú][WÙ[šY\ÈÛÜœ\[ÛˆØ[˜\HKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKBˆ
-ˆHØ\İ[›È˜][È™XY[™È×Ú][WÙ[šY\ÖÚXYKšXY\ˆÚ][ˆY™\ÜÈÚÜÙBˆ
-ˆÕÈÛÜ™\ÈÛÜœ™Xİ[™ÚÜÙHQÒÛÜ™ÛÈHÛX[[YÙ\‹ˆ]\ÈBˆ
-ˆÚYÛ˜]\™HÙˆHÌ‹Xš][Ù™œÙ]Üš]H[™[™ÈÛˆH\\ˆ[ˆÙˆÚ]\È›İÂˆ
-ˆHXš]Ú[\ˆKHYÈ˜[Z[HÌÈ
-Ø\İX˜\ÙY^[İ]ÛÛ˜Xİ
-KˆØØ[›š[™ÈHÚÛBˆ
-ˆX›H]H™]ÈÚXÚÜÚ[È\›œÈœÛÛY][™ÈÛÜœ\È]]™[X[Hˆ[ÈH˜[YYˆ
-ˆØ[Ú]KHØ[YHØ^HH×Ó[Ù[][šY\ÈİšYHYÈØ\È[›™Yˆ
-‹Â›ÚYÙTÜÚXÚÒ][Q[šY\ÊÛÛœİÚ\ˆ
-Ú\™JBÂˆÊˆØØ[Z\œ›ÜˆÙˆÚ“[Ù[š[T™XÛÜ™KHÜÜİ\Ü˜È[X™\˜][HÙ\È›İ[ˆ
-ˆ[ˆHØ[YHXY\œËˆÛ›HHÛÈXY[™ÈÚ[\œÈX]\ˆ\™NÈH˜Z[[™Âˆ
-ˆ›Ø]ËÙ›YÜÈYH™XÛÜ™È]È˜]\˜[Ì‹X]HXš]Ú^™Kˆ
-‹ÂˆİXİÙWÚ][WÜ™XÈÈ›ÚY
-šXY\ÈÚ\ˆ
-™š[[˜[YNÈ›Ø]ØØ[KİÂˆ[œÚYÛ™YÚ\ˆ\ÓX[K\ÒXYYKYÈNÂˆ^\›ˆİXİÙWÚ][WÜ™XÈ×Ú][WÙ[šY\Ö×NÂˆ[NÂˆ›Üˆ
-HHÈHÈJÊÊHÂˆZ[—İH
-Z[—İ
-H×Ú][WÙ[šY\ÖÚWKšXY\ÂˆZ[—İˆH
-Z[—İ
-H×Ú][WÙ[šY\ÖÚWK™š[[˜[YNÂˆYˆ
-OH	‰ˆ
-ˆÌŠHOHJHÂˆÜÔŞ[˜Ôš[Š–ÙÙ]—HUSHS•–HÓÔ”•T	\ÎˆÉYKšXY\I\
-YÚL	[
-Wˆ‹ˆÚ\™KK
-›ÚY
-ŠH
-[œÚYÛ™YÛ™ÊH
-ˆÌŠJNÂˆ™]\›ÂˆBˆYˆ
-ˆOH	‰ˆ
-ˆˆÌŠHOHJHÂˆÜÔŞ[˜Ôš[Š–ÙÙ]—HUSHS•–HÓÔ”•T	\ÎˆÉYK™š[[˜[YOI\
-YÚL	[
-Wˆ‹ˆÚ\™KK
-›ÚY
-ŠH‹
-[œÚYÛ™YÛ™ÊH
-ˆˆÌŠJNÂˆ™]\›ÂˆBˆBŸB‚‹ÊˆZ[\ÙXÛÛ™ÈÙˆ™X[[YHÚ[˜ÙHHš\œİØ[ˆ\ÙYHHÛØÚÈXYÛ›ÜİXÈ[‚ˆ
-ˆœ˜[Y][Z[™Ë˜ËÚXÚ™YYÈH[YX˜\ÙH]\ÈYš[š][H›İHØ[YIÜÈİÛ‹ˆ
-‹Â[œÚYÛ™Y[ÙTÜÜİZ[\Ê›ÚY
-BÂˆİ]XÈZ[ÜšYÚ[ˆHÂˆİ]XÈİX›Hœ™\HHŒÂ‚ˆYˆ
-œ™\HOHŒ
-HÂˆœ™\HH
-İX›JHÑÑÙ]\™›Ü›X[˜ÙQœ™\]Y[˜ŞJ
-NÂˆÜšYÚ[ˆHÑÑÙ]\™›Ü›X[˜ÙPÛİ[\Š
-NÂˆYˆ
-œ™\HHŒ
-HÈœ™\HHKŒÈBˆBˆ™]\›ˆ
-[œÚYÛ™Y[
-H
+    if (done) return dir;
+    done = 1;
 
+    requested = getenv("GETV_TEXPACK");
+    dir = (requested == NULL || *requested == '\0') ? "hdtextures" : requested;
 
-İX›JH
-ÑÑÙ]\™›Ü›X[˜ÙPÛİ[\Š
-HHÜšYÚ[ŠHÈœ™\JH
-ˆLŒ
-NÂŸB
+    if (stat(dir, &st) == 0 && S_ISDIR(st.st_mode)) {
+        if (ge_texpack_trace_on()) {
+            printf("[getv][texpack] pack directory: %s (cwd-relative)\n", dir);
+            fflush(stdout);
+        }
+        return dir;
+    }
+
+    if (dir[0] != '/' && dir[0] != '\\' && !(dir[0] != '\0' && dir[1] == ':')) {
+        const char *exedir = getenv("GETV_EXEDIR");
+        if (exedir != NULL && *exedir != '\0') {
+            snprintf(resolved, sizeof(resolved), "%s/%s", exedir, dir);
+            if (stat(resolved, &st) == 0 && S_ISDIR(st.st_mode)) {
+                dir = resolved;
+                if (ge_texpack_trace_on()) {
+                    printf("[getv][texpack] pack directory: %s (exedir-relative)\n", dir);
+                    fflush(stdout);
+                }
+                return dir;
+            }
+        }
+    }
+
+    if (ge_texpack_trace_on()) {
+        printf("[getv][texpack] no pack directory found (tried \"%s\" against cwd and GETV_EXEDIR) -- "
+               "HD textures will be a no-op\n", dir);
+        fflush(stdout);
+    }
+    dir = NULL;
+    return dir;
+}
+
+/* Fast3D's own EXTERNAL_DATA path asks for FS_TEXTUREDIR ("gfx") specifically and expects
+ * a walk to recurse into it; this pack has no such structure, it is one flat folder of
+ * <hash>.<ext> files, so a `base` naming any subdirectory legitimately finds nothing. */
+fs_walk_result_t fs_walk(const char *base, walk_fn_t walkfn, void *user, const bool recur)
+{
+    const char *root = ge_texpack_dir();
+    char path[1280];
+    DIR *d;
+    struct dirent *e;
+    fs_walk_result_t result = FS_WALK_SUCCESS;
+
+    (void)recur;   /* flat directory, nothing to recurse into */
+    if (root == NULL) return FS_WALK_NOTFOUND;
+
+    if (base != NULL && *base != '\0' && strcmp(base, ".") != 0) {
+        snprintf(path, sizeof(path), "%s/%s", root, base);
+    } else {
+        snprintf(path, sizeof(path), "%s", root);
+    }
+
+    d = opendir(path);
+    if (d == NULL) return FS_WALK_NOTFOUND;
+
+    while ((e = readdir(d)) != NULL) {
+        char full[1536];
+        if (strcmp(e->d_name, ".") == 0 || strcmp(e->d_name, "..") == 0) continue;
+        snprintf(full, sizeof(full), "%s/%s", path, e->d_name);
+        if (!walkfn(user, full)) {
+            result = FS_WALK_INTERRUPTED;
+            break;
+        }
+    }
+    closedir(d);
+    return result;
+}
+
+void *fs_load_file(const char *vpath, uint64_t *outsize)
+{
+    const char *root = ge_texpack_dir();
+    char path[1280];
+    FILE *f;
+    long size;
+    void *buf;
+
+    if (outsize) *outsize = 0;
+    if (root == NULL || vpath == NULL || *vpath == '\0') return NULL;
+
+    /* fs_walk() above hands its callback full paths under the resolved root; a caller
+     * that turns around and loads one of those (rather than a bare "<hash>.png") is
+     * passing an already-rooted path back in, so an absolute vpath is used as-is instead
+     * of being joined onto root a second time. */
+    if (vpath[0] == '/' || vpath[0] == '\\' || (vpath[0] != '\0' && vpath[1] == ':')) {
+        snprintf(path, sizeof(path), "%s", vpath);
+    } else {
+        snprintf(path, sizeof(path), "%s/%s", root, vpath);
+    }
+
+    f = fopen(path, "rb");
+    if (f == NULL) return NULL;
+
+    if (fseek(f, 0, SEEK_END) != 0) { fclose(f); return NULL; }
+    size = ftell(f);
+    if (size < 0 || fseek(f, 0, SEEK_SET) != 0) { fclose(f); return NULL; }
+
+    buf = malloc((size_t) size);
+    if (buf == NULL) { fclose(f); return NULL; }
+
+    if (size > 0 && fread(buf, 1, (size_t) size, f) != (size_t) size) {
+        free(buf);
+        fclose(f);
+        return NULL;
+    }
+    fclose(f);
+
+    if (outsize) *outsize = (uint64_t) size;
+    return buf;
+}
+
+/* ---- shutdown ---------------------------------------------------------- */
+
+/* Fast3D's SDL backend calls these when the OS asks the app to quit. There is no
+ * game state to tear down yet -- the decomp's own boot path is not wired -- so the
+ * harness just leaves cleanly. */
+void game_deinit(void) { }
+
+void game_exit(void)
+{
+    printf("[getv] game_exit requested\n");
+    fflush(stdout);
+    exit(0);
+}
+
+/* ---- input ------------------------------------------------------------- */
+
+/* The Apple TV has no keyboard; Fast3D's SDL backend registers these regardless.
+ * Returning false means "not handled", which is correct here. Gamepad input goes
+ * through SDL's joystick/GameController path when the game is wired up. */
+bool keyboard_on_key_down(int scancode) { (void)scancode; return false; }
+bool keyboard_on_key_up(int scancode)   { (void)scancode; return false; }
+void keyboard_on_all_keys_up(void)      { }
+
+/* ---- boot tracing (temporary) ------------------------------------------- */
+
+/* Called from bossInitMainthreadData() before each init step so the device console
+ * shows exactly how far startup gets. Remove along with the calls in boss.c once the
+ * boot path completes. */
+/* Per-tag print budget for gePortBootMark(); see the note there. Tags are string
+ * literals, so comparing by pointer is both correct and cheap. */
+const char *ge_last_mark = "(none)";
+unsigned long ge_mark_seq = 0;
+
+#define GE_MARK_REPEATS 3
+#define GE_MARK_MAX     512
+
+static int ge_mark_should_print(const char *what)
+{
+    static const char *tags[GE_MARK_MAX];
+    static int hits[GE_MARK_MAX];
+    static int ntags = 0;
+    int i;
+
+    for (i = 0; i < ntags; i++) {
+        if (tags[i] == what) {
+            if (hits[i] < GE_MARK_REPEATS) {
+                hits[i]++;
+                if (hits[i] == GE_MARK_REPEATS) {
+                    printf("[getv] (further '%s' marks suppressed)\n", what);
+                }
+                return 1;
+            }
+            return 0;
+        }
+    }
+    if (ntags < GE_MARK_MAX) {
+        tags[ntags] = what;
+        hits[ntags] = 1;
+        ntags++;
+    }
+    return 1;
+}
+
+void gePortBootMark(const char *what)
+{
+    /* Checking the stub canaries here is what makes a stub overflow findable. The
+     * g_Props overrun corrupted the memory-pool bank table and only surfaced, three
+     * subsystems later, as a silent `while(1);` inside mempAllocBytesInBank. Checking
+     * on every boot mark names both the offending symbol and the step that did it. */
+    extern const char *gePortStubCheck(void);
+    static int reported = 0;
+    const char *bad;
+
+    /* Rate-limited. Unconditional marks print on every frame once the boot path reaches
+     * the frame loop, which produced multi-gigabyte logs from runs of a couple of
+     * minutes. Each distinct tag prints its first GE_MARK_REPEATS occurrences and is
+     * then suppressed, keeping the one-shot boot trace intact while making a
+     * steady-state loop cost nothing.
+     *
+     * Every mark is still recorded, even a suppressed one. Rate-limiting keeps the log
+     * small but would otherwise hide where a crash happened once the frame loop is
+     * running, since the last thing printed would be several iterations stale. The
+     * crash handler prints ge_last_mark instead, so suppression costs nothing
+     * diagnostically. */
+    ge_last_mark = what;
+    ge_mark_seq++;
+
+    if (ge_mark_should_print(what)) {
+        printf("[getv] boot-> %s\n", what);
+    }
+
+    /* Same idea as the stub canary, for the memory-pool bank table: report the first
+     * boot step after which any pool has end < start. */
+    {
+        extern int gePortMempSane(void);
+        static int memp_reported = 0;
+        if (!memp_reported && !gePortMempSane()) {
+            memp_reported = 1;
+            printf("[getv] *** POOL TABLE CORRUPTED during '%s' (mark #%lu)\n",
+                   what, ge_mark_seq);
+        }
+    }
+
+    if (!reported && (bad = gePortStubCheck()) != NULL) {
+        reported = 1;   /* once: after the first overrun every later check also trips */
+        printf("[getv] *** STUB OVERFLOW: %s overran its %d-byte storage, detected at "
+               "'%s'. Its real size is larger -- give it a real definition.\n",
+               bad, 256 * 1024, what);
+    }
+    fflush(stdout);
+}
+
+/* ---- osSyncPrintf ------------------------------------------------------- */
+
+/* libultra's debug print. On the N64 it went to the host over the debug port; here it
+ * goes to the device console like everything else. Implemented for real rather than
+ * stubbed because it is the decomp's OWN diagnostic channel -- a lot of the game's
+ * error paths report through it, and a stub silently discards all of them. */
+/* Non-static so `nm` shows the buffering decision actually took, the same reasoning as
+ * ge_eeprom_flushes: a static would inline away and leave no evidence which mode a run used. */
+int ge_log_flush_each = 0;
+void ge_log_flush_now(void);
+
+/* the fflush here was the frame rate, and gating the callers would have been the wrong fix.
+ *
+ * 516 decomp call sites funnel through this function and every one of them forced a flush.
+ * Measured on this box a flushed stdout line costs about 24 ms when stdout is redirected to a
+ * file, so the ~1,660 lines a Train run emits cost roughly 40 seconds of a 50-second run. With
+ * stdout discarded entirely the same run does 124 fps against 18.
+ *
+ * The obvious response -- put each chatty diagnostic behind its own env gate -- throws away
+ * information to buy speed, and the comment above says why that is a bad trade here: this is the
+ * decomp's OWN error channel and a lot of the game's failure paths report through it. The cost
+ * was never the MESSAGES, it was the flush. So: keep every line, stop syncing after each one.
+ *
+ * stdout is given a real buffer and flushed at exit instead. Output still arrives, still in
+ * order, and a normal run pays for a handful of writes rather than sixteen hundred.
+ *
+ * The flush existed for A reason, so it is still available. A hard crash can lose whatever sits
+ * in the buffer, which is exactly when a debug channel matters most -- GETV_LOGFLUSH=1 restores
+ * per-line flushing for chasing a hang or a fault. Defaulting it OFF is the right way round
+ * because an unreproducible crash is rare and a 7x slowdown is every single run, but the choice
+ * has to stay available or this becomes a fix that costs someone a day later.
+ */
+static void ge_log_setup(void)
+{
+    static int done = 0;
+    if (done) { return; }
+    done = 1;
+    {
+        const char *e = getenv("GETV_LOGFLUSH");
+        ge_log_flush_each = (e != NULL && *e == '1');
+    }
+    if (!ge_log_flush_each) {
+        /* 64 KB: about forty of this project's longer diagnostic lines per write. Allocated by
+         * the CRT rather than a static of ours, so nothing here has to outlive exit(). */
+        setvbuf(stdout, NULL, _IOFBF, 64 * 1024);
+        /* Buffered output that is never flushed is output that was thrown away, and a run that
+         * ends by exit() rather than by returning from main is the normal case here
+         * (GETV_EXIT_FRAME). Registering the flush is what makes "keep every line" true. */
+        atexit(ge_log_flush_now);
+    }
+}
+
+void ge_log_flush_now(void)
+{
+    fflush(stdout);
+}
+
+/* GETV_LOADTRACE -- the per-model asset chatter, off by default.
+ *
+ * Distinct from the buffering above, and worth keeping distinct. Buffering made the log CHEAP;
+ * this makes it SHORT. They solve different problems and neither replaces the other: a cheap log
+ * still buries the one line you care about under sixteen hundred you do not, and a short log that
+ * synced after every line would still cost the frame rate.
+ *
+ * What it covers is one category -- diagnostics emitted once per model or per asset as it loads:
+ * modelconv, vtxswap, texrow, modeltex, initrw, gdltex/gdltexscale/gdlops/gdlnoop, MEMP big,
+ * bgLoad and bggdl. Sixteen call sites.
+ *
+ * MEASURED, not estimated: a 900-frame Train run goes from 1,662 lines to 1,016 -- 646 lines,
+ * about 39%. An earlier draft of this comment guessed "about 1,500 of ~1,660" before anyone
+ * counted, which would have been a threefold overstatement sitting in the tree as documentation.
+ * The rest of the log is genuinely varied: portals, doors, boot steps, the intro records and the
+ * periodic runtime censuses, each a handful of lines from a different place, with no single
+ * category left worth gating.
+ *
+ * The frame-rate effect is NOT measurable on this box and no figure is claimed for it. With
+ * stdout already buffered these lines cost almost nothing, and the run-to-run spread here is
+ * larger than any gain -- two identical configurations measured 63 and 95 fps. This gate makes
+ * the log SHORT, which is a readability win; the SPEED came from the buffering above. Presenting
+ * a noisy delta as a speedup is how a placebo gets committed.
+ *
+ * IT deliberately does not cover error paths. osSyncPrintf has 516 call sites and most of them
+ * are the decomp reporting that something went wrong; gating those wholesale is how a failure
+ * becomes invisible. Only the sites that report SUCCESSFUL, ROUTINE work are wrapped, and each
+ * one was picked by reading it rather than by matching a prefix.
+ */
+int gePortLoadTrace(void)
+{
+    static int on = -1;
+    if (on < 0) { const char *e = getenv("GETV_LOADTRACE"); on = (e != NULL && *e == '1'); }
+    return on;
+}
+
+void osSyncPrintf(const char *fmt, ...)
+{
+    va_list ap;
+    ge_log_setup();
+    va_start(ap, fmt);
+    vprintf(fmt, ap);
+    va_end(ap);
+    if (ge_log_flush_each) { fflush(stdout); }
+}
+
+/* --- c_item_entries corruption canary ---------------------------------------
+ * The cast intro faults reading c_item_entries[head].header with an address whose
+ * LOW word is correct and whose HIGH word holds a small integer. That is the
+ * signature of a 32-bit, N64-offset write landing on the upper half of what is now
+ * a 64-bit pointer -- bug family #3 (cast-based layout contract). Scanning the whole
+ * table at a few checkpoints turns "something corrupts it eventually" into a named
+ * call site, the same way the g_ModelHitEntries stride bug was pinned. */
+void gePortCheckItemEntries(const char *where)
+{
+    /* Local mirror of ChrModelFileRecord -- port_support.c deliberately does not pull
+     * in the game headers. Only the two leading pointers matter here; the trailing
+     * floats/flags pad the record to its natural 32-byte 64-bit size. */
+    struct ge_item_rec { void *header; char *filename; float scale, pov;
+                         unsigned char isMale, hasHead, pad1, pad2; };
+    extern struct ge_item_rec c_item_entries[];
+    int i;
+    for (i = 0; i < 80; i++) {
+        uintptr_t h = (uintptr_t) c_item_entries[i].header;
+        uintptr_t f = (uintptr_t) c_item_entries[i].filename;
+        if (h != 0 && (h >> 32) != 0x1) {
+            osSyncPrintf("[getv] ITEM ENTRY CORRUPT @%s: [%d].header=%p (high=0x%lx)\n",
+                         where, i, (void *) h, (unsigned long) (h >> 32));
+            return;
+        }
+        if (f != 0 && (f >> 32) != 0x1) {
+            osSyncPrintf("[getv] ITEM ENTRY CORRUPT @%s: [%d].filename=%p (high=0x%lx)\n",
+                         where, i, (void *) f, (unsigned long) (f >> 32));
+            return;
+        }
+    }
+}
+
+/* Milliseconds of real time since the first call. Used by the clock diagnostic in
+ * frametiming.c, which needs a timebase that is definitely not the game's own. */
+unsigned int gePortHostMillis(void)
+{
+    static Uint64 origin = 0;
+    static double freq = 0.0;
+
+    if (freq == 0.0) {
+        freq = (double) SDL_GetPerformanceFrequency();
+        origin = SDL_GetPerformanceCounter();
+        if (freq <= 0.0) { freq = 1.0; }
+    }
+    return (unsigned int) (((double) (SDL_GetPerformanceCounter() - origin) / freq) * 1000.0);
+}

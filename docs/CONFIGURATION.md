@@ -284,34 +284,710 @@ The camera itself is not new code. `debug_camera.c` has carried a six-degree fly
 1997 and `lv.c` already called it every frame, gated behind a debug mode that a retail cartridge
 could not reach. What it never had was a consumer -- nothing outside that file read
 `debugCameraPosition`, so it moved its own state and no render path ever saw it. This supplies
-the missing j‹­¦ëm®éÜj×¢¸ Šv¥jšk£¦j×­¢G§r‹§·_5ã©\™H]™[\Ú[™ÈB™[™Ú[™IÜÈİÛˆÚ”Ü]Û]ÛÛÜ™[š\š][™ÈHXYİX\™	ÜÈ›ÙH[™RH\İÈHØ]™B›[X™\ˆš\Ù\È]™\HØ]™WÚÚ[ØÚ[È[™YÈÜ›İİÈHÜ]ÛˆÛİ[\ÈHØ\‚‚ŠŠ”Ü]Ûš[™ÈØ[ˆ™H™Y\ÙY[™]\È›İ[ˆ\œ›Ü‹ŠŠˆ×ĞÚ”ÛİØ\È[ØØ]YÚ]Û›B˜
-İX\™Ûİ[
-ÈL
-X[šY\È[™H[™Ú[™HXÛ[™\ÈÈÜ]ÛˆÚ]™]Ù\ˆ[ˆ™YHœ™YKÛÂH™X[ÙZ[[™È™[Û™ÜÈÈH]™[ˆH™Y\ÙYÜ]ÛˆX]™\ÈHØ]™HÛX[\ˆ˜]\ˆ[‚™˜Z[[™Ë‚‚ŠŠ•ÛÈÙˆ\ÙH\™H[™\Y[\›˜[JŠ‹[™H[\[Y[][ÛˆÛÛ\[œØ]\ÈÛÈB\Ù\‹Y˜XÚ[™È˜[YHYX[œÈÚ]]Ø^\Ëˆ[™[^WÚX[]šY\È×ĞZRX[[ÙYšY\˜™XØ]\ÙB]ÛØ˜[ØØ[\È[XYÙHX[
-ÊˆHİX\™È^Y\—ÚX[][\Y\ÈXİX[ÚX[˜™XØ]\ÙH›Û™X[˜[ÈH[XYÙHÈXİX[ÚX[ˆ[™[^WÜ™XXİ[Û˜\ÈØİ[Y[YÚ]İ]HY™šXİ[HÛZ[Nˆ]ØØ[\ÈH\\ˆ›İ[™ÙˆH˜[™ÛZ\ÙYRH[Y\‹[™ÚXÚ™\™Xİ[Ûˆ™Y[È\™\ˆ\È›İ™Y[ˆYX\İ\™Y‚‚ŠŠ•™\šYZ[™ÈH[\Ù]ÛÚÈY™™XİŠŠˆ[H›Û‹\İØÚÈ[\Ù]š[ÈÛ˜ÙH]]™[ØY›İÚ]Ø\È™\]Y\İY[™Ú]H[™Ú[™H[™Y\Û[™Î‚‚˜–ÙÙ]—VÜ[\Ù]Hš\™ÛÜ™HˆKHİYÚ\ˆİX\™Ë\ÜÈ[[[Ë[ˆH^Y\ˆX[–ÙÙ]—VÜ[\Ù]H[™[^NˆX[Œ	H[XYÙHML	HXØİ\˜XŞHLÌ	H™XXİ[ÛˆL	B–ÙÙ]—VÜ[\Ù]H^Y\ˆX[L	H\›[İ\ˆL	H[[[ÈL	H^ÜÚ[ÛˆL	H\œ™]L	B–ÙÙ]—VÜ[\Ù]H\YYˆZRX[LKŒZQ[XYÙOLÍLZPXØİ\˜XŞOLÎ‹‹ˆ[[[ÏLKŒ˜‚•HÙXÛÛ™[™H\ÈHÛZ[H[™H\YY˜[™H\ÈHYX\İ\™[Y[ˆÛˆYÙ[İØÚÂ˜ZRX[\È‹ŒÛÈ\™ÛÜ™IÜÈKŒ\ÈİX\™ÈZÚ[™È[ˆH[XYÙH^H\ÙYË‚‚˜ÑU—ÒÔ‘WÔÑS•TÕOœ˜[YO˜Ü]ÛœÈÛ™H™\XÙ[Y[œ›ÛHH]™HİX\™]]XÚÈÚ]İ]˜HÚ[]š[™È\[™Yˆ]^\İÈ™XØ]\ÙHÛÛX˜]Ø[››İ™Hš]™[ˆ™[XX›Hœ›ÛHHXY\ÜÂœ[‹[™]^\˜Ú\Ù\ÈHØ[YHÜ]Ûˆ]H™X[X]Ù\Ë‚‚ˆÈÈÈ™\Ù]KHHÛÛ[‘^YJÈ›Ùš[B‚˜™\Ù]H\Ø\ÈÛ™HİÚ]Ú›Üˆ]™\][™È\ÈÜ\ÈYY[™™\šYšYYˆ]XØÙ\Â˜˜Z][
-[X\Ù\ÈMØÛÛœÛÛX
-H[™\Ø
-[X\Ù\È[š[˜ÙYÛÛ[™^YJØÙJØ
-K‚‚Ÿ]\›œÈÛˆ˜[YHŸKK_KK_Ÿİ\\œØ[\XˆŸ\ØXXŸ[š\Ûİ›ÜXØŸZ\X\ØÛˆŸİ^\™\ØÛˆŸ\˜[^ÛˆŸXXÛˆŸÜ›ÜÜÚZ\—ÜØØ[XˆŸœ˜[Y\˜]XÙ™‹Ú]H™X[ÛØÚÈ‚•H›Ùš[Hš[ÈØ\È[™\ÜXÙ\È›İ[™Î‚‚˜˜ÛÛ[X[™[™Hˆ[š\›Û›Y[ˆ[İ\ˆİÛˆÛÛ™šYÈ[™\Èˆ™\Ù]˜‚”ÛÈ™\Ù]H\Ø›ÛİÙYHXHHÚ]™\ÈHÚÛH›Ùš[HÚ]İ]–PKÚ\™]™\ˆBÛÈ[™\ÈÚ]™[]]™HÈXXÚİ\‹ˆ[][™ÈH›Ùš[HØ[Y]›İ[™[™XYHÙ]\Â›˜[YYÛˆİİ]]İ\\˜]\ˆ[ˆ\ÜÙYİ™\ˆ]ZY]K™XØ]\ÙHH™\Ù]]Ú[[B™XÛ[™YÈ[˜Ø\Hœ˜[YH˜]HÛÚÜÈ^XİHZÙHH™\Ù]]Y›İÛÜšË‚‚•HÙ[™\˜]YÛÛ™šYÈÚ\Èİ\\œØ[\X[™œ˜[Y\˜]XÛÛ[Y[Yİ]›Üˆ]™X\ÛÛ‹ˆB˜ÛÛ™šYÈÜš][ˆ™Y›Ü™H\È^\İY\È[H\È]™H[™\Ë[™Hİ\\Y\ÜØYÙHÚ[Ø^BœÛÎÈÛÛ[Y[[Hİ]È]H›Ùš[H]™H[K‚‚‘˜Z][\È[™İ^\ÈHY˜][ˆHÛÚÈ\ÈH›ÙXİ[™HØ^HÛÜœ™Xİ™\ÜÈÙ]Â˜ÚXÚÙY\™H\ÈÛÛ\\š\ÛÛˆYØZ[œİ™X[Ø\\™\ËÛÈ[][™È][\œÈİ]]\ÈÈ™BœÛÛY][™È[İH\ÚÙY›Ü‹‚‚ŠŠ”™\Ù\™Y\œÙY][™\ŠŠ‚‚•\ÙH\™HHÛ™\È]İ[È›İ[™Ëˆ^H\œÙH[™˜[Y]HÛÈHÜ[Ûˆİ\™˜XÙH\ÂœİX›H™Y›Ü™HH™X]\™\È[™‚‚ŸÙ^HXØÙ\È[[™YY™™XİŸKK_KK_KK_Ÿ›Ù×Ü\—Ü^[H\‹\^[›ÙËˆ›ÙÈ\È\‹]™\^ˆŸ]^›WÛYÚØH[˜[ZXÈYÚ[™ÈÛˆ]^›H›\Ú\ËˆŸ]Y[×ÌÙHÜÚ][Û˜[]Y[ÈÈ•‹ˆ[X\È˜ˆŸÜØ[ØHØÜ™Y[‹\ÜXÙH[XšY[ØØÛ\Ú[Û‹ˆŸÚYİÜØH™X[][YHÚYİÈX\ËˆHØ[YHÚ\È›ØˆÚYİÜËˆŸ\—Ü^[ÛYÚ[™ØH\‹\^[YÚ[™ËˆYÚ[™È\È\‹]™\^Ûİ\˜]YÛÈ\ÈÚ[™Ù\ÈHÛÚÈH[ÜİÙˆ[][™ÈÛˆH\İˆ‚’[YÙ\ˆÙ^\È\™HÛ[\YÈZ\ˆ˜[™ÙH˜]\ˆ[ˆ™Z™XİY‚‚ˆÈÈ[™[^HÚXœÂ‚˜ÚXœÈHÙ™ˆ^ÜÚ[ÛœÈYÚÙ[XYÙH[Ø^\ØY˜][Ù™˜‚‚Ÿ˜[YH]X[YZ[™ÈX]ÈŸKK_KK_ŸÙ™˜›Û™NÈ™]Z[™Z]š[Ü‹ˆŸ^ÜÚ[ÛœØ\™XH^ÜÚ[ÛœÈ[™\™Xİ›ØÚÙ][\XİËˆŸYÚÙ[XYÙXHš[˜[]X[[™È]X\İŒ[\›˜[[XYÙH[š]ËˆŸ[Ø^\Ø]™\HØœÙ\™Y›Û‹\^Y\ˆÚ\˜Xİ\ˆX][˜ÛY[™ÈØÜš\YX]Ëˆ‚‘]™\H[˜X›YÛXŞH\Ù\ÈHØ[YHY™™XİˆÙ[™HÛÛYÚ[šÜÈ][˜Úœ›ÛHHÚ\˜Xİ\‹ÛÛYBÚ]]™[›ÛÜœÈ[™Ø[Ë›İ[˜ÙH\È™YH[Y\ËÙ]H›ÜˆX›İ][ˆÙXÛÛ™Ë[ˆ˜YK‚•HÜšYÚ[˜[X]™XÛÜ™İ[[™\ÈØÛÜš[™ËRH›İYšXØ][Û‹›ÜY][\ËØš™Xİ]™\È[™˜ÛX[\ˆ^Y\œÈ™[XZ[ˆ[˜Y™™XİY‚‚˜Û˜YXY\ØX[™^ÜÚ[Û˜\™H[X\Ù\È›Üˆ^ÜÚ[ÛœØˆHÙ][™ÈX\ÈÈHØ[YB˜Ø[›ÛšXØ[˜[Y\È[ˆÑU—ÑÒP”Øˆ[šÛ›İÛˆ˜[Y\È˜Z[ÛÜÙYÈÙ™˜ˆ“ÔÕTWĞÒ˜[ÛÈÛİ™\œÂœÛÛYHœšY[™H[™Ú]š[X[ˆZ\ÜÚ[ÛˆXİÜœËÛÈ[Ø^\Ø[HYX[œÈ[”ÈXİÜœÈ˜]\ˆ[‚šÜİ[\ÈÛ›KˆÙYHÑÒP”Ë›YJÒP”Ë›Y
-H›Üˆ[\[Y[][Ûˆ›İ[™\šY\Ë\İÈ[™^[œÚ[ÛˆİZY[˜ÙK‚‚ˆÈÈÈœ][ÛÛ[‘^YH›ÛÙ[™˜\ÙHØ[YB‚•H][˜Ú\‰ÜÈØ[Y\^HYÙH\ÈH
-Šœ][ÛÛ[‘^YJŠˆÙXİ[Û‹ˆ\ÙHÚÚXÙ\È\HÚ[ˆ[İB›][˜ÚHØ[YKˆH][˜Ú\ˆÛÈÚÚXÙ\È›Üˆ]][˜ÚÈ][H[ˆÛÛ[™^YK˜Ù™ØÈÙY\œ™Y™\™[˜Ù\È™]ÙY[ˆ\XØ][ÛˆÙ\ÜÚ[ÛœË‚‚˜[šB˜˜\ÙWÙØ[YHHÙ™‚ˆÈ˜\ÙWÛÛ›H\È[ˆ[X\È›Üˆ˜\ÙWÙØ[YK‚™ÚXœÈH^ÜÚ[ÛœÂ˜›ÛÙH[š[˜ÙY˜›ÛÙÛ[Z]HL˜‚‹H˜\ÙWÙØ[YHHÛ˜\ØX›\È[œ][ÛÛ[‘^YHY™™XİË[˜ÛY[™ÈHÜšYÚ[˜[Ü[Û˜[ÚXœËˆÚ]İ]™\XÚ[™ÈHÚÜÙ[ˆÚXœØ›ÛÙÜˆ›ÛÙÛ[Z]˜[Y\ËˆİÚ]Ú]Ù™ˆÈ\ÙHÜÙBˆ™Y™\™[˜Ù\ÈYØZ[‹ˆ]ÛÛ›ÛÈ\È™X]\™H˜[Z[NÈİ\ˆ[ÙËÚX]È[™[\Ù]È]™HZ\‚ˆİÛˆÛÛ›ÛËˆY˜][ˆÙ™˜Ú]ÚXœÈHÙ™˜İ[™\Ù\š[™ÈİØÚÈX]ÈHY˜][‚‹H›ÛÙHÜšYÚ[˜[[š[˜ÙY^Ù\ÜÚ]™XÛÛ›ÛÈYY›ÛÙœ›ÛHÚXˆX]ËˆÜšYÚ[˜[ˆ
-[ÛÈÙ™˜
-H™]Z[œÈH™]š[İ\ÈÚ[šÈY™™XİÚ]›ÈYY›ÛÙˆ[š[˜ÙY\ÈHY˜][Âˆ^Ù\ÜÚ]™XÜ™X]\ÈH[œÙ\ˆÚÜ\œİ]XÚ\™Ù\ˆİ™\›\[™Èİ\™˜XÙHÜ\Ú\Ë[™Hœ›ØYˆ[[YYX]HÛÛˆÜ™[˜\H]ÈÈ›İY][Z]YY›ÛÙ‚‹H›ÛÙÛ[Z]HM‹‹LL˜Ø\È\œÚ\İ[İZ[œËY˜][LˆXZ›ÜˆÜ\Ú\È]™Hš[Üš]Hİ™\ˆ[BˆX\šÜÈÚ[ˆ[ÈZ\˜›Ü›™H›ÛÙ\ÈHÙ\\˜]Hš^YØ\ˆ™[™\š[™È[ÛÈ™\ÜXİÈH]˜Z[X›HÜ˜\XÜÂˆY[[ÜKÛÈÜ›İÙYšY]ÜÈX^HÚİÈ™]Ù\ˆY™™XİË‚‚•HÛÜ™K[Û›HÚXÚØ›Ş\ÈØ[Y
-Š‘[˜X›Hœ][Y™™XİÊŠˆÈ\İ[™İZ\Ú]œ›ÛHH[ŠŠ˜\ÙHØ[YJŠˆ][˜Ú\ˆ[ÙKˆ]\ÈÙ™ˆHY˜][È[˜X›[™È]Ù[XİÈ^ÜÚ[Û‹]šYÙÙ\™YÚXœÈYˆ›ÈšYÙÙ\ˆ\ÈÙ[XİY‚•H[™\œÙHÛÛ™šYÈÙ^H˜\ÙWÙØ[YX™[XZ[œÈÛÛ\]X›HÚ]^\İ[™Èš[\Ë‚‚•H˜]ÈØ]\È\™HÑU—ĞTÑWÑĞSQXÑU—Ğ“ÓÑ[™ÑU—Ğ“ÓÑÓSRUˆHœ][İ™\œšYBÚ[œÈİ™\ˆH[[YHÚXœØÛÛœÛÛHÛÛ[X[™ÛËˆYY›ÛÙ]XÚ\ÈÈİ]XÈ]™[šX[™Û\Ëš[˜ÛY[™ÈØ[È[™ÙZ[[™ÜË[™˜Y\ÈY\ˆ›İYÚH\HÙXÛÛ™ÈÙˆÚ[][][Ûˆ[YKˆÛÜœÂ˜[™İ\ˆ[İš[™ÈØš™XİÈÈ›İ™XÙZ]™H›ÛÙXØ[Ë‚‚ˆÈÈ]™[Ü\ˆİ™\›^H[™ÛÛœÛÛB‚•H\ÚİÜ][˜Ú\ˆÜ›İ\ÈHİ™\›^KÛÛœÛÛHİÙ^K[[Y]H™XÛÜ™[™È[™XYÈÙÙÚ[™Â›Ûˆ]È
-Š‘]™[Ü\ˆÛÛÊŠˆYÙKˆÙYHHÙİZYH[™TWJU‘SÔT—ÕÓÓË›Y
-K‚‚‚•Ú[ˆH[QİZH\[™[˜ŞH\È™\Ù[™\ÜÈ˜XÚÜ][İKÙÜ˜]™HÈÜ[ˆHÛÛ[X[™ÛÛœÛÛHÛˆZ]\‚“Ü[‘ÓÜˆY][ˆHÛÛœÛÛHİÙ^H\È[Ø^\È]˜Z[X›NÈ]Ù\È›İ\[™Ûˆ]™[Ü\ˆ[ÙK‚‚•HÙ\\˜]H\™›Ü›X[˜ÙKÙXYÈİ™\›^H\ÈÙ™ˆHY˜][ˆ[˜X›H]Ú]]™[Ü\—İÛÛÈHXH][˜Ú\‰ÜÈ]™[Ü\‹[İ™\›^HÚXÚØ›ŞÜˆÑU—ÒSQÕROLX‚‚˜ÛÛœÛÛWÚÙ^HHÑØØ[˜ÛÙH˜[YO˜Ú[™Ù\È]\ÚİÜÙÙÛKˆH][˜Ú\ˆ^ÜÙ\ÈHØ[YB™šY[[™ÑU—ĞÓÓ”ÓÓWÒÑVX\ÈH]]ÛX][Û‹Ü˜]ËYØ]H›Ü›Kˆ^[\\È[˜ÛYHŒLŒL˜[™˜Ü˜]™XÈ[ˆ[šÛ›İÛˆ˜[YH\È™\ÜY[™˜[È˜XÚÈÈÜ˜]™K‚‚•Ú[HHÛÛœÛÛH\ÈÜ[ˆ]İÛœÈÙ^X›Ø\™[™[İ\ÙH]™[È\ÈÙ[\ÈHÙ\\˜][HÛYÑ™]šXÙHİ]KˆÛÜÚ[™ÈÙY\ÈHÚÜ™[X\ÙH]X\˜[[™H[[]™\HÙ^H[™[İ\ÙH]Ûˆ\È\ÛÂ\[™È[\‹ÜXÙHÜˆXˆØ[››İ[ÛÈš\™KÚÚ\Hİ]ØÙ[™HÜˆÜ[ˆHØ]ÚˆØ[Y\YÈ™[XZ[‚˜]˜Z[X›Kˆ˜]ÈÛÛ[X[™\İÜH\È›İ[™YÈHİ\œ™[›ØÙ\ÜÈ[™\È›İÜš][ˆÈÛÛ™šYÈÜ‚™XYÛ›ÜİXÈİ]]‚‚•H[š]X[ÛÛ[X[™Ù][˜ÛY\È™XY[Û›HÙ\ÜÚ[Û‹Ü^Y\‹ÛØš™Xİ]™H]Y\šY\ËÚXœØ^XÚ]\Ûİ˜ÛÙØÚ]™XØ[[[Ø]]][ÛœË[™ÛÈÛÛ›ÛYZ\ÜÚ[Ûˆ˜[œÚ][ÛœÎ‚‚˜^œ™\İ\›]™[İYÙKZY‚˜‚›İ˜[œÚ][ÛˆÛÛ[X[™È™\]Z\™H[ˆXİ]™HÛÛÈZ\ÜÚ[Ûˆ[™\™H™Y\ÙY\š[™È™]^HÜˆØØ[›][\^Y\ˆ™Y›Ü™HHØ[YH˜[œÚ][ÛˆØ[˜XÚÈ[œËˆ]™[XØÙ\ÈH[Y\šXÈQÙˆHØYX›BœÛÛÈZ\ÜÚ[ÛÈ]Kİ][šÛ›İÛ‹[™][\^Y\‹[Û›HİYÙ\È\™H™Y\ÙYˆH˜[œÚ][Ûˆ\Ù\ÈB™Ø[YIÜÈ›Ü›X[˜Z[‹İ[›ØYÜ™[ØY™\]Y\İÛÈ]Ù\È›İ™]Üš]H˜]ÈİYÙHÛØ˜[ËˆHİXØÙ\ÜÙ[˜™\İ\™[ØYÈHİ\œ™[Z\ÜÚ[Û‹Ú[H]™[ÌØØÚY[\È[H[™™\Ù\™\ÈHİ\œ™[™Y™šXİ[Kˆ™\]Y\İ[™ÈHİYÙH[™XYH[ˆ^H\È[ÛÈHÛÛ›ÛY™[ØYˆ]™[ÌØÚ[HÛ‚‘[H›ÛİÜÈHØ[YH[™Ú[™H]\È™\İ\]]È™\İ[™[XZ[œÈH]™[™\İ[Ú]B››Ü›X[™]š[İ\ËÜ™\]Y\İY\İYÙHY]Y]K‚‚˜ÑU—ĞÓÓ”ÓÓWÓÔSLXÜ[œÈHÚ[™İÈ]İ\\›Üˆ›İ[™YRHÛ[ÚÙH\İËˆ]\È›İH\œÚ\İYœÙ][™Ë‚‚ˆÈÈ˜]ÈØ]\Â‚[HÙˆHÜ	ÜÈ]™[ÜY[Ø]\ÈØ[ˆ™HÙ]H]È™X[˜[YK[ˆHš[HÜˆÛˆHÛÛ[X[™›[™N‚‚˜‘ÑU—ÔÕQÑHHÍ‘ÑU—ÑVUÑ”SQHHŒB˜‚˜˜\Ú‹‹ØZ[[XXËÙÛÛ[™^YHKQÑU—ÔÕQÑOLÍ˜‚”˜]È˜[Y\È\™HX]ÚY™Y›Ü™HœšY[™HÛ™\ËÛÈHœšY[™HÙ^HØ[ˆ™]™\ˆÚYİÈHØ]Kˆ\™H\™B˜\›İ[™LÙˆ[NÈØSÑS‘Ë›YJSÑS‘Ë›Y
-HÛİ™\œÈH\ÙY[Û™\Ë‚‚ˆÈÈÈÑU—Ô“ÔÕSSQU–XKHÛÜœ™[]Y[ØØ]ÜˆØœÙ\˜][ÛœÂ‚˜ÑU—Ô“ÔÕSSQU–OLXÙÙ]\ˆÚ]H›İ[™Y]Yœ™YB˜ÑU—Ô“ÔÕSSQU–WÔ•S—ÒQOÚÙ[˜[Z]È™\œÚ[Û™Y”ÓÓˆ[™\Èœ›ÛHH™X[›Ü™XÛÜ™˜[ØØ]Ü‹ˆ]\ÈHXYÛ›ÜİXÈØ]K›İHØ\XÚ]HÙ][™Ë[™™[XZ[œÈÚ[[HY˜][ˆÙYB–Ø“ÔĞSĞĞUÔ—ÕSSQU–K›YJ“ÔĞSĞĞUÔ—ÕSSQU–K›Y
-H›ÜˆH^XİØÚ[XKY™XŞXÛB˜›İ[™\šY\Ë[™]šY[˜ÙH[Z]Ë‚‚ˆÈÈÈZ[WİÙÙÛXKH™\ÜÈÈZ[K[œİXYÙˆÛ[™Â‚˜ÜˆXˆY˜][ÚXÚ\ÈH™]Z[ÛˆZ[WİÙÙÛHHXXZÙ\ÈZ[HHÙÙÛNˆ™\ÜÂ›Û˜ÙHÈ˜Z\ÙHHÚYÚ[™YØZ[ˆÈİÙ\ˆ]ÛÈ[İH\™H›İÛ[™ÈHÙ^HİÛˆÚ]HØ[YBš[™[İH[İ™HÚ]ˆ[X\Ù\ÈÙÙÛWØZ[X[™™Y™\œ™Y›İËZ[WÛ[ÙHHÙÙÛXKHÚXÚÙ]Â\ÈØ[YHØ]H[™Ú]È™^ÈÜ›İXÚÛ[ÙXÚ\™HH^Y\ˆÚ[ÛÚÈ›Üˆ]‚‚•\È\ÈÛÛ[‘^YIÜÈİÛˆÜ[Ûˆ˜]\ˆ[ˆÛÛY][™ÈHÜ[™[Yˆ›Û™šY]Ì‹˜ÎMX˜[™XYHœ˜[˜Ú\ÈÛˆ]ˆÚ]Û[œÚYÚZ[[[ÙX\ÈÙ]œ›ÛHH]Ûˆ]™\Hœ˜[YNÈÚ]ÙÙÛK]›\ÈÛˆH™\ÜÈYÙKˆ[HÜÙ\È\È[œİÙ\ˆ]]Y\İ[Û‹ÚXÚ\ÈÚH]š\ÈH›İ\‹[[™H]Ú[™›İH]Ú[ˆH[œ]^Y\ˆKHHÙXÛÛ™[\[Y[][Ûˆ\™HÛİ[œ˜XÙHH™X[Û™HÚ[™]™\ˆÛÛY[Û™H[ÛÈÙ]HÜ[Ûˆ[ˆHØ[YIÜÈİÛˆY[K‚‚’]\È›Ü˜ÙY]HÚ[H[™Ú[™H™XYÈH˜[YK›İÜš][ˆÛ˜ÙH]İ\\™XØ]\ÙHBœİÜ™YÙ][™È\È\‹\^Y\‹\È™[ØYYœ›ÛHHØ]™YØ[YHHš[L‹˜ÎŒMÎ[™Ø[ˆ™HÚ[™ÙY™œ›ÛHHÜ[ÛœÈY[Kˆ[œİÙ\š[™È]H™XYİ\š]™\È[™YK[™X]™\ÈHY[HÚİÚ[™ÂÚ]]™\ˆ[İH\İÚÜÙH˜]\ˆ[ˆ]ZY]H™]Üš][™È[İ\ˆØ]™K‚‚•ÛÜÛ›İÚ[™È™Y›Ü™H[İH\›ˆ]ÛˆZ[H[ÙH\Èİ[Z[H[ÙKˆHØ[YHİÜÈ[İHØ[Ú[™ÈÚ[BHÚYÚ\È\[™ÛÈÜ›İXÚ™Z[™]ÛËÛÈHÙÙÛH™[[İ™\ÈH[Ù^H[™Ù\È›İ\›ˆZ[Z[™È[ÈH[İ™KX[™\ÚÛİ[ÙKˆ]Ø][™È\ÈHØ[YIÜË[ˆ›Û™šY]Ì‹˜Ø‚‚ˆÈÈÈ[™ÜÈ]Ú[ÛÜİ[İH[ˆY\››ÛÛ‚‚“YX\İ\™YÛˆÚ[™İÜÈ[™YH]™\]Ú\™KÛÛXİY™XØ]\ÙHXXÚÛ™HÛÚÜÈZÙHHœ›ÚÙ[ˆ™X]\™Bœ˜]\ˆ[ˆHÙ][™Ë‚‚‹H
-Š˜ÑU—ÒÑVP“ĞT‘ÒQX\ÈÛˆÚ[™]™\ˆÑU—ÑVUÑ”SQX\ÈÙ]ŠŠˆØÜš\Y[œ]\È[‚ˆYÛ›Ü™YÚ]›È\œ›Üˆš[YÛÈ[ˆ[œ]\İÛÚÜÈZÙHH[™\İ[˜]\ˆ[ˆBˆ\ØX›YÛ™K‚‹H
-Š”ØÜ™Y[œÚİÈ\™H[Ø^\ÈXš]“T
-Š‹Ú]]™\ˆ^[œÚ[ÛˆÑU—ÔÒÕU\ÈÚ]™[‹ˆ˜[Z[™ÈBˆš[Hœ™Ø›ÙXÙ\ÈH“TØ[Yœ™Ø‚‹H
-Š˜ÑU—ĞRSWÔÑS•TÕZÙ\ÈHœ˜[YH[X™\‹›İH›ÛÛX[‹ŠŠˆZ[H\È™XY\ÈHÙÙÛHÛˆBˆš\Ú[™ÈYÙK[™HÛİ\[™È]œ˜[YH\È[™XYHİÛˆ›İYÚHØÚÙYXÛÛ›ÛÈ[›ËˆÛÈ›ÈYÙH]™\ˆ\œš]™\È[™›İ[™È\[œËˆÚ]™H]Hœ˜[YHY\ˆH[›Ë‚‹H
-Š˜[—İ\İËœÌXY˜][ÈÈSZ[™İÈÎ—\Ş\ÍZ[™İÍ
-ŠˆÚ[HH›Ú™Xİ[œİ[ÈÂˆÎ—Z[™İÍˆ[ˆ]Ú]İ]H›YÈ[™]Ú[[H\Ù\ÈHY™™\™[ÛÛ\[\‹‚‚ˆÈÈÈÑU—Ô‘ĞLM‘X[™ÑU—ÕVM‘XKHM‹Xš]^\™H]HÜ™\‚‚“X]™H›İ[œÙ]ˆHØ[YIÜÈ^\™HXÛÙ\ˆİØ\È]È˜]]™HM‹Xš]^[ÈÈšYËY[™X[ˆ™Y›Ü™B\ØY
-ÑU—ÕVM‘XY˜][JK[™H™[™\™\ˆ™XYÈ]™\H‘ĞLMˆ^[šYËY[™X[‚ŠÑU—Ô‘ĞLM‘XY˜][
-KˆÙÙ]\ˆ^H˜]È^ÜÚ[ÛœÈÜ˜[™ÙH[™H›ÛİÙ\]Y[˜ÙIÜÈ˜][™ÂœÙX[˜\™]Ø\™HÙÛÈ[™ÓÓS‘VQHÙÛÈÛÜœ™XİK‚‚‹HÑU—ÕVM‘OLÚ]ÑU—Ô‘ĞLM‘OLX\ÈH™]š[İ\ÈZ\š[™ÎˆÜ˜[™ÙH^ÜÚ[ÛœË]H›ÛİˆÙÛÜÈ˜]È\ÈÛÛİ\ˆ›Ú\ÙK‚‹HÑU—ÕVM‘OLÚ]ÑU—Ô‘ĞLM‘OL\›œÈ^ÜÚ[ÛœÈXYÙ[KÚXÚØ\È™\ÜY\ÂˆÛÛ™™]Kˆ]\È›İHZ[˜[ÚX]‚‹HÑU—Ô‘ĞLM‘OL˜İØ\ÈHÛÈ]\ÈÙˆXXÚ^[[™\ÈÙ\\ÈHÛÛ›Û‚‚”ÙYHØÓÓÕT—Ğ•QÔË›YJÓÓÕT—Ğ•QÔË›Y
-H›ÜˆHYX\İ\™[Y[Ë‚‚ˆÈÈÈÑU—Ô‘PSÑ“Ó•ØKHH™X[Y›Û^İ™\›^B‚“Ù™ˆHY˜][[™H˜]ÈØ]H˜]\ˆ[ˆHœšY[™HÙ^H™XØ]\ÙH]\È›İš[š\ÚY[›İYÚÂœ›Û[İKˆÑU—Ô‘PSÑ“Ó•ÏLX˜]ÜÈ^™[™\˜Ø^™[™\“İ][™Yİš[™ÜÈ›İYÚBœİ—İY]\H]\È˜ZÙYœ›ÛHÙ]‹ÜÜØ\ÜÙ]ËÙ›ÛËÔ›Ø›İĞÛÛ™[œÙYU‘‹˜[œİXYÙˆB™Ø[YIÜÈİÛˆš]X\Û\ËÚXÚ\™H\^[\ÜÙ]È™Z[™Èİ™]ÚY]\ÚİÜ™\ÛÛ][ÛœË‚‚’]š[ÈÚ]]Y]İ\\ÛÈ[İHØ[ˆ[HY™™\™[˜ÙH™]ÙY[ˆÙ™ˆ[™œ›ÚÙ[‚‚˜–ÙÙ]—Vİ^H™X[Y›Ûİ™\›^H™XYNˆ‹‹‹Ô›Ø›İĞÛÛ™[œÙYU‘‹‹MHÚ\œÈ˜ZÙY]
-ˆ]\È›İÜÊB˜‚’YˆH›Û\ÈZ\ÜÚ[™È]Ø^\ÈÛÈ[™˜[È˜XÚÈÈHš]X\Û\È˜]\ˆ[ˆ˜]Ú[™Â››İ[™Ëˆ›İ]Y^
-Hš[K\Ù[Xİ›Û\ˆXœÊH\È[X™\˜][H^[\[™İ[˜]ÜÂ›İYÚHÜšYÚ[˜[]‚‚•ÛÈÛ›İÛˆY™™\™[˜Ù\Ë›İÛÜÛY]XÈ[™›İÜš][ˆ\[‚˜Ù]‹ÜÜÜÜ˜ËÙÙWİ^Ûİ™\›^K˜Ø‚‚‹HY[HYÚYÚ›Ş\È\™HÜÚ][Û™Yœ›ÛHHš]X\›Û	ÜÈY]šXÜËÛÈHBˆY™šXİ[K\Ù[XİØÜ™Y[ˆ
-ÑU—ÓQS•ON
-HH›Ş\Èš\ÚX›HšYYœ›ÛH]ÈX™[‚‹HÛÛYHİš[™ÜÈÚ[™ÙHØ\ÙKˆHHØ]Ú]\ÙHØÜ™Y[ˆ™XYÈHĞUÒŒ‹ŒH‘UX[™\ˆBˆš]X\›Û[™HØ]ÚŒ‹ŒH™]X[™\ˆHİ™\›^K™XØ]\ÙHHİš[™È[ˆHØ[YIÜÈ]Bˆ\È[™XYHİÙ\˜Ø\ÙH[™Hš]X\Û\È™[™\ˆ]Ø\ÙKZ[œÙ[œÚ]]™[Kˆ™X[Z\™Ø\™BˆØ\\™\ÈÚİÈH\\˜Ø\ÙH›Ü›KÛÈ\™HHİ™\›^H\ÈHÛ™H]Y™™\œÈœ›ÛH™]Z[‚
+the missing half in a form a keyboard can drive.
+
+| Setting | Value | What it does |
+|---|---|---|
+| `GETV_FREECAM` | `1`, or a frame number | `1` enables it and leaves it to `F8`. A frame number switches it on by itself at that frame, which is the only way to exercise it on a measurement run. |
+| `GETV_FREECAM_MOVE` | `x,y,z` | Displaces the camera from Bond by a fixed offset the moment it starts. The repeatable half for screenshots, and the only way to move it with no keyboard present. |
+| `GETV_FREECAM_KEEPDIR` | `1` | Substitutes the position only and leaves the game's own look direction alone. A diagnostic, not a feature: it separates "the camera is in the wrong place" from "the camera is pointing the wrong way", which one frame of empty geometry cannot. |
+
+`F8` toggles. `W` `A` `S` `D` fly, the arrows look, `R` and `F` rise and descend, and shift or
+ctrl changes pace while held.
+
+**What is still beta about it.** Visibility stays rooted at Bond's room. Moving around inside
+that room keeps the geometry intact; flying above the ceiling or out of the room entirely culls
+the world, which is what a portal engine rooting visibility at the player is supposed to do. Re-
+rooting the portal walk at the camera was tried and is deliberately not shipped -- every trace of
+it reported `walksteps=0` with the printed position still Bond's, even with the camera 900 units
+away, so it could never be shown to run. Fly-anywhere is its own piece of work and it starts by
+finding where the visibility root is actually read.
+
+## Controls
+
+See [`CONTROLS.md`](CONTROLS.md) for the complete physical input map and practical rebinding
+examples. The sections below document the underlying settings and edge cases.
+
+### `controls`
+
+Selects one of Rare's eight control styles, by number or by name:
+
+| | | |
+|---|---|---|
+| `1.1` `honey` | `1.2` `solitaire` | one controller |
+| `1.3` `kissy` | `1.4` `goodnight` | one controller |
+| `2.1` `plenty` | `2.2` `galore` | two controllers |
+| `2.3` `domino` | `2.4` `goodhead` | two controllers |
+
+`2.2 galore` and `2.4 goodhead` are the true dual-analog layouts. The port's built-in default is
+`2.2`, and the written template sets `2.2` as well - one physical gamepad is presented as N64
+ports 0 and 1, left stick moving and right stick looking. Rare's own shipped default is `1.1`.
+
+Selecting a two-controller style prints a note. With three or four players the game forces
+everyone back to `1.1`.
+
+### `gamepad`
+
+`auto`, `xbox`, `playstation`, `switch` or `generic`. Default `auto`.
+
+**This only changes which glyphs are printed for on-screen prompts.** It never changes what any
+binding does. Set it when SDL misidentifies a third-party pad.
+
+### `input_preset`
+
+`modern` or `n64`. Default `modern`. `classic` is accepted as a synonym for `n64`.
+
+A preset supplies the defaults for every binding on both devices; an explicit binding always beats
+it. `n64` reproduces the port's earlier action layout, apart from the removed `V` stand key - use
+it if you preferred the old keys rather than reconstructing sixteen of them by hand.
+
+Changing the preset from either launcher clears every explicit binding, because the value of a
+preset is that picking it describes the whole layout.
+
+### Button bindings
+
+`fire`, `aim`, `use`, `reload`, `crouch`, `weapon_next`, `weapon_prev`, `pause`.
+
+Each accepts one of: `a`, `b`, `x`, `y`, `lb`, `rb`, `lt`, `rt`, `start`, `back`, `dup`, `ddown`,
+`dleft`, `dright`, `lstick`, `rstick`, `none`.
+
+| Key | `modern` | `n64` |
+|---|---|---|
+| `fire` | `rt` | `rt` |
+| `aim` | `lt` | `lt` |
+| `use` | `a` | `b` |
+| `reload` | `x` | `none` |
+| `crouch` | `b` | `none` |
+| `weapon_next` | `y` | `a` |
+| `weapon_prev` | `none` | `none` |
+| `pause` | `start` | `start` |
+
+**Button names are positional, not label-based.** `a` always means the physically bottom face
+button on the pad, whatever that button is printed with - SDL maps the bottom face button to its
+`A` slot on every controller it knows, including Nintendo's, where the same button is labelled
+`B`. The `gamepad` profile above affects prompts only, so it cannot make `a` refer to a different
+physical button.
+
+`fire = rt` / `aim = lt` is the modern-shooter convention rather than a settled fact; GoldenEye's
+retail scheme has neither. Swapping them is one line: `fire = lt`, `aim = rt`.
+
+`reload` and `crouch` do not reach the game through the N64 controller at all - the engine has no
+button for either - so the port reads them back out of the binding table directly, in
+`port_input.c`. The retail crouch gesture still works alongside; see
+[`CONTROLS.md`](CONTROLS.md).
+
+**There is no `stand` action.** Crouch toggles, so pressing it again stands you up, and in hold
+mode releasing it does. An earlier revision of this work shipped a bindable `stand`; it did
+nothing except while already crouched, which meant nobody found it and the crouch itself read as
+broken. Removing it is the fix.
+
+`weapon_prev` defaults to `none` on the pad deliberately. GoldenEye has no back-cycle button - the
+retail gesture is hold-inventory plus tap-fire, which `gePortDecodePad()` synthesises as a single
+`CONT_A | CONT_G` frame. That satisfies the engine's own test exactly and cannot double-fire or
+discharge the gun, but it has not been verified against real hardware, so it stays opt-in on a
+face button. The mouse wheel binds to it by default, where one notch is unambiguous.
+
+### Keyboard and mouse bindings
+
+`key.<action>` for any action above, and `key.<axis>` for `forward`, `backward`, `strafe_left`,
+`strafe_right`, `look_up`, `look_down`, `look_left`, `look_right`.
+
+The value is a comma-separated list; any one entry fires the action. Names are SDL's own scancode
+names (case-insensitive) plus `mouse1` through `mouse5`, `wheelup` and `wheeldown`, and the short
+forms `lctrl`, `rctrl`, `lshift`, `rshift`, `lalt`, `ralt`, `esc`, `enter`, `pgup`, `pgdn`,
+`kpenter`. `none` unbinds.
+
+```
+key.reload      = R
+key.crouch      = C,Left Ctrl
+key.aim         = mouse2
+key.weapon_next = Q,wheelup,Return
+```
+
+Unlike every other value in this file, these are **not** lowercased on the way in. SDL's lookup is
+case-insensitive so it made no difference to what a binding did, but the launcher writes the file
+back, and lowercasing turned every `Left Ctrl` into `left ctrl` a little more each time it was
+saved.
+
+The value is otherwise passed through unvalidated. SDL only resolves a scancode name once the
+window exists and the platform key table is populated, so checking here would mean shipping a
+second copy of SDL's table that could disagree with it. `port_input.c` warns per unrecognised name
+at resolution time, which is where the authoritative answer lives. Same arrangement as
+`console_key`.
+
+Keyboard bindings are not per-player. A second keyboard is not something this port supports, and
+pretending otherwise would put four dead rows in the launcher.
+
+The whole resolved map is printed at startup, so a key that failed to apply is visible rather than
+silent:
+
+```
+[getv] input: keyboard/mouse bindings --
+[getv]   fire         Space mouse1
+[getv]   reload       R
+[getv]   crouch       C Left Ctrl
+```
+
+### `aim_mode` and `crouch_mode`
+
+`hold` or `toggle`. `aim_mode` defaults to `hold`, matching retail. **`crouch_mode` defaults to
+`toggle`**, because that is the only mode in which pressing crouch again stands you up, and there
+is deliberately no second key that does.
+
+`aim_mode = toggle` sets the same engine option `aim_toggle` does - see its entry below for why
+that is answered at the read rather than latched in the port. `aim_toggle` is still accepted and
+still means what it meant.
+
+`crouch_mode` is enforced by the port, in `ge_bindings.c`, because the engine has no crouch button
+to latch. In hold mode, **releasing** crouch stands you up. Standing is emitted as a two-frame
+pulse rather than a level, because `bondview2.c` reads `if (crouchDown) ... else if (crouchUp)`
+and a permanently-true `crouchUp` would cancel the retail aim-stick crouch the instant the stick
+recentred.
+
+### `crouch_key`
+
+`0` or `1`. Default `1`. Set `0` to remove the port's dedicated crouch binding entirely and keep
+only the retail gesture (hold aim, push down).
+
+### `use_reloads`
+
+`0` or `1`. **Unset by default, and that is not the same as `0`.**
+
+Retail reload is the use button with nothing in reach: `bond_interact_object()` returns true only
+when `propFindForInteract()` found nothing, so `E` near a door opens the door and `E` near nothing
+reloads. With no reload key that is the only way to reload and must stay.
+
+Once `reload` is bound to anything, the double duty is turned off automatically -- the same input
+reloading or opening a door depending on where you happen to be standing is precisely what a
+dedicated key replaces. `input_preset = n64` leaves reload unbound and therefore keeps retail
+behaviour.
+
+Setting the key overrides that inference in both directions: `1` keeps the double duty even with a
+reload key bound, `0` removes it even without one. The resolved answer is printed at startup.
+
+### Saving from the launcher
+
+The launcher has always applied settings by setting environment variables and re-exec'ing the
+game, which is enough for them to take effect and not enough for them to survive quitting. The
+Controls page is now written to `goldeneye.cfg` **when you start the game**, and there is a
+**SAVE CONTROLS** button for saving without launching.
+
+Persisting on start rather than only on an explicit button is deliberate. Every other page takes
+effect through the relaunch, so a rebind looked like it had worked and was then gone at the next
+cold start with nothing having said so; requiring a second click to make it permanent is a trap
+rather than a safeguard.
+
+It is a rewrite in place, not a regeneration: comments, ordering, blank lines, settings from every
+other page, and any key this build does not recognise are all preserved. A key that is present but
+commented out is uncommented where it sits rather than duplicated at the end, so the template's
+own `# key.reload = R` example becomes live at the position that documents it. Clearing a binding
+comments the key out rather than deleting the line, so the surrounding explanation stays
+meaningful.
+
+The file is written to a temporary path and renamed, so an interrupted save leaves the previous
+config intact rather than a truncated one.
+
+Only the Controls page is written. Per-player pad bindings are excluded: they are a split-screen
+setting the page presents as a tab, and saving all four scopes would add dozens of mostly empty
+lines every time anyone pressed Save. They keep working through the environment and can be set by
+hand.
+
+### Per-player bindings
+
+Prefix any pad action with `p1.` to `p4.` to set it for one player only:
+
+```
+fire     = lt        # all four players
+p2.fire  = rb        # except player 2
+p3.aim   = x
+```
+
+Resolution is three steps, in order: `p<n>.<action>` if set, else the bare `<action>`, else the
+preset. So the plain keys still mean "all four players" and nothing that was configured before
+this existed changes.
+
+Split-screen is the reason. With one global table, moving fire off the right trigger for a player
+on a Nintendo pad moved it for everyone, so a mixed set of controllers could not be accommodated
+at all.
+
+The environment spelling is `GETV_P2_BIND_FIRE`, alongside the existing `GETV_BIND_FIRE`.
+
+What each player actually resolved to is printed at startup. Player 1 is always shown; the others
+appear only when they differ from it, so an override is impossible to miss and the common case
+stays one line:
+
+```
+[getv] input: pad bindings, player 1 -- fire=lt aim=lt use=a reload=x crouch=b weapon_next=y weapon_prev=none pause=start
+[getv] input: pad bindings, player 2 -- fire=rb aim=lt use=a reload=x crouch=b weapon_next=y weapon_prev=none pause=start
+```
+
+### `deadzone`
+
+Stick deadzone as a percentage of the raw SDL axis, `0` to `40`. Out-of-range values are clamped
+rather than rejected, matching what the input layer does.
+
+The built-in default and written template are both 20% (6553 of 32767 counts).
+
+This is the port's deadzone on the raw axis. It is not the game's own aim and walk thresholds,
+which are applied downstream in N64 counts and are left alone.
+
+### `invert_look`
+
+`0` or `1`. Also spelled `invertlook`.
+
+**Unset is not the same as `0`.** When the key is absent nothing is written, and the game's own
+Look Up/Down option in the save file decides - which is retail behaviour. Setting `0` is an
+explicit override to non-inverted. Setting `1` forces inversion.
+
+The written template sets `1`, and that is a measured decision rather than a preference. Retail's
+default options omit the invert-look flag, which makes stick-up drive pitch down at full rate; the
+camera pins at the -90 degree clamp in about a second and a half with nothing to recentre it. A
+fresh install opened staring at the floor, and it was reported as a bug twice. Comment the line out
+for retail behaviour.
+
+## Gameplay and system
+
+### `cheats`
+
+A comma-separated list of named cheats. See [`CHEATS.md`](CHEATS.md).
+
+### `roster`
+
+`8` or `64`. Multiplayer character count. `8` is the shipped default and does nothing. `64`
+unlocks the full character list.
+
+`33` is refused rather than faked. The 33-character roster is derived from the save file - it
+unlocks by completing Cradle on Agent - and the character-select screen recomputes it every frame
+from that save for any value other than 64. Writing 33 would be overwritten on the first frame and
+the setting would appear to do nothing.
+
+### `unlock_all`
+
+`0` or `1`. Also spelled `unlockall`. Default off. Shows every mission on the file-select screen.
+
+### `audio`
+
+`0` or `1`. Default on. `audio = 0` disables sound.
+
+The underlying gate is presence-tested and inverted, so `audio = 0` sets it and `audio = 1` leaves
+it unset. That detail matters only if you are setting the raw gate by hand.
+
+### `save_dir`
+
+A path. Overrides the save directory. Case is preserved. Default is
+`~/Library/Application Support/Goldeneye-Native`; the EEPROM image is written as `eeprom.bin` inside
+it. If the directory cannot be created, persistence is disabled and the game says so.
+
+### `realclock`
+
+`0` or `1`. Also spelled `real_clock`. Switches the port's clock source. Diagnostic.
+
+### `debug_position`
+
+`0` or `1`. Also spelled `debugpos`. Turns on Rare's own left-in readout: room id, collision
+X/Y/Z and a compass heading, drawn every frame. It works in a stock build and does not need the
+debug menu.
+
+### `debug_menu`
+
+Present only to explain that it does not work as a runtime setting. The leftover debug menu is
+already compiled into every binary, but its trigger is gated on a macro that changes code
+generation in two places - one of which repurposes the Start button. Setting the key prints the
+rebuild command instead:
+
+```bash
+GETV_DEBUGMENU=1 ./build_mac.sh lib && ./build_mac.sh app
+```
+
+Note `lib`, not `port`: it is a game-object flag. The menu's level select does not work either;
+those entries are gutted no-ops. Use `GETV_STAGE=<n>` to pick a level.
+
+## Enhancement keys
+
+Two of these are implemented. The rest validate, export their gate, and are then consumed by
+nothing; they exist so the option surface is stable before the features land, and so a
+configuration written today keeps working. Turning an unimplemented one on prints a
+not-implemented notice rather than silently doing nothing.
+
+**Implemented:**
+
+| Key | Accepts | Effect |
+|---|---|---|
+| `coop` | 0-4, clamped | Load a single-player mission with this many players sharing it, split screen. `0` or `1` is normal solo play. Bring-up only: the mission's objectives, AI and cutscenes are written around one Bond, so the extra players are present rather than accounted for. Distinct from multiplayer, which uses its own arena setups; co-op keeps the mission's own setup file. |
+| `fov` | 50-160, clamped | Vertical field of view as a percentage of the original, 100 being unchanged. The game re-sets the field of view every frame from the player's zoom state, so this is applied on the way through rather than set once. It deliberately does not alter the value the game reads back: `bondview2.c` computes `viGetFovY() / FOV_Y_F` in three places to make aiming finer as you zoom, so scaling the stored value would widen the view and retune aim sensitivity at the same time. Only the projection matrix sees the multiplier, so the view widens and aim behaves exactly as before. |
+| `depth_bits` | 16-32, clamped | Requested depth-buffer width. Note that the driver decides: on Apple silicon the context comes back 32-bit whatever is asked for, including 16, so this cannot currently be used to reproduce N64 z-fighting. The obtained width is printed at startup as `[getv][gl] depth buffer N-bit`. |
+| `anisotropic` | 0-16, clamped | Anisotropic filtering, off by default. Clamped again at runtime to the driver's own maximum, since asking for more than the hardware offers is a GL error rather than a silent downgrade: on this machine 64 becomes 16. Applied only where the game already chose linear filtering, so the HUD, the watch faces and text keep point sampling and stay sharp. |
+| `msaa` | 0-8, clamped | Multisampling, off by default. Verified working at 4 samples; the obtained sample count is printed at startup. The N64 had its own anti-aliasing and this port otherwise has none. |
+| `mipmaps` | 0 \| 1 | Trilinear filtering, off by default. Distant textures blend toward a mip level instead of shimmering; `anisotropic` is what sharpens that back up at grazing angles, so the two are meant to be tuned together. Only affects minification -- GL has no magnification mipmap mode, so close-up textures are unaffected. |
+| `fxaa` | 0 \| 1 | Edge antialiasing over the finished frame, off by default. An image-quality setting like `msaa` rather than a look, which is why it lives here and the CRT terms live in `mods/crt_screen`. |
+| `parallax` | 0 \| 1 | On by default, and does nothing on its own. It decides whether a texture pack's `<hash>_h.png` height maps displace the diffuse UVs. There is no height data in the game's own assets, so with no pack this changes nothing either way. `97 Console` turns it off so the same installed pack means resolution only. |
+| `crosshair_scale` | 0.25 to 2.0 | Default `1.0`, the retail sight size exactly. Alias `reticle_scale`. Applied after the 16:9 and PAL aspect corrections in `gunDrawSight()`, so the shape never changes and only the size does. The 1997 sight was 32 pixels against a 320x240 field of view on a CRT across a room; at 1280x960 on a desk it covers rather more of what you are aiming at. GoldenEye+ asks for `0.6`. Out-of-range values are refused rather than clamped, so a typo is reported instead of silently becoming something else. |
+| `crosshair_color` | RRGGBB hex | Default `FFFFFF`, retail's own hardcoded value -- `gunfire.c`'s `gunDrawSight()` multiplies the sight texture by this RDP primitive colour instead of always white. It tints rather than recolours, which is now measured rather than assumed: on Windows 2342 of 14400 reticle pixels change, but a sampled pixel moves only from (153,170,176) to (153,173,179). The baked N64 sight carries its own hue and an RDP primitive multiply cannot pull it to a pure colour, so expect a tint and not a colour picker. |
+
+
+
+## The launcher
+
+Double-clicking the Windows `goldeneye.exe` opens a window for choosing a level, a ruleset, cheats
+and video settings before the game starts. On macOS, double-click
+`getv/build-mac/GoldenEye.app` or the `Play GoldenEye.command` script to open it. The normal
+build generates the app beside the executable; `./getv/build_mac.sh bundle` adds it to an
+existing build. Plain macOS and Linux binaries use `--launcher` (or `GETV_LAUNCHER=1`).
+
+It is a user interface over the existing surface, not new capability: every control resolves
+to a `GETV_*` gate that already worked from a shell, and each one opens showing the value the
+config layer just resolved, so the launcher reflects `goldeneye.cfg` rather than competing
+with it. It does not write the config file.
+
+**Why it restarts the game rather than applying settings in place.** 76 of the `GETV_` gates
+are read once into a `static` on first use, so a setting changed after the game has started
+does nothing for most of the surface -- silently. The launcher therefore sets the environment
+and re-executes the binary with `--launcher` removed, so the game begins in a process where
+nothing has been read yet. `GETV_LAUNCHER_AUTOPLAY` is cleared before that exec. On Windows,
+`GETV_LAUNCHER` is set to 0 for the child; elsewhere it is cleared. That one-shot bypass prevents
+the default Windows launcher or a `launcher = 1` config value from reopening forever.
+
+Set `GETV_LAUNCHER=0` for an intentional direct Windows start, such as an automated run. Passing
+gameplay arguments also remains a direct start; `--launcher` always requests the UI explicitly.
+
+Cheats cross that boundary through **`GETV_CHEATS`**, a comma-separated list using the same
+names as the `cheats` key. It exists because cheats are the one part of the config that is not
+a gate: they are written straight into the game's cheat array at parse time, which a new
+process would otherwise lose. Cheats whose effect lives in the game's turn-on switch are
+marked "(in-game)" in the launcher, because they need a player context that does not exist at
+startup and a checkbox that silently does nothing is worse than one that says so.
+
+**Launcher modes.** *Base Game* replaces the old *97 Console* label. It allows original title-screen or direct mission startup with N64 graphics, 4:3 framing, three-point filtering, a retail-size
+reticle, and your selected frame rate and controls. It suppresses
+Brutal effects, all Lua mods, launcher cheats, custom gameplay balance, horde, co-op, forced
+unlocks and netplay.
+Resolution, fullscreen, vsync, audio and the save location remain available. Keyboard and mouse
+retain their configured bindings and mouse response in either mode. Controls and Timing remain editable. Choose *GoldenEye+* to customize gameplay and image quality.
+
+On **Mission**, the **Original game start / Mission selector** toggle chooses title-screen
+startup or a direct mission launch. The list remains visible but disabled for original startup;
+Both Base Game and GoldenEye+ allow that choice. The launch button reads **Start Game** or **Start Mission**.
+
+The launcher writes `GETV_LAUNCHER_BASE=1` for Base Game and `0` for GoldenEye+. Base Game is
+enforced after config/CLI parsing and on in-process launcher handover, so an older config cannot
+re-enable conflicting settings. This does not rewrite the config file. The standalone config
+presets below keep their existing gap-filling behavior.
+
+Two testing gates, both off by default:
+
+| gate | what it does |
+|---|---|
+| `GETV_LAUNCHER_AUTOPLAY=1` | takes the launcher's path without opening a window: read the environment, write it back, re-exec. The same code the Play button runs, for checking that settings survive the exec. |
+| `GETV_LAUNCHER_PROBE=<frames>` | draws that many frames, counts pixels differing from the clear colour, reports and closes. Distinguishes a drawn UI from an empty window that merely failed to error. |
+
+## Rulesets
+
+A ruleset scales values the game already reads. No level, model, setup file or asset is
+involved, which is why these cost almost nothing to add and can be combined freely.
+
+`ruleset = classic | hardcore | survival | chaos | horde`
+
+| preset | what it does |
+|---|---|
+| `classic` | the game as shipped. The default, and completely silent. |
+| `hardcore` | enemy health 200%, damage 150%, accuracy 130%; player health 50%; ammo 50% |
+| `survival` | hardcore-lite (150/125/115, player 75%, ammo 75%) with endless waves |
+| `chaos` | everything turned up: enemies 300/200/150, player 200%, ammo 300% |
+| `horde` | stock difficulty, double ammo, endless waves |
+
+Individual keys override whatever the preset chose, so `ruleset = hardcore` plus
+`ammo = 200` is a hardcore run with generous ammo. All are percentages, where 100 is
+unmodified:
+
+`enemy_health` Â· `enemy_damage` Â· `enemy_accuracy` Â· `enemy_reaction` Â·
+`player_health` Â· `player_armour` Â· `ammo` Â· `explosion_damage` Â· `turret_damage`
+
+Horde: `horde = 0 | 1`, tuned with the gates `GETV_HORDE_PER_KILL` (default 1),
+`GETV_HORDE_PER_KILL_CAP` (3), `GETV_HORDE_MAX_ALIVE` (12), `GETV_HORDE_WAVE_KILLS` (10)
+and `GETV_HORDE_GROWTH` (1). When a guard dies, replacements spawn where it fell using the
+engine's own `chrSpawnAtCoord`, inheriting the dead guard's body and AI list; the wave
+number rises every `wave_kills` kills and adds `growth` to the spawn count, up to the cap.
+
+**Spawning can be refused, and that is not an error.** `g_ChrSlots` is allocated with only
+`(guard count + 10)` entries and the engine declines to spawn with fewer than three free, so
+the real ceiling belongs to the level. A refused spawn leaves the wave smaller rather than
+failing.
+
+**Two of these are inverted internally**, and the implementation compensates so the
+user-facing name means what it says. `enemy_health` divides `g_AiHealthModifier`, because
+that global scales damage dealt *to* a guard; `player_health` multiplies `actual_health`,
+because `bondhealth` falls by `damage / actual_health`. `enemy_reaction` is documented
+without a difficulty claim: it scales the upper bound of a randomised AI timer, and which
+direction feels harder has not been measured.
+
+**Verifying a ruleset took effect.** Any non-stock ruleset prints once at level load, both
+what was requested and what the engine ended up holding:
+
+```
+[getv][ruleset] "hardcore" -- tougher guards, less ammo, half the player health
+[getv][ruleset]   enemy: health 200% damage 150% accuracy 130% reaction 100%
+[getv][ruleset]   player: health 50% armour 100% | ammo 50% explosion 100% turret 100%
+[getv][ruleset] applied: aiHealth=1.000 aiDamage=0.750 aiAccuracy=0.780 ... ammo=1.000
+```
+
+The second line is the claim and the `applied:` line is the measurement. On Agent, stock
+`aiHealth` is 2.000, so hardcore's 1.000 is guards taking half the damage they used to.
+
+`GETV_HORDE_SELFTEST=<frame>` spawns one replacement from a live guard at that tick without
+a kill having happened. It exists because combat cannot be driven reliably from a headless
+run, and it exercises the same spawn path a real death does.
+
+### `preset` -- the GoldenEye+ profile
+
+`preset = plus` is one switch for everything this port has added and verified. It accepts
+`faithful` (aliases `97`, `console`) and `plus` (aliases `enhanced`, `goldeneye+`, `ge+`).
+
+| It turns on | Value |
+|---|---|
+| `supersample` | 2 |
+| `msaa` | 4 |
+| `anisotropic` | 8 |
+| `mipmaps` | on |
+| `hd_textures` | on |
+| `parallax` | on |
+| `fxaa` | on |
+| `crosshair_scale` | 0.6 |
+| `framerate` | off, with the real clock |
+
+The profile fills gaps and displaces nothing:
+
+```
+command line  >  environment  >  your own config lines  >  preset
+```
+
+So `preset = plus` followed by `fxaa = 0` gives the whole profile without FXAA, wherever the
+two lines sit relative to each other. Anything the profile wanted but found already set is
+named on stdout at startup, rather than passed over quietly, because a preset that silently
+declined to uncap the frame rate looks exactly like a preset that did not work.
+
+The generated config ships `supersample` and `framerate` commented out for that reason. A
+config written before this existed has them as live lines, and the startup message will say
+so; comment them out to let the profile have them.
+
+Faithful is and stays the default. The N64 look is the product, and the way correctness gets
+checked here is comparison against real N64 captures, so anything that alters output has to be
+something you asked for.
+
+**Reserved, parsed but inert:**
+
+These are the ones that still do nothing. They parse and validate so the option surface is
+stable before the features land.
+
+| Key | Accepts | Intended effect |
+|---|---|---|
+| `fog_per_pixel` | 0 \| 1 | Per-pixel fog. N64 fog is per-vertex. |
+| `muzzle_lights` | 0 \| 1 | Dynamic lighting on muzzle flashes. |
+| `audio_3d` | 0 \| 1 | Positional audio / HRTF. Alias `hrtf`. |
+| `ssao` | 0 \| 1 | Screen-space ambient occlusion. |
+| `shadows` | 0 \| 1 | Real-time shadow maps. The game ships blob shadows. |
+| `per_pixel_lighting` | 0 \| 1 | Per-pixel lighting. N64 lighting is per-vertex Gouraud, so this changes the look the most of anything on the list. |
+
+Integer keys are clamped to their range rather than rejected.
+
+## Enemy gibs
+
+`gibs = off | explosions | high_damage | always`, default `off`.
+
+| Value | Qualifying deaths |
+|---|---|
+| `off` | None; retail behavior. |
+| `explosions` | Area explosions and direct rocket impacts. |
+| `high_damage` | A final hit dealing at least `4.0` internal damage units. |
+| `always` | Every observed non-player character death, including scripted deaths. |
+
+Every enabled policy uses the same effect: twelve solid chunks launch from the character, collide
+with level floors and walls, bounce up to three times, settle for about ten seconds, then fade.
+The original death record still handles scoring, AI notification, dropped items, objectives and
+cleanup. Players remain unaffected.
+
+`on`, `true`, `yes`, `1` and `explosion` are aliases for `explosions`. The setting maps to the same
+canonical names in `GETV_GIBS`. Unknown values fail closed to `off`. `PROP_TYPE_CHR` also covers
+some friendly and civilian mission actors, so `always` truly means all NPC actors rather than
+hostiles only. See [GIBS.md](GIBS.md) for implementation boundaries, tests and expansion guidance.
+
+### Brutal GoldenEye blood and Base Game
+
+The launcher's Gameplay page has a **Brutal GoldenEye** section. These choices apply when you
+launch the game. The launcher holds choices for that launch; put them in `goldeneye.cfg` to keep
+preferences between application sessions.
+
+```ini
+base_game = off
+# base_only is an alias for base_game.
+gibs = explosions
+blood = enhanced
+blood_limit = 128
+```
+
+- `base_game = on` disables all Brutal GoldenEye effects, including the original optional gibs,
+  without replacing the chosen `gibs`, `blood`, or `blood_limit` values. Switch it off to use those
+  preferences again. It controls this feature family; other mods, cheats and rulesets have their
+  own controls. Default: `off`, with `gibs = off` still preserving stock deaths by default.
+- `blood = original | enhanced | excessive` controls added blood from gib deaths. `original`
+  (also `off`) retains the previous chunk effect with no added blood. `enhanced` is the default;
+  `excessive` creates a denser short burst, much larger overlapping surface splashes, and a broad
+  immediate pool. Ordinary hits do not yet emit added blood.
+- `blood_limit = 16..512` caps persistent stains, default `128`. Major splashes have priority over tiny
+  marks when full; airborne blood has a separate fixed cap. Rendering also respects the available graphics
+  memory, so crowded views may show fewer effects.
+
+The gore-only checkbox is called **Enable Brutal effects** to distinguish it from the full
+**Base Game** launcher mode. It is off by default; enabling it selects explosion-triggered gibs if no trigger is selected.
+The inverse config key `base_game` remains compatible with existing files.
+
+The raw gates are `GETV_BASE_GAME`, `GETV_BLOOD`, and `GETV_BLOOD_LIMIT`. The Brutal override
+wins over the runtime `gibs` console command too. Added blood attaches to static level triangles,
+including walls and ceilings, and fades after roughly thirty seconds of simulation time. Doors
+and other moving objects do not receive blood decals.
+
+## Developer overlay and console
+
+The desktop launcher groups the overlay, console hotkey, telemetry recording and debug logging
+on its **Developer Tools** page. See the [guide and FAQ](DEVELOPER_TOOLS.md).
+
+
+When the ImGui dependency is present, press backquote/grave to open the command console on either
+OpenGL or Metal. The console hotkey is always available; it does not depend on developer mode.
+
+The separate performance/debug overlay is off by default. Enable it with `developer_tools = 1`,
+the launcher's developer-overlay checkbox, or `GETV_IMGUI=1`.
+
+`console_key = <SDL scancode name>` changes that desktop toggle. The launcher exposes the same
+field, and `GETV_CONSOLE_KEY` is the automation/raw-gate form. Examples include `F10`, `F12` and
+`grave`; an unknown name is reported and falls back to grave.
+
+While the console is open it owns keyboard and mouse events as well as the separately polled SDL
+device state. Closing keeps a short release quarantine until every key and mouse button is up, so
+typing Enter, Space or Tab cannot also fire, skip a cutscene or open the watch. Gamepads remain
+available. Raw command history is bounded to the current process and is not written to config or
+diagnostic output.
+
+The initial command set includes read-only session/player/objective queries, `gibs`, explicit-slot
+`god`/`give`/`ammo` mutations, and two controlled mission transitions:
+
+```text
+restart
+level <stage-id>
+```
+
+Both transition commands require an active solo mission and are refused during netplay or local
+multiplayer before the game transition callback runs. `level` accepts the numeric ID of a loadable
+solo mission; title, cut, unknown, and multiplayer-only stages are refused. The transition uses the
+game's normal drain/unload/reload request, so it does not rewrite raw stage globals. A successful
+`restart` reloads the current mission, while `level 33` schedules Dam and preserves the current
+difficulty. Requesting the stage already in play is also a controlled reload: `level 33` while on
+Dam follows the same engine path as `restart`, but its result remains a `level` result with the
+normal previous/requested-stage metadata.
+
+`GETV_CONSOLE_OPEN=1` opens the window at startup for bounded UI smoke tests. It is not a persisted
+setting.
+
+## Raw gates
+
+Any of the port's development gates can be set by its real name, in the file or on the command
+line:
+
+```
+GETV_STAGE = 34
+GETV_EXIT_FRAME = 61
+```
+
+```bash
+./build-mac/goldeneye --GETV_STAGE=34
+```
+
+Raw names are matched before friendly ones, so a friendly key can never shadow a gate. There are
+around 250 of them; [`MODDING.md`](MODDING.md) covers the useful ones.
+
+### `GETV_PROP_TELEMETRY` -- correlated allocator observations
+
+`GETV_PROP_TELEMETRY=1` together with a bounded, path-free
+`GETV_PROP_TELEMETRY_RUN_ID=<token>` emits versioned JSON Lines from the real `PropRecord`
+allocator. It is a diagnostic gate, not a capacity setting, and remains silent by default. See
+[`PROP_ALLOCATOR_TELEMETRY.md`](PROP_ALLOCATOR_TELEMETRY.md) for the exact schema, lifecycle
+boundaries, and evidence limits.
+
+### `aim_toggle` -- press to aim, instead of holding
+
+`0` or `1`. Default `0`, which is the retail hold. `aim_toggle = 1` makes aim a toggle: press
+once to raise the sight and again to lower it, so you are not holding a key down with the same
+hand you move with. Aliases `toggle_aim` and, preferred now, `aim_mode = toggle` -- which sets
+this same gate and sits next to `crouch_mode` where a player will look for it.
+
+This is GoldenEye's own option rather than something the port invented. `bondview2.c:5441`
+already branches on it: with hold, `insightaimmode` is set from the button every frame; with
+toggle, it flips on the press edge. All the port does is answer that question, which is why it
+is a four-line patch and not a latch in the input layer -- a second implementation there would
+race the real one whenever someone also set the option in the game's own menu.
+
+It is forced at the point the engine reads the value, not written once at startup, because the
+stored setting is per-player, is reloaded from a saved game by `file2.c:1438`, and can be changed
+from the options menu. Answering at the read survives all three, and leaves the menu showing
+whatever you last chose rather than quietly rewriting your save.
+
+Worth knowing before you turn it on: aim mode is still aim mode. The game stops you walking while
+the sight is up, and holds crouch behind it too, so a toggle removes the held key and does not
+turn aiming into a move-and-shoot mode. That gating is the game's, in `bondview2.c`.
+
+### Things that will cost you an afternoon
+
+Measured on Windows and true everywhere, collected because each one looks like a broken feature
+rather than a setting.
+
+- **`GETV_KEYBOARD_IDLE` is on whenever `GETV_EXIT_FRAME` is set.** Scripted input is then
+  ignored with no error printed, so an input test looks like a null result rather than a
+  disabled one.
+- **Screenshots are always 24-bit BMP**, whatever extension `GETV_SHOTPATH` is given. Naming a
+  file `.png` produces a BMP called `.png`.
+- **`GETV_AIM_SELFTEST` takes a frame number, not a boolean.** Aim is read as a toggle on the
+  rising edge, and a hold starting at frame 0 is already down through the locked-controls intro,
+  so no edge ever arrives and nothing happens. Give it a frame after the intro.
+- **`run_tests.ps1` defaults to `-Mingw C:\msys64\mingw64`** while the project installs to
+  `C:\mingw64`. Run it without the flag and it silently uses a different compiler.
+
+### `GETV_RGBA16BE` and `GETV_TEX16BE` -- 16-bit texture byte order
+
+Leave both unset. The game's texture decoder swaps its native 16-bit texels to big-endian before
+upload (`GETV_TEX16BE`, default 1), and the renderer reads every RGBA16 texel big-endian
+(`GETV_RGBA16BE`, default 0). Together they draw explosions orange and the boot sequence's rating
+seal, Rareware logo and GOLDENEYE logo correctly.
+
+- `GETV_TEX16BE=0` with `GETV_RGBA16BE=1` is the previous pairing: orange explosions, but the boot
+  logos draw as colour noise.
+- `GETV_TEX16BE=0` with `GETV_RGBA16BE=0` turns explosions magenta, which was reported as
+  confetti. It is not the paintball cheat.
+- `GETV_RGBA16BE=2` swaps the two bytes of each texel and is kept as a control.
+
+See [`COLOUR_BUGS.md`](COLOUR_BUGS.md) for the measurements.
+
+### `GETV_REAL_FONTS` -- the real-font text overlay
+
+Off by default, and a raw gate rather than a friendly key because it is not finished enough to
+promote. `GETV_REAL_FONTS=1` draws `textRender`/`textRenderOutlined` strings through a
+stb_truetype atlas baked from `getv/port/assets/fonts/RobotoCondensed-VF.ttf` instead of the
+game's own bitmap glyphs, which are 24-pixel N64 assets being stretched at desktop resolutions.
+
+It prints what it did at startup, so you can tell the difference between off and broken:
+
+```
+[getv][text] real-font overlay ready: .../RobotoCondensed-VF.ttf, 95 chars baked at 24px (46 atlas rows)
+```
+
+If the font is missing it says so and falls back to the bitmap glyphs rather than drawing
+nothing. Rotated text (the file-select folder tabs) is deliberately exempt and still draws
+through the original path.
+
+Two known differences, both cosmetic and both written up in
+`getv/port/src/ge_text_overlay.c`:
+
+- Menu highlight boxes are positioned from the bitmap font's metrics, so by the
+  difficulty-select screen (`GETV_MENU=8`) the box has visibly drifted from its label.
+- Some strings change case. The Q Watch pause screen reads `Q WATCH V2.01 BETA` under the
+  bitmap font and `q watch v2.01 beta` under the overlay, because the string in the game's data
+  is already lowercase and the bitmap glyphs render it case-insensitively. Real-hardware
+  captures show the uppercase form, so here the overlay is the one that differs from retail.

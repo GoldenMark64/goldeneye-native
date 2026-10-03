@@ -303,281 +303,1388 @@ static id<MTLRenderPipelineState> gfx_metal_build_pipeline(uint64_t shader_id, s
         c[0][i] = (shader_id >> (i * 3)) & 7;
         c[1][i] = (shader_id >> (12 + i * 3)) & 7;
         c2[0][i] = (shader_id >> (CC_C2_RGB_SHIFT + i * CC_C2_SLOT_BITS)) & CC_C2_SLOT_MASK;
-        c2‹­¦ëm®éÜj×¢¸ Šv¥jšk£¦j×­¢G§r‹§·oxÓˆÜš]J‹KMŠNÂˆ›Üˆ
-HHHNÈHHÈKKJHÂˆÛÛœİ[œÚYÛ™YÚ\ˆ
-œ›İÈH
-È
-Ú^™Wİ
-^H
-ˆÈ
-ˆÂˆ[Âˆ›Üˆ
-HÈÎÈ
-ÊÊHÂˆÜš]J›İÈ
-È
-ˆKËŠNÂˆBˆYˆ
-Y
-HÜš]J™\›ËK
-Ú^™Wİ
-\YŠNÂˆBˆYˆ
-˜ÛÜÙJŠHOH
-HÂˆœš[Šİ\œ‹–ÙÙ]—VÜÚİH˜ÛÜÙH˜Z[Y›Üˆ	É\ÉÎˆ	\×ˆ‹]İ™\œ›ÜŠ\œ››ÊJNÂˆ™›\Ú
-İ\œŠNÂˆ™]\›ˆÂˆBˆ™]\›ˆNÂŸB‚œİ]XÈ[ÙWÜÚİØØ\\™Wİ^\™WÛY][
-ÛÛœİÚ\ˆ
-œ]YU^\™Oˆ^ˆ[
-›İ]İË[
-›İ]Ú
-BÂˆ[ÎÂˆ[Âˆ[œÚYÛ™YÚ\ˆ
-œÂˆ[ÚÎÂ‚ˆYˆ
-]^]OH•S
-HÈ™]\›ˆÈBˆÈH
-[
-]^ÚYÂˆH
-[
-]^šZYÚÂˆYˆ
-ÈHH
-HÈ™]\›ˆÈB‚ˆH
-[œÚYÛ™YÚ\ˆ
-Š[X[ØÊ
-Ú^™Wİ
-]È
-ˆ
-ˆ
-NÂˆYˆ
-\
-HÈ™]\›ˆÈBˆİ^Ù]]\Îœˆ]\Ô\”›İÎŠ”ÕR[YÙ\ŠJÈ
-ˆ
-Bˆœ›ÛT™YÚ[Û“U™YÚ[Û“XZÙL‘
-
-”ÕR[YÙ\Š]Ë
-”ÕR[YÙ\ŠZ
-BˆZ\X\]™[ŒNÂˆÚÈHÙWÜÚİİÜš]WØ›\ÛY][
-]Ë
-NÂˆœ™YJ
-NÂˆYˆ
-ÚÊHÂˆYˆ
-İ]İÊH
-›İ]İÈHÎÂˆYˆ
-İ]Ú
-H
-›İ]ÚHÂˆBˆ™]\›ˆÚÎÂŸB‚œİ]XÈ›ÚYÙWÜÚİÛX^X™WÛY][
-YUÛÛ[X[™Y™™\ˆÛYY‹YU^\™Oˆ^
-HÂˆİ]XÈ[ÚİÙœ˜[YHHLÂˆİ]XÈ[œÚYÛ™YÛ™È››ÎÂˆİ]XÈÛÛœİÚ\ˆ
-œÚİÜ]Âˆİ]XÈÚ\ˆÚİÜ]ØY–ÌLNÂˆÛÛœİÚ\ˆ
-™XY×Ü]Âˆ[ØÚY[YÂˆYˆ
-ÚİÙœ˜[YHOHLŠHÂˆÛÛœİÚ\ˆ
-™HHÙ][Š‘ÑU—ÔÒÕ”SQHŠNÂˆÚİÙœ˜[YHH
-H	‰ˆ
-™JHÈ]ÚJJHˆLNÂˆÚİÜ]HÙ][Š‘ÑU—ÔÒÕUŠNÂˆYˆ
-\ÚİÜ]JœÚİÜ]
-HÂˆÊˆH˜\™H™[]]™H˜[YHÛ›HÛÜšÜÈÚ\™HH›ØÙ\ÜÉÜÈÕÑ\ÈÜš]X›HKHYBˆ
-ˆÛˆ\ÚİÜ˜[ÙHÛˆ“ÔËÚSÔËÚ\™HH\[™H]Ù[ˆ\È™XY[Û›H[™ˆ
-ˆ›Ü[Š
-H˜Z[ÈÚ]TT“H
-›İ[™H\™Ø^Nˆ\È˜Z[YÛÛ\][Bˆ
-ˆÚ[[H™Y›Ü™HHXYÛ›ÜİXÈH™]È[™\È™[İÈ^\İY
-KˆTTˆ\ÈBˆ
-ˆİ[™\™ÔÒV[ˆ˜\ˆ]™\H›ØÙ\ÜÈÛˆH]›Ü›H[™XYH\ÈÙ]Âˆ
-ˆ]\	ÜÈİÛˆØ[™›ŞYÛÛZ[™\ˆKH›È\‹Z[œİ[URQÈ\ØÛİ™\ˆÜ‚ˆ
-ˆİY\ÜÈ]œ›ÛHİ]ÚYHH›ØÙ\ÜËˆ
-‹ÂˆÛÛœİÚ\ˆ
-\HÙ][Š•TTˆŠNÂˆYˆ
-\	‰ˆ
-\
-HÂˆÛœš[ŠÚİÜ]ØY‹Ú^™[ÙˆÚİÜ]ØY‹‰\ËÙÙ]—ÜÚİ˜›\‹\
-NÂˆÚİÜ]HÚİÜ]ØYÂˆH[ÙHÂˆÚİÜ]H™Ù]—ÜÚİ˜›\ÂˆBˆBˆBˆ››ÊÊÎÂˆÊˆÚX\Ûˆ]™\Hİ\ˆœ˜[YNˆHÛİ[\ˆX›İ™H\ÈÈ[ˆ[˜ÛÛ™][Û˜[HÈÛ›İÂˆ
-ˆÚXÚœ˜[YH\È\Ë]HÔHİ[™[İÈ\ÈHÛ™H[™ÈÑU—ÔÒÕ”SQH\Âˆ
-ˆİ\ÜÙYÈÛÜİÛ›HÛˆHÚ[™ÛHœ˜[YHXİX[H™Z[™ÈØ\\™Yˆ
-‹ÂˆØÚY[YHÚİÙœ˜[YHˆ	‰ˆ
-Û™ÊY››ÈOH
-Û™Ê\ÚİÙœ˜[YNÂˆXY×Ü]HÙTÜXYÛ›ÜİXÔØÜ™Y[œÚİ]
+        c2[1][i] = (shader_id >> (CC_C2_ALPHA_SHIFT + i * CC_C2_SLOT_BITS)) & CC_C2_SLOT_MASK;
+    }
+    bool two_cycle = (shader_id & SHADER_OPT_2CYC) != 0;
+    bool opt_alpha = (shader_id & SHADER_OPT_ALPHA) != 0;
+    bool opt_fog = (shader_id & SHADER_OPT_FOG) != 0;
+    bool opt_texture_edge = (shader_id & SHADER_OPT_TEXTURE_EDGE) != 0;
+    bool opt_noise = (shader_id & SHADER_OPT_NOISE) != 0;
 
-NÂˆYˆ
-\ØÚY[Y	‰ˆXY×Ü]OH•S
-H™]\›ÂˆYˆ
-]^	‰ˆØÚY[Y
-H™]\›Â‚ˆÊˆ]ØÛYYˆØ\È[™XYHÛÛ[Z]YHHØ[\ˆ
-™\Ù[˜]ØX›NˆØÚY[\Âˆ
-ˆ™\Ù[][Ûˆ›ÜˆÚ[ˆHÔHš[š\Ú\Ë]Ù\È›İ]Ù[ˆ›ØÚÊHKHØZ]›Üˆ]ˆ
-ˆÔHÛÜšÈÈ[™™Y›Ü™HÙ]]\ËÜˆ\È™XYÈÚ]]™\ˆØ\È[ˆH^\™H™Y›Ü™Bˆ
-ˆ\Èœ˜[YIÜÈ˜]ÜË›İ\Èœ˜[YKˆ
-‹ÂˆØÛYYˆØZ][[ÛÛ\]YNÂ‚ˆYˆ
-ØÚY[Y
-HÂˆ[ÈHHÂˆYˆ
-ÙWÜÚİØØ\\™Wİ^\™WÛY][
-ÚİÜ]^	Ë	š
-JHÂˆœš[Šİ\œ‹–ÙÙ]—VÜÚİHœ˜[YH	[HOˆ	\È
-	Y	Y
-Wˆ‹››ËÚİÜ]Ë
-NÂˆ™›\Ú
-İ\œŠNÂˆBˆBˆYˆ
-XY×Ü]OH•S
-HÂˆ[ÈHHÂˆ[ÚÈHÙWÜÚİØØ\\™Wİ^\™WÛY][
-XY×Ü]]ÙXY×ØØ\\™Wİ^	Ë	š
-NÂˆÙTÜXYÛ›ÜİXÔØÜ™Y[œÚİÛÛ\]JÚËË
-NÂˆYˆ
-ÚÊHÂˆœš[Šİ\œ‹–ÙÙ]—VÙXY×HØÜ™Y[œÚİœ˜[YH	[HOˆ	\È
-	Y	Y
-Wˆ‹ˆ››ËXY×Ü]Ë
-NÂˆ™›\Ú
-İ\œŠNÂˆBˆBŸB‚‹Êˆ[™ÈHĞSQIÜÈ™[™\ˆ[˜ÛÙ\ˆÛ›HKHÙ\È“Õ™\Ù[ÜˆÛÛ[Z]ˆ]Ü]
-[™\Âˆ
-ˆÚÛHš[H™Z[™È™XXÚX›Hœ›ÛHİ]ÚYHÙÜË˜ÉÜÈÙ™[™\š[™ĞTHX›H][
-H^\İÂˆ
-ˆ›ÜˆÛ™H™X\ÛÛˆ[QİZKˆÙÜË˜ÈØ[ÈÙÜ˜\KO™[™Ùœ˜[YJ
-H[™[‚ˆ
-ˆÙİØ\KOœİØ\ØY™™\œ×Ø™YÚ[Š
-H
-ÙÜÙ‹˜ÊKÚXÚ\ÈÚ\™HH][˜Ú\‹Ù]‹[İ™\›^Bˆ
-ˆ˜]ÜÈ[™Ú\™HÓ	ÜÈÑÑÓÔİØ\Ú[™İÊ
-H]™\ÈKHK™KˆHİ™\›^H˜]ÜÈS•ÈHĞSQBˆ
-ˆ”SQKY\ˆHØ[YH]™Y›Ü™H]™XXÚ\ÈHØÜ™Y[‹ˆY][\È›È\]Z]˜[[Ùˆ™˜]Âˆ
-ˆ[Ü™H[È[ˆ[™XYK\™\Ù[Y˜]ØX›Hˆ™\Ù[˜]ØX›JØÛÛ[Z]\È\›Z[˜[ˆÛÈ[™Ùœ˜[YBˆ
-ˆ\™HÛ›HÛÜÙ\Èİ]HØ[YIÜÈİÛˆ[˜ÛÙ\‹HÛÛ[X[™Y™™\ˆ[™˜]ØX›Hİ^H[]™Kˆ
-ˆ[™ÙTÜY][š[š\Úœ˜[YJ
-H™[İÈKHØ[Yœ›ÛHÙÜÙ‹˜È[ˆÓ	ÜÈÑÑÓÔİØ\Ú[™İÂˆ
-ˆÛİK™KˆQ•TˆHİ™\›^IÜÈİÛˆ[˜ÛÙ\ˆ
-ÙTÜY][[YİZP™YÚ[”\ÜËÑ[™\ÜÊH\È[ˆKBˆ
-ˆ\ÈÚ]XİX[H™\Ù[È[™ÛÛ[Z]ËˆÚ]İ][QİZHZ[[ˆ\Èİ[[œÈ^XİHBˆ
-ˆØ[YHØ^NÈÙTÜY][š[š\Úœ˜[YJ
-H\È[˜ÛÛ™][Û˜[›İÑWÕÒUÒSQÕRKYØ]Y™XØ]\ÙBˆ
-ˆÛÛY][™È\ÈÈ™\Ù[Hœ˜[YHZ]\ˆØ^Kˆ
-‹Âœİ]XÈ›ÚYÙÛY][Ù[™Ùœ˜[YJ›ÚY
-HÂˆYˆ
-[]Ù[˜ÛÙ\ŠH™]\›ÂˆÛ]Ù[˜ÛÙ\ˆ[™[˜ÛÙ[™×NÂˆ]Ù[˜ÛÙ\ˆHš[Â‚ˆYˆ
-ÙWÛY][ÜÜİØXİ]™J
-JHÂˆÊˆHÛÛ\ÜÚ]H\ÜÎˆXÜ]Z\™HH˜]ØX›H›İÈ
-Y™\œ™Yœ›ÛHİ\Ùœ˜[YKÙYH]Âˆ
-ˆİÛˆÛÛ[Y[
-KØ[\H]ÜØÛÛÜˆKHHØ[YIÜÈ\İYš[š\ÚYÙ™œØÜ™Y[ˆœ˜[YHKBˆ
-ˆ[™İÛœØ[\H][ÈH™X[İ]]ˆ]Ù˜]ØX›H\ÈÈ™HÙ]HH[YBˆ
-ˆ\È[˜İ[Ûˆ™]\›œÎˆÙTÜY][[YİZP™YÚ[”\ÜÊ
-H
-ÙÜÙ‹˜Ë[œÈ™]ÙY[ˆ\™Bˆ
-ˆ[™ÙTÜY][š[š\Úœ˜[YJ
-JHİX\™ÈÛˆYˆ
-[]ØÛYYˆ[]Ù˜]ØX›JH™]\›Øˆ
-ˆ[™]ÈİÛˆØYXİ[ÛSØY\[™ÈÛˆ\È\ÜÈ]š[™È[™XYHÜš][ˆ™X[ˆ
-ˆ^[È›Üˆ]È™\Ù\™Kˆ
-‹Âˆ]]Ü™[X\Ù\ÛÛÂˆ]Ù˜]ØX›HHÛ]Û^Y\ˆ™^˜]ØX›WNÂˆYˆ
-]Ù˜]ØX›JHÂˆÙÛY][Ù[œİ\™WÜÜİÜ\[[™J
-NÂ‚ˆU™[™\”\ÜÑ\ØÜš\Üˆ
-œ\ÜÈHÓU™[™\”\ÜÑ\ØÜš\Üˆ™[™\”\ÜÑ\ØÜš\Ü—NÂˆ\ÜË˜ÛÛÜ]XÚY[ÖÌK^\™HH]Ù˜]ØX›K^\™NÂˆÊˆ[Hİ™\Üš][ˆHH[\ØÜ™Y[ˆšX[™ÛH™[İÈKH[›ZÙHH[QİZBˆ
-ˆİ™\›^H\ÜËÚXÚ[X™\˜][H\Ù\ÈØYÈ™\Ù\™HTÈ\ÜÉÜÂˆ
-ˆİ]]\È\ÜÈ\È›İ[™ÈÈ™\Ù\™Hœ›ÛH™Y›Ü™H]ˆ
-‹Âˆ\ÜË˜ÛÛÜ]XÚY[ÖÌK›ØYXİ[ÛˆHUØYXİ[Û‘ÛØ\™NÂˆ\ÜË˜ÛÛÜ]XÚY[ÖÌKœİÜ™PXİ[ÛˆHUİÜ™PXİ[Û”İÜ™NÂ‚ˆYU™[™\ÛÛ[X[™[˜ÛÙ\ˆ[˜ÈHÛ]ØÛYYˆ™[™\ÛÛ[X[™[˜ÛÙ\•Ú]\ØÜš\Üœ\Ü×NÂˆÜ[˜ÈÙ]™[™\”\[[™Tİ]N›]ÜÜ\[[™WNÂˆÜ[˜ÈÙ]œ˜YÛY[^\™N›]ÜØÛÛÜˆ][™^ŒNÂˆÜ[˜ÈÙ]œ˜YÛY[Ø[\\”İ]N›]ÜÜØ[\\ˆ][™^ŒNÂˆYˆ
-ÙWÛY][ÙXWÙ[˜X›Y
+    bool used_textures[2] = { false, false };
+    int num_inputs = 0;
+    for (int pass = 0; pass < (two_cycle ? 2 : 1); pass++) {
+        uint8_t (*src)[4] = pass ? c2 : c;
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (src[i][j] >= SHADER_INPUT_1 && src[i][j] <= SHADER_INPUT_4 && src[i][j] > num_inputs)
+                    num_inputs = src[i][j];
+                if (src[i][j] == SHADER_TEXEL0 || src[i][j] == SHADER_TEXEL0A) used_textures[0] = true;
+                if (src[i][j] == SHADER_TEXEL1) used_textures[1] = true;
+            }
+        }
+    }
+    bool color_alpha_same = (shader_id & 0xfff) == ((shader_id >> 12) & 0xfff);
+    bool color_alpha_same2 = ((shader_id >> CC_C2_RGB_SHIFT) & 0xffff) == ((shader_id >> CC_C2_ALPHA_SHIFT) & 0xffff);
 
-JHÂˆÊˆ]ÜØÛÛÜ‰ÜÈİÛˆÚ^™K›İH˜]ØX›IÜÈKHH–PH\ÜÈØ[\\Âˆ
-ˆ]ÜØÛÛÜ‹[™^[ÜXÚ[™È\ÈÈX]ÚH^\™H™Z[™Âˆ
-ˆ™ZYÚ›İ\‹\Ø[\Y›İH
-ÜÜÚX›HY™™\™[ÜİYİÛœØ[\JBˆ
-ˆİ]]Ú^™KˆX]Ú\ÈÙÛY][Ù[œİ\™WÜÜİÜ\[[™IÜÈœ˜YÛY[ˆ
-ˆÚXÚXÛ\™\È\ÈY™™\ˆÛ›HÚ[ˆ–PH\ÈÛÛ\[Y[‹ˆ
-‹Âˆ›Ø]™\ÖÌ—HHÈ
-›Ø]
-[]ÜİË
-›Ø]
-[]ÜÚNÂˆÜ[˜ÈÙ]œ˜YÛY[]\Îœ™\È[™İœÚ^™[Ùˆ™\È][™^ŒNÂˆBˆÜ[˜È˜]Ôš[Z]]™\Î“Uš[Z]]™U\UšX[™ÛH™\^İ\Œ™\^Ûİ[Œ×NÂˆÜ[˜È[™[˜ÛÙ[™×NÂˆBˆBˆ]Ü™[™\—İ\™Ù]İÈH
-Z[Ì—İ
-[]Û^Y\‹™˜]ØX›TÚ^™KÚYÂˆ]Ü™[™\—İ\™Ù]ÚH
-Z[Ì—İ
-[]Û^Y\‹™˜]ØX›TÚ^™KšZYÚÂˆB‚ˆÊˆ™\Ù\™HHØ[YK[Û›H˜]ØX›H™Y›Ü™HÙÜÙ‹˜ÈÚ]™\È[QİZH]ÈØY\™\Ù\š[™È\ÜË‚ˆ
-ˆH›]\ÈÜ™\™Y[ˆHØ[YHÛÛ[X[™Y™™\ˆY\ˆHØ[YKÜÜİÛÜšÈ[™™Y›Ü™HBˆ
-ˆİ™\›^KÛÈHš]˜]H^\™H\ÈH^Xİœ˜[YHŒÈØ\È™\ÜÙYÛˆÚ]İ]XYÈRKˆ
-‹ÂˆYˆ
-]ÙXY×Ü™XY˜XÚ×Ø\›YY	‰ˆÙTÜXYÛ›ÜİXÔØÜ™Y[œÚİ]
+    // ---- Vertex layout: position(4), [texCoord(2)], [fog(4)], input1..N(3 or 4) --
+    // same order gfx_pc.c always produces (mirrors gfx_opengl.c's attrib push order).
+    size_t num_floats = 4;
+    int attr = 0;
+    MTLVertexDescriptor *vd = [MTLVertexDescriptor vertexDescriptor];
+    vd.attributes[attr].format = MTLVertexFormatFloat4;
+    vd.attributes[attr].bufferIndex = 0;
+    vd.attributes[attr].offset = 0;
+    attr++;
+    size_t off_tex = 0, off_fog = 0, off_viewpos = 0;
+    if (used_textures[0] || used_textures[1]) {
+        off_tex = num_floats * sizeof(float);
+        vd.attributes[attr].format = MTLVertexFormatFloat2;
+        vd.attributes[attr].bufferIndex = 0;
+        vd.attributes[attr].offset = off_tex;
+        attr++;
+        num_floats += 2;
+    }
+    /* Parallax view-space position -- see the field comment on LoadedVertex::vpx/vpy/vpz
+     * in gfx_pc.c. Gated on tex0 specifically (not tex0||tex1), matching exactly how
+     * gfx_pc.c packs it into the VBO: right after texcoord, before fog, only when tex0
+     * is in use, since a height-map override always pairs with the diffuse (tile 0)
+     * override. Ported from gfx_opengl.c's identical aViewPos/vViewPos addition. */
+    if (used_textures[0]) {
+        off_viewpos = num_floats * sizeof(float);
+        vd.attributes[attr].format = MTLVertexFormatFloat3;
+        vd.attributes[attr].bufferIndex = 0;
+        vd.attributes[attr].offset = off_viewpos;
+        attr++;
+        num_floats += 3;
+    }
+    if (opt_fog) {
+        off_fog = num_floats * sizeof(float);
+        vd.attributes[attr].format = MTLVertexFormatFloat4;
+        vd.attributes[attr].bufferIndex = 0;
+        vd.attributes[attr].offset = off_fog;
+        attr++;
+        num_floats += 4;
+    }
+    size_t input_offsets[4] = {0, 0, 0, 0};
+    for (int i = 0; i < num_inputs; i++) {
+        input_offsets[i] = num_floats * sizeof(float);
+        vd.attributes[attr].format = opt_alpha ? MTLVertexFormatFloat4 : MTLVertexFormatFloat3;
+        vd.attributes[attr].bufferIndex = 0;
+        vd.attributes[attr].offset = input_offsets[i];
+        attr++;
+        num_floats += opt_alpha ? 4 : 3;
+    }
+    vd.layouts[0].stride = num_floats * sizeof(float);
+    vd.layouts[0].stepFunction = MTLVertexStepFunctionPerVertex;
 
-HOH•S
-HÂˆYˆ
-]Ù˜]ØX›HOHš[	‰ˆ]ØÛYYˆOHš[
-HÂˆ”ÕR[YÙ\ˆÈH]Ù˜]ØX›K^\™KÚYÂˆ”ÕR[YÙ\ˆH]Ù˜]ØX›K^\™KšZYÚÂˆU^\™Q\ØÜš\Üˆ
-™\ØÈBˆÓU^\™Q\ØÜš\Üˆ^\™L‘\ØÜš\Ü•Ú]^[›Ü›X]“U^[›Ü›X]‘ÔN[›Ü›BˆÚYÂˆZYÚšˆZ\X\Y““×NÂˆ\ØËœİÜ˜YÙS[ÙHHUİÜ˜YÙS[ÙTÚ\™YÂˆ]ÙXY×ØØ\\™Wİ^HÛ]Ù]šXÙH™]Õ^\™UÚ]\ØÜš\Ü™\Ø×NÂˆYˆ
-]ÙXY×ØØ\\™Wİ^OHš[
-HÂˆYU›]ÛÛ[X[™[˜ÛÙ\ˆ›]HÛ]ØÛYYˆ›]ÛÛ[X[™[˜ÛÙ\—NÂˆØ›]ÛÜQœ›ÛU^\™N›]Ù˜]ØX›K^\™BˆÛİ\˜ÙTÛXÙNŒˆÛİ\˜ÙS]™[ŒˆÛİ\˜ÙSÜšYÚ[“UÜšYÚ[“XZÙJ
-BˆÛİ\˜ÙTÚ^™N“UÚ^™SXZÙJËJBˆÕ^\™N›]ÙXY×ØØ\\™Wİ^ˆ\İ[˜][Û”ÛXÙNŒˆ\İ[˜][Û“]™[Œˆ\İ[˜][Û“ÜšYÚ[“UÜšYÚ[“XZÙJ
-WNÂˆØ›][™[˜ÛÙ[™×NÂˆH[ÙHÂˆÙTÜXYÛ›ÜİXÔØÜ™Y[œÚİÛÛ\]J
-NÂˆBˆH[ÙHÂˆÙTÜXYÛ›ÜİXÔØÜ™Y[œÚİÛÛ\]J
-NÂˆBˆBŸB‚›ÚYÙTÜY][š[š\Úœ˜[YJ›ÚY
-HÂˆ[™\İÜ™WÙœ˜[YXY™™\—ÛÛ›HH]ÙXY×Ü™XY˜XÚ×Ø\›YYÂˆYˆ
-[]ØÛYYŠHÂˆYˆ
-™\İÜ™WÙœ˜[YXY™™\—ÛÛ›JHÂˆÙTÜXYÛ›ÜİXÔØÜ™Y[œÚİÛÛ\]J
-NÂˆ]ÙXY×ØØ\\™Wİ^Hš[Âˆ]ÙXY×Ü™XY˜XÚ×Ø\›YYHÂˆÈÛÛœİÚ\ˆ
-™HHÙ][Š‘ÑU—ÔÒÕ”SQHŠNÂˆYˆ
-JH	‰ˆ
-™JJH]Û^Y\‹™œ˜[YXY™™\“Û›HHQTÎÈBˆBˆ™]\›ÂˆBˆYˆ
-]Ù˜]ØX›JHÛ]ØÛYYˆ™\Ù[˜]ØX›N›]Ù˜]ØX›WNÂˆÛ]ØÛYYˆÛÛ[Z]NÂˆÙWÜÚİÛX^X™WÛY][
-]ØÛYY‹]Ù˜]ØX›K^\™JNÂˆ]ÙXY×ØØ\\™Wİ^Hš[Âˆ]ÙXY×Ü™XY˜XÚ×Ø\›YYHÂˆYˆ
-™\İÜ™WÙœ˜[YXY™™\—ÛÛ›JHÂˆÛÛœİÚ\ˆ
-™HHÙ][Š‘ÑU—ÔÒÕ”SQHŠNÂˆYˆ
-JH	‰ˆ
-™JJH]Û^Y\‹™œ˜[YXY™™\“Û›HHQTÎÂˆBˆ]ØÛYYˆHš[Âˆ]Ù˜]ØX›HHš[Âˆ]İ˜›×Ú[™^H
-]İ˜›×Ú[™^
-ÈJH	H“×ÔÓÓĞÓÕS•ÂŸB‚ˆÚY™YˆÑWÕÒUÒSQÕRBš[ÙTÜY][[YİZR[š]
-›ÚY
-HÂˆYˆ
-R[QİZWÒ[\Y][Ò[š]
-]Ù]šXÙJJH™]\›ˆÂˆÊˆZ[U‘T–H]šXÙHØš™XİKH\\İ[˜Ú[İ]H[™H›Û]\È^\™HKH“ÕËšXBˆ
-ˆÜ™X]Q]šXÙSØš™XİÊ
-K›İ^š[H[œÚYHHš\œİ[QİZWÒ[\Y][Ó™]Ñœ˜[YJ
-HØ[ˆÛÂˆ
-ˆYÜË›İ[™Ûˆ\È^XİÛÙH]
-ÙWÛ][˜Ú\—ÛY][›[H]›İš\œİÈÙYH]È]XÚˆ
-ˆÛ™Ù\ˆÛÛ[Y[›ÜˆH[İÜJN‚ˆ
-ˆKˆ[QİZN“™]Ñœ˜[YJ
-H\ÜÙ\ÈË’SË‘›ÛËO’\ĞZ[
+    // ---- MSL source ----
+    char vs[3072]; size_t vs_len = 0;
+    char fs[10240]; size_t fs_len = 0;
 
-H™Y›Ü™H[H™[™\™\ˆ˜XÚÙ[™Ø[ˆ
-ˆ[œÈ][ÛÈH]\È]\İ^\İ™Y›Ü™HHÛÜ	ÜÈš\œİ™]Ñœ˜[YJ
-HKH›İˆ
-ˆY\™[H™Y›Ü™HHš\œİ˜]ËÚXÚ\ÈÚ\™HÙTÜY][[YİZP™YÚ[”\ÜÊ
-H[œË‚ˆ
-ˆ‹ˆ[QİZWÒ[\Y][Ó™]Ñœ˜[YJ
-H^š[HØ[ÈÜ™X]Q]šXÙSØš™XİÊ
-H]Ù[ˆHš\œİ[YBˆ
-ˆ
-Yˆ
-\İ[˜Ú[İ]HOHš[
-X
-K[™Ü™X]Q]šXÙSØš™XİÊ
-H[˜ÛÛ™][Û˜[Bˆ
-ˆ‘P•RSÈH›Û^\™H]™[ˆYˆÛ™H[™XYH^\İËˆØ[[™È\İˆ
-ˆÜ™X]Q›ÛÕ^\™J
-H\™H
-Hš\œİ[˜ÛÛ\]Hš^
-HY\İ[˜Ú[İ]Hš[ˆ
-ˆÛÈ]^H™XZ[İ[š\™YÛˆHš\œİ™YÚ[”\ÜÊ
-HKHY\ˆ[QİZN”™[™\Š
-Bˆ
-ˆY[™XYH™XÛÜ™Y˜]ÈÛÛ[X[™È™Y™\™[˜Ú[™ÈH’T”Õ^\™KÚXÚTÈ[‚ˆ
-ˆX[ØØ]Yİ]œ›ÛH[™\ˆ[HH[ÛY[HÙXÛÛ™Û™H™\XÙY][ˆBˆ
-ˆİ›Û™È›Ü\KˆÜ™X]Q]šXÙSØš™XİÊ
-HÙ]È\İ[˜Ú[İ]HÛËÛÈH^Bˆ
-ˆœ˜[˜Ú™]™\ˆš\™\Ëˆ
-‹Âˆ™]\›ˆ[QİZWÒ[\Y][ĞÜ™X]Q]šXÙSØš™XİÊ]Ù]šXÙJHÈHˆÂŸB‚‹ÊˆHÙXÛÛ™™[™\ˆ\ÜÈÛˆHĞSQH˜]ØX›H^\™HHØ[YH\İ™]È[ËØYXİ[ÛBˆ
-ˆØYÛÈÜÙH^[È\™HÙ\˜]\ˆ[ˆÛX\™Yˆ[QİZWÒ[\Y][Ó™]Ñœ˜[YHÛ›Hİ\Ú\Âˆ
-ˆ\È\ÜÉÜÈ^[›Ü›X]ÜØ[\HÛİ[›Üˆ\[[™K\İ]HX]Ú[™È[™^š[HÜ™X]\Âˆ
-ˆ]šXÙHØš™XİÈ
-›Û^\™JHÛˆš\œİØ[KH]Ù\È›İİXÚ[QİZRSËÛ^[İ]İ]KÛÂˆ
-ˆØ[[™È]\™H˜]\ˆ[ˆ]HÛÛ™[[Û˜[İ\[Ù‹Yœ˜[YHÚ[
-Ú\™HÙH]™H›Âˆ
-ˆ\ÜÈY]KHÙİØ\KOœİ\Ùœ˜[YJ
-H[œÈ™Y›Ü™HÙÜ˜\KOœİ\Ùœ˜[YJ
-KÙYHÙÜË˜ÊH\Âˆ
-ˆØY™Kˆ›È\]XÚY[ˆ[QİZHÙ\Û‰İ\İÜˆÜš]H\ˆ
-‹Â›ÚYÙTÜY][[YİZP™YÚ[”\ÜÊ›ÚY
-HÂˆYˆ
-[]ØÛYYˆ[]Ù˜]ØX›JH™]\›Âˆ]]Ü™[X\Ù\ÛÛÂˆU™[™\”\ÜÑ\ØÜš\Üˆ
-œ\ÜÈHÓU™[™\”\ÜÑ\ØÜš\Üˆ™[™\”\ÜÑ\ØÜš\Ü—NÂˆ\ÜË˜ÛÛÜ]XÚY[ÖÌK^\™HH]Ù˜]ØX›K^\™NÂˆ\ÜË˜ÛÛÜ]XÚY[ÖÌK›ØYXİ[ÛˆHUØYXİ[Û“ØYÂˆ\ÜË˜ÛÛÜ]XÚY[ÖÌKœİÜ™PXİ[ÛˆHUİÜ™PXİ[Û”İÜ™NÂˆ[QİZWÒ[\Y][Ó™]Ñœ˜[YJ\ÜÊNÂˆ]Ûİ™\›^WÙ[˜ÛÙ\ˆHÛ]ØÛYYˆ™[™\ÛÛ[X[™[˜ÛÙ\•Ú]\ØÜš\Üœ\Ü×NÂˆÊˆØ[YH™X\ÛÛš[™È\ÈHØ[YH[˜ÛÙ\‰ÜÈY[XØ[Ø[X›İ™HKHX]Ú[™È\İ™X[Bˆ
-ˆX[˜\Ú\ÚXÚÙ]È\ÈÛˆ]™\H[˜ÛÙ\ˆ]Ü™X]\Ë›İ\İÛ™Kˆ
-‹ÂˆÛ]Ûİ™\›^WÙ[˜ÛÙ\ˆÙ]\Û\[ÙN“U\Û\[ÙPÛ[\NÂˆBŸB‚š[ÙTÜY][[YİZT™[™\‘˜]Ñ]J›ÚY
-™˜]×Ù]JHÂˆYˆ
-[]Ûİ™\›^WÙ[˜ÛÙ\ŠH™]\›ˆÂˆ[QİZWÒ[\Y][Ô™[™\‘˜]Ñ]J
-[Q˜]Ñ]H
-ŠY˜]×Ù]K]ØÛYY‹]Ûİ™\›^WÙ[˜ÛÙ\ŠNÂˆ™]\›ˆNÂŸB‚›ÚYÙTÜY][[YİZQ[™\ÜÊ›ÚY
-HÂˆYˆ
-[]Ûİ™\›^WÙ[˜ÛÙ\ŠH™]\›ÂˆÛ]Ûİ™\›^WÙ[˜ÛÙ\ˆ[™[˜ÛÙ[™×NÂˆ]Ûİ™\›^WÙ[˜ÛÙ\ˆHš[ÂŸB‚›ÚYÙTÜY][[YİZTÚ]İÛŠ›ÚY
-HÂˆ[QİZWÒ[\Y][ÔÚ]İÛŠ
-NÂŸBˆÙ[™YˆÊˆÑWÕÒUÒSQÕRH
-‹Â‚œİ]XÈ›ÚYÙÛY][Ùš[š\ÚÜ™[™\Š›ÚY
-HÂŸB‚œİ]XÈ›ÚYÙÛY][ÜÚ]İÛŠ›ÚY
-HÂŸB‚œİXİÙ™[™\š[™ĞTHÙÛY][Ø\HHÂˆÙÛY][Ş—Ú\×Ùœ›ÛWÌİ×ÌKˆÙÛY][İ[›ØYÜÚY\‹ˆÙÛY][ÛØYÜÚY\‹ˆÙÛY][ØÜ™X]WØ[™ÛØYÛ™]×ÜÚY\‹ˆÙÛY][ÛÛÚİ\ÜÚY\‹ˆÙÛY][ÜÚY\—ÙÙ]Ú[™›ËˆÙÛY][Û™]×İ^\™KˆÙÛY][ÜÙ[Xİİ^\™KˆÙÛY][İ\ØYİ^\™KˆÙÛY][İ\ØYÚZYÚİ^\™KˆÙÛY][ØÛX\—ÚZYÚİ^\™KˆÙÛY][ÜÙ]ÜØ[\\—Ü\˜[Y]\œËˆÙÛY][ÜÙ]Ù\İ\İˆÙÛY][ÜÙ]Ù\ÛX\ÚËˆÙÛY][ÜÙ]Ş›[ÙWÙXØ[ˆÙÛY][ÜÙ]Ş›[ÙWØÛİYˆÙÛY][ÜÙ]İšY]ÜÜˆÙÛY][ÜÙ]ÜØÚ\ÜÛÜ‹ˆÙÛY][ÜÙ]İ\ÙWØ[KˆÙÛY][Ù˜]×İšX[™Û\ËˆÙÛY][Ú[š]ˆÙÛY][ÛÛ—Ü™\Ú^™KˆÙÛY][Üİ\Ùœ˜[YKˆÙÛY][Ù[™Ùœ˜[YKˆÙÛY][Ùš[š\ÚÜ™[™\‹ˆÙÛY][ÜÚ]İÛ‚ŸNÂ‚ˆÙ[™YˆËÈTWÓQUS
+    m_append_line(vs, &vs_len, "#include <metal_stdlib>");
+    m_append_line(vs, &vs_len, "using namespace metal;");
+    m_append_line(vs, &vs_len, "struct VtxIn {");
+    { char l[128]; snprintf(l, sizeof l, "  float4 pos [[attribute(0)]];"); m_append_line(vs, &vs_len, l); }
+    int a = 1;
+    if (used_textures[0] || used_textures[1]) {
+        char l[128]; snprintf(l, sizeof l, "  float2 texCoord [[attribute(%d)]];", a++); m_append_line(vs, &vs_len, l);
+    }
+    if (used_textures[0]) {
+        char l[128]; snprintf(l, sizeof l, "  float3 viewPos [[attribute(%d)]];", a++); m_append_line(vs, &vs_len, l);
+    }
+    if (opt_fog) {
+        char l[128]; snprintf(l, sizeof l, "  float4 fog [[attribute(%d)]];", a++); m_append_line(vs, &vs_len, l);
+    }
+    for (int i = 0; i < num_inputs; i++) {
+        char l[128];
+        snprintf(l, sizeof l, "  %s input%d [[attribute(%d)]];", opt_alpha ? "float4" : "float3", i + 1, a++);
+        m_append_line(vs, &vs_len, l);
+    }
+    m_append_line(vs, &vs_len, "};");
+    m_append_line(vs, &vs_len, "struct V2F {");
+    m_append_line(vs, &vs_len, "  float4 pos [[position]];");
+    if (used_textures[0] || used_textures[1]) m_append_line(vs, &vs_len, "  float2 texCoord;");
+    if (used_textures[0]) m_append_line(vs, &vs_len, "  float3 viewPos;");
+    if (opt_fog) m_append_line(vs, &vs_len, "  float4 fog;");
+    for (int i = 0; i < num_inputs; i++) {
+        char l[64]; snprintf(l, sizeof l, "  %s input%d;", opt_alpha ? "float4" : "float3", i + 1);
+        m_append_line(vs, &vs_len, l);
+    }
+    m_append_line(vs, &vs_len, "};");
+    m_append_line(vs, &vs_len, "vertex V2F vertexShader(VtxIn in [[stage_in]]) {");
+    m_append_line(vs, &vs_len, "  V2F out;");
+    m_append_line(vs, &vs_len, "  out.pos = in.pos;");
+    if (used_textures[0] || used_textures[1]) m_append_line(vs, &vs_len, "  out.texCoord = in.texCoord;");
+    if (used_textures[0]) m_append_line(vs, &vs_len, "  out.viewPos = in.viewPos;");
+    if (opt_fog) m_append_line(vs, &vs_len, "  out.fog = in.fog;");
+    for (int i = 0; i < num_inputs; i++) {
+        char l[64]; snprintf(l, sizeof l, "  out.input%d = in.input%d;", i + 1, i + 1);
+        m_append_line(vs, &vs_len, l);
+    }
+    m_append_line(vs, &vs_len, "  return out;");
+    m_append_line(vs, &vs_len, "}");
+    vs[vs_len] = '\0';
+
+    m_append_line(fs, &fs_len, "struct FrameUniforms { int frameCount; };");
+    m_append_line(fs, &fs_len,
+        "struct DrawUniforms { float2 tex0Size; float2 tex1Size; int hasHeight; int tex0Filter; int tex1Filter; int alignmentPad; };");
+    if (used_textures[0] || used_textures[1]) {
+        /* The RDP's three-point filter interpolates inside one of the two triangles that
+         * divide a texel square. This is an independent MSL expression of that rule: find
+         * the triangle from the fractional texel position, sample its three corners, then
+         * apply the two barycentric edge weights. Sampling at texel centres makes the
+         * underlying linear sampler return the corner texel exactly. */
+        m_append_line(fs, &fs_len,
+            "float4 filter3point(texture2d<float> t, sampler s, float2 uv, float2 texSize) {");
+        m_append_line(fs, &fs_len, "  float2 offset = fract(uv * texSize - float2(0.5));");
+        m_append_line(fs, &fs_len, "  offset -= step(1.0, offset.x + offset.y);");
+        m_append_line(fs, &fs_len, "  float4 c0 = t.sample(s, uv - offset / texSize);");
+        m_append_line(fs, &fs_len,
+            "  float4 c1 = t.sample(s, uv - float2(offset.x - sign(offset.x), offset.y) / texSize);");
+        m_append_line(fs, &fs_len,
+            "  float4 c2 = t.sample(s, uv - float2(offset.x, offset.y - sign(offset.y)) / texSize);");
+        m_append_line(fs, &fs_len,
+            "  return c0 + abs(offset.x) * (c1 - c0) + abs(offset.y) * (c2 - c0);");
+        m_append_line(fs, &fs_len, "}");
+        m_append_line(fs, &fs_len,
+            "float4 sampleTex(texture2d<float> t, sampler s, float2 uv, float2 texSize, int doFilter) {");
+        m_append_line(fs, &fs_len, "  if (doFilter != 0) return filter3point(t, s, uv, texSize);");
+        m_append_line(fs, &fs_len, "  return t.sample(s, uv);");
+        m_append_line(fs, &fs_len, "}");
+    }
+    m_append_line(fs, &fs_len, "fragment float4 fragmentShader(");
+    m_append_line(fs, &fs_len, "  V2F in [[stage_in]],");
+    m_append_line(fs, &fs_len, "  constant FrameUniforms &uFrame [[buffer(0)]],");
+    m_append_str(fs, &fs_len, "  constant DrawUniforms &uDraw [[buffer(1)]]");
+    if (used_textures[0]) m_append_str(fs, &fs_len, "\n  , texture2d<float> uTex0 [[texture(0)]], sampler uSamp0 [[sampler(0)]]");
+    if (used_textures[1]) m_append_str(fs, &fs_len, "\n  , texture2d<float> uTex1 [[texture(1)]], sampler uSamp1 [[sampler(1)]]");
+    /* Parallax height channel -- see the long comment on struct MetalTexture's has_height
+     * field and gfx_pc.c's ge_texpack_try_override for where uDraw.hasHeight actually gets
+     * set true. Present in every shader that uses tex0 so the two cannot fall out of sync;
+     * inert (texCoord0 == in.texCoord) whenever hasHeight is 0, which today is always,
+     * since no texture pack ships a height companion yet. Ported from gfx_opengl.c's
+     * identical uTexHeight/uHasHeight addition -- see its comments for the full reasoning,
+     * including why vViewPos.xy stands in for a true tangent-space view direction. */
+    if (used_textures[0]) m_append_str(fs, &fs_len, "\n  , texture2d<float> uTexHeight [[texture(2)]], sampler uSampHeight [[sampler(2)]]");
+    m_append_line(fs, &fs_len, ") {");
+    {
+        const char *e = getenv("GETV_DEBUGCOLOR");
+        if (e && *e == '7') {
+            /* Absolute earliest possible exit -- before any texture sample, combiner term, or
+             * discard_fragment() runs. If this does not visibly cover a shader's draws, nothing
+             * downstream in this function is responsible: the fragment either never gets
+             * generated by the rasterizer for that shader (culling/scissor/viewport), or its
+             * pipeline/encoder state is wrong before this code ever runs. */
+            m_append_line(fs, &fs_len, "  return float4(1.0, 0.6, 0.0, 1.0);");
+            m_append_line(fs, &fs_len, "}");
+            fs[fs_len] = '\0';
+            goto ge_metal_fs_early_exit;
+        }
+    }
+
+    if (used_textures[0]) {
+        /* heightScale is deliberately small and fixed, not a uniform -- see gfx_opengl.c's
+         * identical constant for why (this is a seam, not a tuned effect, with no real
+         * height content anywhere yet to tune it against). One height sample, not a ray
+         * march -- tier 1 (parallax texture mapping), not tier 2 (occlusion mapping). The
+         * 0.5 subtraction reads the height texture's mid-grey as "no displacement", matching
+         * gfx_metal_ensure_height_placeholder()'s own fill below. */
+        m_append_line(fs, &fs_len, "  float2 texCoord0 = in.texCoord;");
+        m_append_line(fs, &fs_len, "  if (uDraw.hasHeight != 0) {");
+        m_append_line(fs, &fs_len, "    float3 parallaxViewDir = normalize(-in.viewPos);");
+        m_append_line(fs, &fs_len, "    float parallaxHeight = uTexHeight.sample(uSampHeight, in.texCoord).r - 0.5;");
+        m_append_line(fs, &fs_len, "    texCoord0 = in.texCoord + parallaxViewDir.xy * (parallaxHeight * 0.04);");
+        m_append_line(fs, &fs_len, "  }");
+        m_append_line(fs, &fs_len,
+            "  float4 texVal0 = sampleTex(uTex0, uSamp0, texCoord0, uDraw.tex0Size, uDraw.tex0Filter);");
+    }
+    if (used_textures[1]) {
+        /* Same TEXEL1 rescale as gfx_opengl.c: one shared UV, normalised by TEXEL0's
+         * dimensions; TEXEL1 (often a different LOD/size) rescales by the size ratio. */
+        if (used_textures[0])
+            m_append_line(fs, &fs_len,
+                "  float4 texVal1 = sampleTex(uTex1, uSamp1, in.texCoord * (uDraw.tex0Size / uDraw.tex1Size), uDraw.tex1Size, uDraw.tex1Filter);");
+        else
+            m_append_line(fs, &fs_len,
+                "  float4 texVal1 = sampleTex(uTex1, uSamp1, in.texCoord, uDraw.tex1Size, uDraw.tex1Filter);");
+    }
+
+    m_append_str(fs, &fs_len, opt_alpha ? "  float4 texel = " : "  float3 texel = ");
+    m_append_cycle(fs, &fs_len, c, opt_alpha, color_alpha_same);
+    m_append_line(fs, &fs_len, ";");
+    if (two_cycle) {
+        m_append_str(fs, &fs_len, "  texel = ");
+        m_append_cycle(fs, &fs_len, c2, opt_alpha, color_alpha_same2);
+        m_append_line(fs, &fs_len, ";");
+    }
+    if (opt_texture_edge && opt_alpha) {
+        m_append_line(fs, &fs_len, "  if (texel.w > 0.3) texel.w = 1.0; else discard_fragment();");
+    }
+    if (opt_fog) {
+        if (opt_alpha)
+            m_append_line(fs, &fs_len, "  texel = float4(mix(texel.xyz, in.fog.xyz, in.fog.w), texel.w);");
+        else
+            m_append_line(fs, &fs_len, "  texel = mix(texel, in.fog.xyz, in.fog.w);");
+    }
+    if (opt_alpha && opt_noise) {
+        m_append_line(fs, &fs_len, "  float3 __rv = float3(in.pos.xy, float(uFrame.frameCount));");
+        m_append_line(fs, &fs_len, "  float __r = fract(sin(dot(sin(__rv), float3(12.9898, 78.233, 37.719))) * 143758.5453);");
+        m_append_line(fs, &fs_len, "  texel.w *= floor(__r + 0.5);");
+    }
+    {
+        const char *e = getenv("GETV_DEBUGCOLOR");
+        if (e && *e == '2' && (used_textures[0] || used_textures[1])) {
+            m_append_line(fs, &fs_len, "  return float4(in.texCoord.x, in.texCoord.y, 0.0, 1.0);");
+        } else if (e && *e == '3' && used_textures[0]) {
+            m_append_line(fs, &fs_len, "  return texVal0;");
+        } else if (e && *e == '4' && num_inputs >= 1) {
+            m_append_line(fs, &fs_len, opt_alpha ? "  return in.input1;" : "  return float4(in.input1, 1.0);");
+        } else if (e && *e == '6') {
+            char l[128];
+            snprintf(l, sizeof l, "  return float4(%g, %g, %g, 1.0);",
+                     (double) (((shader_id >> 0) & 0xff) / 255.0),
+                     (double) (((shader_id >> 8) & 0xff) / 255.0),
+                     (double) (((shader_id >> 16) & 0xff) / 255.0));
+            m_append_line(fs, &fs_len, l);
+        } else if (e && *e == '1') {
+            m_append_line(fs, &fs_len, "  return float4(1.0, 0.0, 1.0, 1.0);");
+        } else if (opt_alpha) {
+            m_append_line(fs, &fs_len, "  return texel;");
+        } else {
+            m_append_line(fs, &fs_len, "  return float4(texel, 1.0);");
+        }
+    }
+    m_append_line(fs, &fs_len, "}");
+    fs[fs_len] = '\0';
+
+ge_metal_fs_early_exit:
+    NSMutableString *src = [NSMutableString stringWithUTF8String:vs];
+    [src appendString:@"\n"];
+    [src appendString:[NSString stringWithUTF8String:fs]];
+
+    NSError *err = nil;
+    id<MTLLibrary> lib = [mtl_device newLibraryWithSource:src options:nil error:&err];
+    if (!lib) {
+        fprintf(stderr, "[getv][metal] shader compile failed:\n%s\n", err ? err.localizedDescription.UTF8String : "(no error)");
+        fprintf(stderr, "---- source ----\n%s\n-----------------\n", src.UTF8String);
+        sys_fatal("metal shader compilation failed (see terminal)");
+    }
+    id<MTLFunction> vfn = [lib newFunctionWithName:@"vertexShader"];
+    id<MTLFunction> ffn = [lib newFunctionWithName:@"fragmentShader"];
+
+    MTLRenderPipelineDescriptor *pd = [MTLRenderPipelineDescriptor new];
+    pd.vertexFunction = vfn;
+    pd.fragmentFunction = ffn;
+    pd.vertexDescriptor = vd;
+    pd.colorAttachments[0].pixelFormat = mtl_layer.pixelFormat;
+    pd.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+    /* Must match whatever render pass this pipeline draws into exactly, or Metal refuses to
+     * bind it -- see ge_metal_msaa_samples()'s own comment. 1 (its off-value) is correct for
+     * both the fast path (draws straight into the single-sample drawable) and the postfx
+     * path with MSAA off (mtl_pp_color is single-sample too); only when GETV_MSAA actually
+     * resolved to >1 does gfx_metal_start_frame aim the game's encoder at the multisampled
+     * mtl_pp_color_ms instead, and this is what lets that pipeline still be legal. Safe to
+     * set unconditionally on every pipeline: the resolved sample count is fixed for the
+     * process's whole lifetime, never toggled after gfx_metal_init(). */
+    pd.rasterSampleCount = ge_metal_msaa_samples();
+    if (opt_alpha) {
+        pd.colorAttachments[0].blendingEnabled = YES;
+        pd.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+        pd.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+        pd.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+        pd.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorZero;
+        pd.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+        pd.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+    } else {
+        pd.colorAttachments[0].blendingEnabled = NO;
+    }
+
+    id<MTLRenderPipelineState> pipeline = [mtl_device newRenderPipelineStateWithDescriptor:pd error:&err];
+    if (!pipeline) {
+        sys_fatal("metal pipeline state creation failed: %s", err ? err.localizedDescription.UTF8String : "?");
+    }
+
+    prg->shader_id = shader_id;
+    prg->pipeline = pipeline;
+    prg->num_inputs = (uint8_t)num_inputs;
+    prg->used_textures[0] = used_textures[0];
+    prg->used_textures[1] = used_textures[1];
+    prg->num_floats = (uint8_t)num_floats;
+    prg->opt_alpha = opt_alpha;
+    prg->used_noise = opt_alpha && opt_noise;
+    return pipeline;
+}
+
+// -------------------------------------------------------------------------- GfxRenderingAPI
+
+static void gfx_metal_unload_shader(struct ShaderProgram *old_prg) {
+    if (cur_prg == old_prg) cur_prg = NULL;
+}
+
+static void gfx_metal_load_shader(struct ShaderProgram *new_prg) {
+    cur_prg = new_prg;
+}
+
+static struct ShaderProgram *gfx_metal_create_and_load_new_shader(uint64_t shader_id) {
+    if (shader_program_pool_size >= SHADER_PROGRAM_POOL_SIZE)
+        sys_fatal("metal shader program pool exhausted (%d)", SHADER_PROGRAM_POOL_SIZE);
+    struct ShaderProgram *prg = &shader_program_pool[shader_program_pool_size++];
+    @autoreleasepool {
+        gfx_metal_build_pipeline(shader_id, prg);
+    }
+    gfx_metal_load_shader(prg);
+    return prg;
+}
+
+static struct ShaderProgram *gfx_metal_lookup_shader(uint64_t shader_id) {
+    for (size_t i = 0; i < shader_program_pool_size; i++)
+        if (shader_program_pool[i].shader_id == shader_id) return &shader_program_pool[i];
+    return NULL;
+}
+
+static void gfx_metal_shader_get_info(struct ShaderProgram *prg, uint8_t *num_inputs, bool used_textures[2]) {
+    *num_inputs = prg->num_inputs;
+    used_textures[0] = prg->used_textures[0];
+    used_textures[1] = prg->used_textures[1];
+}
+
+static uint32_t gfx_metal_new_texture(void) {
+    if (num_textures >= tex_cache_size) {
+        tex_cache_size += TEX_CACHE_STEP;
+        tex_cache = (struct MetalTexture *)realloc(tex_cache, sizeof(struct MetalTexture) * tex_cache_size);
+        if (!tex_cache) sys_fatal("out of memory allocating metal texture cache");
+        metal_tex[0] = NULL;
+        metal_tex[1] = NULL;
+    }
+    memset(&tex_cache[num_textures], 0, sizeof(struct MetalTexture));
+    return num_textures++;
+}
+
+static void gfx_metal_select_texture(int tile, uint32_t texture_id) {
+    metal_tex[tile] = &tex_cache[texture_id];
+    metal_curtex = tile;
+}
+
+/* GETV_MIPMAPS=1 -- trilinear filtering, off by default. Same gate, same scope, same
+ * width>1&&height>1 guard as gfx_opengl.c's ge_mipmap_enabled()/gfx_opengl_upload_texture:
+ * only the diffuse path mipmaps (gfx_metal_upload_height_texture/
+ * gfx_metal_ensure_height_placeholder below are deliberately untouched, matching GL, which
+ * never mipmaps its own height texture either). Resolved once; see that file's own comment
+ * for the full reasoning (GETV_MIPMAPS was previously set by three layers and read by
+ * none). */
+static bool ge_metal_mipmap_enabled(void) {
+    static int resolved = -1;
+    if (resolved < 0) {
+        const char *e = getenv("GETV_MIPMAPS");
+        resolved = (e && *e == '1') ? 1 : 0;
+    }
+    return resolved != 0;
+}
+
+/* GETV_ANISO=<n> -- anisotropic filtering, off by default. Unlike gfx_opengl.c's
+ * ge_aniso_max(), no driver capability query is needed: MTLSamplerDescriptor.maxAnisotropy
+ * self-clamps to its documented valid range (1...16), so asking for more than the hardware
+ * supports is not the GL-style error that made a query necessary there. */
+static uint32_t ge_metal_aniso_max(void) {
+    static long resolved = -1;
+    if (resolved < 0) {
+        const char *e = getenv("GETV_ANISO");
+        long want = (e && *e) ? strtol(e, NULL, 10) : 0;
+        resolved = (want > 1) ? want : 0;
+    }
+    return (uint32_t) resolved;
+}
+
+/* GETV_MSAA=<0-8> -- requested sample count, 1 (off) by default. Unlike gfx_opengl.c's SDL
+ * attribute request (gfx_sdl2.c, #ifndef RAPI_METAL -- GETV_MSAA is a no-op there under this
+ * renderer), Metal has no "ask the windowing system and see what you actually got back": the
+ * device is queried directly, descending from the requested count, since not every GPU
+ * supports every count a user might type in (some skip 8; none skip 1). Resolved once --
+ * mtl_device's capabilities cannot change at runtime, and this is only ever called after
+ * gfx_metal_init() has set mtl_device. The result also has to be threaded into every game
+ * combiner pipeline's rasterSampleCount (gfx_metal_build_pipeline below): Metal requires a
+ * pipeline's sample count to match whatever render pass it draws into exactly, and unlike
+ * mipmaps/aniso this is not purely a sampler-state concern. */
+static uint32_t ge_metal_msaa_samples(void) {
+    static long resolved = -1;
+    if (resolved < 0) {
+        const char *e = getenv("GETV_MSAA");
+        long want = (e && *e) ? strtol(e, NULL, 10) : 0;
+        if (want < 0) want = 0;
+        if (want > 8) want = 8;
+        resolved = 1;
+        for (long n = want; n > 1; n--) {
+            if ([mtl_device supportsTextureSampleCount:(NSUInteger)n]) { resolved = n; break; }
+        }
+    }
+    return (uint32_t) resolved;
+}
+
+/* GETV_FXAA=1 -- off by default, resolved once like every other gate in this file. Folded
+ * into ge_metal_postfx_active() below so FXAA alone (no supersample, no MSAA requested)
+ * still routes draws through the offscreen target: a screen-space filter needs a resolved
+ * image to sample, and the drawable itself is never a legal sample source. */
+static bool ge_metal_fxaa_enabled(void) {
+    static int resolved = -1;
+    if (resolved < 0) {
+        const char *e = getenv("GETV_FXAA");
+        resolved = (e && *e == '1') ? 1 : 0;
+    }
+    return resolved != 0;
+}
+
+static void gfx_metal_upload_texture(const uint8_t *rgba32_buf, int width, int height) {
+    struct MetalTexture *t = metal_tex[metal_curtex];
+    bool want_mips = ge_metal_mipmap_enabled() && width > 1 && height > 1;
+    @autoreleasepool {
+        MTLTextureDescriptor *desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                          width:width height:height mipmapped:want_mips];
+        desc.usage = MTLTextureUsageShaderRead;
+        t->tex = [mtl_device newTextureWithDescriptor:desc];
+        MTLRegion region = MTLRegionMake2D(0, 0, width, height);
+        [t->tex replaceRegion:region mipmapLevel:0 withBytes:rgba32_buf bytesPerRow:(NSUInteger)width * 4];
+
+        if (want_mips) {
+            /* A fresh command buffer from mtl_queue, not the current frame's mtl_cmdbuf --
+             * this upload can happen before any frame has started (asset precache) or
+             * mid-frame at a texture-cache miss inside draw-list traversal, so there is no
+             * guarantee mtl_cmdbuf/mtl_encoder are in a usable state here. Committed
+             * immediately with no wait: Metal hazard-tracks a resource across command
+             * buffers submitted to the same queue in commit order, so any later frame's
+             * draw (submitted after this commit) is guaranteed to see the finished mips --
+             * no CPU stall needed to make that true. */
+            id<MTLCommandBuffer> mipcmd = [mtl_queue commandBuffer];
+            id<MTLBlitCommandEncoder> blit = [mipcmd blitCommandEncoder];
+            [blit generateMipmapsForTexture:t->tex];
+            [blit endEncoding];
+            [mipcmd commit];
+        }
+    }
+    t->size[0] = (float)width;
+    t->size[1] = (float)height;
+}
+
+static MTLSamplerAddressMode gfx_cm_to_metal(uint32_t val) {
+    if (val & G_TX_CLAMP) return MTLSamplerAddressModeClampToEdge;
+    return (val & G_TX_MIRROR) ? MTLSamplerAddressModeMirrorRepeat : MTLSamplerAddressModeRepeat;
+}
+
+static void gfx_metal_set_sampler_parameters(int tile, bool linear_filter, uint32_t cms, uint32_t cmt) {
+    struct MetalTexture *t = metal_tex[tile];
+    t->linear_filter = linear_filter;
+    @autoreleasepool {
+        MTLSamplerDescriptor *sd = [MTLSamplerDescriptor new];
+        sd.minFilter = linear_filter ? MTLSamplerMinMagFilterLinear : MTLSamplerMinMagFilterNearest;
+        sd.magFilter = sd.minFilter;
+        /* Mipmapping only ever applies to minification -- MTLSamplerMinMagFilter has no
+         * mip-level concept at all, magFilter above always samples the base level. Linear
+         * mip blend unconditionally, independent of linear_filter, matching GL's own
+         * asymmetric choice (GL_NEAREST_MIPMAP_LINEAR vs GL_LINEAR_MIPMAP_LINEAR): GL always
+         * blends BETWEEN mip levels linearly, only the WITHIN-level sample varies
+         * nearest/linear. Getting this backwards would silently diverge from the reference
+         * look this port is matched against. */
+        if (ge_metal_mipmap_enabled()) {
+            sd.mipFilter = MTLSamplerMipFilterLinear;
+        }
+        /* Deliberately excluded when the game asked for point sampling (matching GL's own
+         * `aniso > 0.0f && linear_filter` gate) -- GoldenEye chooses nearest for the HUD,
+         * watch faces and text, pixel art that anisotropy would only blur. */
+        uint32_t aniso = ge_metal_aniso_max();
+        if (aniso > 1 && linear_filter) {
+            sd.maxAnisotropy = aniso;
+        }
+        sd.sAddressMode = gfx_cm_to_metal(cms);
+        sd.tAddressMode = gfx_cm_to_metal(cmt);
+        t->sampler = [mtl_device newSamplerStateWithDescriptor:sd];
+    }
+}
+
+/* Called once, from gfx_metal_init(), so the placeholder is always bound and legal to
+ * sample from the first frame on -- every shader with used_textures[0] compiles in the
+ * height-sampling code (gated at runtime by uDraw.hasHeight, not by a shader variant), so
+ * uTexHeight must have something valid in it even on the frame before any real override
+ * could possibly have loaded one. Ported from gfx_opengl.c's gfx_opengl_ensure_height_tex. */
+static void gfx_metal_ensure_height_placeholder(void) {
+    if (mtl_height_placeholder) return;
+    @autoreleasepool {
+        static const uint8_t neutral[4] = { 128, 128, 128, 255 };
+        MTLTextureDescriptor *desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                          width:1 height:1 mipmapped:NO];
+        desc.usage = MTLTextureUsageShaderRead;
+        mtl_height_placeholder = [mtl_device newTextureWithDescriptor:desc];
+        MTLRegion region = MTLRegionMake2D(0, 0, 1, 1);
+        [mtl_height_placeholder replaceRegion:region mipmapLevel:0 withBytes:neutral bytesPerRow:4];
+
+        MTLSamplerDescriptor *sd = [MTLSamplerDescriptor new];
+        sd.minFilter = MTLSamplerMinMagFilterLinear;
+        sd.magFilter = MTLSamplerMinMagFilterLinear;
+        sd.sAddressMode = MTLSamplerAddressModeClampToEdge;
+        sd.tAddressMode = MTLSamplerAddressModeClampToEdge;
+        mtl_height_sampler = [mtl_device newSamplerStateWithDescriptor:sd];
+    }
+}
+
+/* Stored on metal_tex[metal_curtex] -- the SAME slot gfx_metal_upload_texture (the diffuse
+ * upload right before this call, in ge_texpack_try_override, gfx_pc.c) just wrote to --
+ * rather than a single shared "current" texture. See MetalTexture::has_height's own comment
+ * for why per-slot storage is required, not optional. Ported from gfx_opengl.c's
+ * gfx_opengl_upload_height_texture. */
+static void gfx_metal_upload_height_texture(const uint8_t *rgba32_buf, int width, int height) {
+    struct MetalTexture *t = metal_tex[metal_curtex];
+    @autoreleasepool {
+        MTLTextureDescriptor *desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                          width:width height:height mipmapped:NO];
+        desc.usage = MTLTextureUsageShaderRead;
+        t->height_tex = [mtl_device newTextureWithDescriptor:desc];
+        MTLRegion region = MTLRegionMake2D(0, 0, width, height);
+        [t->height_tex replaceRegion:region mipmapLevel:0 withBytes:rgba32_buf bytesPerRow:(NSUInteger)width * 4];
+    }
+    t->has_height = true;
+}
+
+/* Marks this slot as having no height companion. Does not release height_tex -- see
+ * gfx_opengl.c's identical gfx_opengl_clear_height_texture for why (packs are static files,
+ * not something that changes mid-session, so there is no case where a slot legitimately
+ * loses a height companion it once had). */
+static void gfx_metal_clear_height_texture(void) {
+    metal_tex[metal_curtex]->has_height = false;
+}
+
+static void gfx_metal_apply_depth_state(void) {
+    if (!mtl_encoder) return;
+    static int force_no_depth = -1;
+    if (force_no_depth < 0) { const char *e = getenv("GETV_NODEPTH"); force_no_depth = (e && *e == '1'); }
+    if (force_no_depth) { [mtl_encoder setDepthStencilState:mtl_depth_states[0][0][0]]; return; }
+    [mtl_encoder setDepthStencilState:mtl_depth_states[cur_depth_test][cur_depth_mask][cur_zmode_decal]];
+    float slope_bias = gfx_metal_depth_slope_bias(cur_depth_test, cur_depth_mask, cur_zmode_decal,
+                                                   cur_zmode_cloud);
+    [mtl_encoder setDepthBias:(cur_zmode_decal ? -2.0f : 0.0f) slopeScale:slope_bias clamp:0.0f];
+}
+
+static void gfx_metal_set_depth_test(bool depth_test) {
+    cur_depth_test = depth_test;
+    gfx_metal_apply_depth_state();
+}
+static void gfx_metal_set_depth_mask(bool z_upd) {
+    cur_depth_mask = z_upd;
+    gfx_metal_apply_depth_state();
+}
+static void gfx_metal_set_zmode_decal(bool zmode_decal) {
+    cur_zmode_decal = zmode_decal;
+    gfx_metal_apply_depth_state();
+}
+static void gfx_metal_set_zmode_cloud(bool zmode_cloud) {
+    cur_zmode_cloud = zmode_cloud;
+    gfx_metal_apply_depth_state();
+}
+
+static void gfx_metal_set_viewport(int x, int y, int width, int height) {
+    if (!mtl_encoder) return;
+    int upper_y = gfx_metal_upper_left_y(y, height, (int)mtl_render_target_h);
+    MTLViewport vp = { (double)x, (double)upper_y, (double)width, (double)height, 0.0, 1.0 };
+    [mtl_encoder setViewport:vp];
+}
+
+static void gfx_metal_set_scissor(int x, int y, int width, int height) {
+    if (!mtl_encoder) return;
+    NSUInteger dw = (NSUInteger)mtl_render_target_w, dh = (NSUInteger)mtl_render_target_h;
+    int upper_y = gfx_metal_upper_left_y(y, height, (int)mtl_render_target_h);
+    NSUInteger sx = (NSUInteger)MAX(0, MIN(x, (int)dw));
+    NSUInteger sy = (NSUInteger)MAX(0, MIN(upper_y, (int)dh));
+    NSUInteger sw = (NSUInteger)MAX(0, MIN(width, (int)dw - (int)sx));
+    NSUInteger sh = (NSUInteger)MAX(0, MIN(height, (int)dh - (int)sy));
+    MTLScissorRect sr = { sx, sy, sw, sh };
+    [mtl_encoder setScissorRect:sr];
+}
+
+static void gfx_metal_set_use_alpha(bool use_alpha) {
+    // Baked into the pipeline state at shader-build time (blendingEnabled), same as LUS.
+    (void)use_alpha;
+}
+
+static void gfx_metal_draw_triangles(float buf_vbo[], size_t buf_vbo_len, size_t buf_vbo_num_tris) {
+    if (!mtl_encoder || !cur_prg) return;
+    size_t bytes = sizeof(float) * buf_vbo_len;
+    if (mtl_vbo_offset + bytes > VBO_POOL_BYTES) {
+        sys_fatal("metal vertex buffer pool exhausted this frame (%zu > %d)", mtl_vbo_offset + bytes, VBO_POOL_BYTES);
+    }
+    id<MTLBuffer> vbo = mtl_vbo_pool[mtl_vbo_index];
+    memcpy((uint8_t *)vbo.contents + mtl_vbo_offset, buf_vbo, bytes);
+
+    [mtl_encoder setRenderPipelineState:cur_prg->pipeline];
+    [mtl_encoder setVertexBuffer:vbo offset:mtl_vbo_offset atIndex:0];
+
+    struct FrameUniforms fu = { (int32_t)frame_count };
+    [mtl_encoder setFragmentBytes:&fu length:sizeof fu atIndex:0];
+
+    struct GfxMetalDrawUniforms du = {0};
+    du.tex0_size[0] = metal_tex[0] ? metal_tex[0]->size[0] : 1.0f;
+    du.tex0_size[1] = metal_tex[0] ? metal_tex[0]->size[1] : 1.0f;
+    du.tex1_size[0] = metal_tex[1] ? metal_tex[1]->size[0] : 1.0f;
+    du.tex1_size[1] = metal_tex[1] ? metal_tex[1]->size[1] : 1.0f;
+    /* Parallax: whether TILE 0's currently-bound texture has a real height companion --
+     * see MetalTexture::has_height's own comment for why this is read per-slot, per draw,
+     * rather than cached anywhere. */
+    du.has_height = (metal_tex[0] && metal_tex[0]->has_height) ? 1 : 0;
+    du.tex0_filter = metal_tex[0]
+        ? gfx_metal_three_point_active(configFiltering, metal_tex[0]->linear_filter) : 0;
+    du.tex1_filter = metal_tex[1]
+        ? gfx_metal_three_point_active(configFiltering, metal_tex[1]->linear_filter) : 0;
+    [mtl_encoder setFragmentBytes:&du length:sizeof du atIndex:1];
+
+    if (cur_prg->used_textures[0] && metal_tex[0]) {
+        [mtl_encoder setFragmentTexture:metal_tex[0]->tex atIndex:0];
+        [mtl_encoder setFragmentSamplerState:metal_tex[0]->sampler atIndex:0];
+        /* uTexHeight/uSampHeight -- always bound to SOMETHING legal to sample (the real
+         * height texture when this slot has one, the neutral placeholder otherwise), same
+         * reasoning as gfx_opengl.c's GL_TEXTURE2 binding in gfx_opengl_set_texture_uniforms. */
+        bool has_height = metal_tex[0]->has_height;
+        [mtl_encoder setFragmentTexture:(has_height ? metal_tex[0]->height_tex : mtl_height_placeholder) atIndex:2];
+        [mtl_encoder setFragmentSamplerState:mtl_height_sampler atIndex:2];
+    }
+    if (cur_prg->used_textures[1] && metal_tex[1]) {
+        [mtl_encoder setFragmentTexture:metal_tex[1]->tex atIndex:1];
+        [mtl_encoder setFragmentSamplerState:metal_tex[1]->sampler atIndex:1];
+    }
+
+    [mtl_encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:buf_vbo_num_tris * 3];
+    mtl_vbo_offset += bytes;
+}
+
+static void gfx_metal_build_depth_states(void) {
+    for (int test = 0; test < 2; test++) {
+        for (int mask = 0; mask < 2; mask++) {
+            for (int decal = 0; decal < 2; decal++) {
+                MTLDepthStencilDescriptor *dd = [MTLDepthStencilDescriptor new];
+                dd.depthWriteEnabled = mask ? YES : NO;
+                dd.depthCompareFunction =
+                    gfx_metal_depth_compare(test != 0, decal != 0) == GFX_METAL_DEPTH_COMPARE_LESS_EQUAL
+                        ? MTLCompareFunctionLessEqual
+                        : MTLCompareFunctionAlways;
+                mtl_depth_states[test][mask][decal] = [mtl_device newDepthStencilStateWithDescriptor:dd];
+            }
+        }
+    }
+}
+
+/* Whether THIS frame's game draws should land in the offscreen mtl_pp_color/mtl_pp_depth
+ * pair instead of the drawable directly. supersample>1, msaa>1 or fxaa alone all need it --
+ * unlike gfx_opengl.c's desktop GE_POSTFX gate, which deliberately excludes MSAA because GL
+ * can multisample the default framebuffer directly, CAMetalLayer's drawable has no
+ * equivalent, so Metal MSAA has no path that avoids this offscreen target. FXAA alone (no
+ * supersample, no MSAA) still needs it too -- the composite pass is the only place a
+ * screen-space filter has a resolved image to sample; the drawable is never a legal source. */
+static bool ge_metal_postfx_active(void) {
+    return gfx_supersample > 1 || ge_metal_msaa_samples() > 1 || ge_metal_fxaa_enabled();
+}
+
+/* One shared offscreen colour+depth pair, sized to the INFLATED (w,h) -- gfx_current_dimensions
+ * once GETV_SUPERSAMPLE has activated gfx_pc.c's existing dimension inflation (gfx_pc.c's
+ * gfx_start_frame, unconditional, backend-agnostic), not re-derived from drawableSize*factor.
+ * mtl_pp_color: MTLStorageModePrivate + ShaderRead, since the composite pass samples it.
+ * mtl_pp_depth: MTLStorageModeMemoryless -- nothing ever reads game depth back after this
+ * pass ends, so it never needs to leave tile memory on this TBDR GPU.
+ *
+ * When GETV_MSAA resolved to >1, also builds mtl_pp_color_ms/mtl_pp_depth_ms -- the actual
+ * multisample targets the game draws into (see those globals' own header comment). Both
+ * MTLStorageModeMemoryless: raw MSAA samples never need to leave tile memory, since
+ * gfx_metal_start_frame resolves mtl_pp_color_ms into mtl_pp_color automatically on
+ * endEncoding and nothing ever reads multisample depth back either way. Rebuilds whenever
+ * the resolved sample count changes, not just w/h -- mtl_pp_built_samples exists for exactly
+ * that comparison, mirroring mtl_pp_w/h's own rebuild-on-change role, even though in practice
+ * the sample count is fixed for the process's whole lifetime once gfx_metal_init() resolves
+ * it, same as w/h can still legitimately change (window resize, orientation). */
+static void gfx_metal_ensure_offscreen_targets(uint32_t w, uint32_t h) {
+    uint32_t samples = ge_metal_msaa_samples();
+    if (mtl_pp_color && mtl_pp_w == w && mtl_pp_h == h && mtl_pp_built_samples == samples) return;
+    @autoreleasepool {
+        MTLTextureDescriptor *cd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:mtl_layer.pixelFormat
+                                                                                        width:w height:h mipmapped:NO];
+        cd.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+        cd.storageMode = MTLStorageModePrivate;
+        mtl_pp_color = [mtl_device newTextureWithDescriptor:cd];
+
+        MTLTextureDescriptor *dd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
+                                                                                        width:w height:h mipmapped:NO];
+        dd.usage = MTLTextureUsageRenderTarget;
+        dd.storageMode = MTLStorageModeMemoryless;
+        mtl_pp_depth = [mtl_device newTextureWithDescriptor:dd];
+
+        if (samples > 1) {
+            MTLTextureDescriptor *cmd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:mtl_layer.pixelFormat
+                                                                                             width:w height:h mipmapped:NO];
+            cmd.textureType = MTLTextureType2DMultisample;
+            cmd.sampleCount = samples;
+            cmd.usage = MTLTextureUsageRenderTarget;
+            cmd.storageMode = MTLStorageModeMemoryless;
+            mtl_pp_color_ms = [mtl_device newTextureWithDescriptor:cmd];
+
+            MTLTextureDescriptor *dmd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
+                                                                                             width:w height:h mipmapped:NO];
+            dmd.textureType = MTLTextureType2DMultisample;
+            dmd.sampleCount = samples;
+            dmd.usage = MTLTextureUsageRenderTarget;
+            dmd.storageMode = MTLStorageModeMemoryless;
+            mtl_pp_depth_ms = [mtl_device newTextureWithDescriptor:dmd];
+        } else {
+            mtl_pp_color_ms = nil;
+            mtl_pp_depth_ms = nil;
+        }
+    }
+    mtl_pp_w = w; mtl_pp_h = h;
+    mtl_pp_built_samples = samples;
+}
+
+/* Full-screen-triangle composite pass: samples mtl_pp_color (the offscreen target the
+ * game just drew into, post-MSAA-resolve if that's active) and writes the downsampled
+ * result into the real drawable. Built once, lazily, the first time postfx activates --
+ * unlike every per-combiner shader in gfx_metal_build_pipeline() above, which compiles a
+ * new MTLLibrary per N64 shader_id, this is a SEPARATE, single pipeline with no vertex
+ * buffer at all (vertex_id-driven), since none of the 128 possible combiner variants have
+ * that shape -- every one of them assumes real per-vertex [[stage_in]] attributes from the
+ * game's own VBO layout. FXAA extends this same fragment shader rather than adding a second
+ * pass -- see ge_metal_fxaa_enabled()'s compile-time branch below. */
+static void gfx_metal_ensure_postfx_pipeline(void) {
+    if (mtl_pp_pipeline) return;
+    @autoreleasepool {
+        /* FXAA baked into the shader SOURCE via a compile-time branch, not a runtime uniform
+         * bool -- ge_metal_fxaa_enabled() is resolved once and never changes for the process's
+         * lifetime, so there is no case where the other variant is ever needed once this
+         * pipeline is built. Ported from gfx_opengl.c's kPPFrag `fxaa()` (FXAA 3.11 console
+         * variant), GLSL vec2/vec3/texture2D -> MSL float2/float3/tex.sample, otherwise the
+         * same algorithm line for line. */
+        NSMutableString *src = [NSMutableString stringWithString:
+            @"#include <metal_stdlib>\n"
+             "using namespace metal;\n"
+             "struct PPVarying { float4 position [[position]]; float2 uv; };\n"
+             "vertex PPVarying ppVertex(uint vid [[vertex_id]]) {\n"
+             "    float2 uv = float2(float((vid << 1) & 2), float(vid & 2));\n"
+             "    PPVarying out;\n"
+             "    out.position = float4(uv * float2(2.0, -2.0) + float2(-1.0, 1.0), 0.0, 1.0);\n"
+             "    out.uv = uv;\n"
+             "    return out;\n"
+             "}\n"];
+        if (ge_metal_fxaa_enabled()) {
+            [src appendString:
+                @"float3 ge_fxaa_fetch(texture2d<float> tex, sampler samp, float2 uv) {\n"
+                 "    return tex.sample(samp, uv).rgb;\n"
+                 "}\n"
+                 "float3 ge_fxaa(texture2d<float> tex, sampler samp, float2 uv, float2 res) {\n"
+                 "    float2 px = 1.0 / res;\n"
+                 "    float3 L  = float3(0.299, 0.587, 0.114);\n"
+                 "    float3 c  = ge_fxaa_fetch(tex, samp, uv);\n"
+                 "    float3 nw = ge_fxaa_fetch(tex, samp, uv + float2(-px.x, -px.y));\n"
+                 "    float3 ne = ge_fxaa_fetch(tex, samp, uv + float2( px.x, -px.y));\n"
+                 "    float3 sw = ge_fxaa_fetch(tex, samp, uv + float2(-px.x,  px.y));\n"
+                 "    float3 se = ge_fxaa_fetch(tex, samp, uv + float2( px.x,  px.y));\n"
+                 "    float lnw = dot(nw,L), lne = dot(ne,L), lsw = dot(sw,L), lse = dot(se,L), lc = dot(c,L);\n"
+                 "    float lmin = min(lc, min(min(lnw,lne), min(lsw,lse)));\n"
+                 "    float lmax = max(lc, max(max(lnw,lne), max(lsw,lse)));\n"
+                 "    if (lmax - lmin < max(0.0625, lmax * 0.125)) return c;\n"
+                 "    float2 dir = float2(-((lnw + lne) - (lsw + lse)), ((lnw + lsw) - (lne + lse)));\n"
+                 "    float red = max((lnw + lne + lsw + lse) * 0.03125, 0.0078125);\n"
+                 "    float rcp = 1.0 / (min(abs(dir.x), abs(dir.y)) + red);\n"
+                 "    dir = clamp(dir * rcp, -8.0, 8.0) * px;\n"
+                 "    float3 a = 0.5 * (ge_fxaa_fetch(tex, samp, uv + dir * (1.0/3.0 - 0.5)) + ge_fxaa_fetch(tex, samp, uv + dir * (2.0/3.0 - 0.5)));\n"
+                 "    float3 b = a * 0.5 + 0.25 * (ge_fxaa_fetch(tex, samp, uv + dir * -0.5) + ge_fxaa_fetch(tex, samp, uv + dir * 0.5));\n"
+                 "    float lb = dot(b, L);\n"
+                 "    return (lb < lmin || lb > lmax) ? a : b;\n"
+                 "}\n"
+                 "fragment float4 ppFragment(PPVarying in [[stage_in]],\n"
+                 "                           texture2d<float> tex [[texture(0)]],\n"
+                 "                           sampler samp [[sampler(0)]],\n"
+                 "                           constant float2 &uRes [[buffer(0)]]) {\n"
+                 "    return float4(ge_fxaa(tex, samp, in.uv, uRes), 1.0);\n"
+                 "}\n"];
+        } else {
+            [src appendString:
+                @"fragment float4 ppFragment(PPVarying in [[stage_in]],\n"
+                 "                           texture2d<float> tex [[texture(0)]],\n"
+                 "                           sampler samp [[sampler(0)]]) {\n"
+                 "    return tex.sample(samp, in.uv);\n"
+                 "}\n"];
+        }
+        NSError *err = nil;
+        id<MTLLibrary> lib = [mtl_device newLibraryWithSource:src options:nil error:&err];
+        if (!lib) {
+            sys_fatal("gfx_metal: postfx shader compile failed: %s",
+                      err.localizedDescription.UTF8String);
+        }
+        id<MTLFunction> vfn = [lib newFunctionWithName:@"ppVertex"];
+        id<MTLFunction> ffn = [lib newFunctionWithName:@"ppFragment"];
+
+        MTLRenderPipelineDescriptor *pd = [MTLRenderPipelineDescriptor new];
+        pd.vertexFunction = vfn;
+        pd.fragmentFunction = ffn;
+        pd.colorAttachments[0].pixelFormat = mtl_layer.pixelFormat;
+
+        NSError *perr = nil;
+        mtl_pp_pipeline = [mtl_device newRenderPipelineStateWithDescriptor:pd error:&perr];
+        if (!mtl_pp_pipeline) {
+            sys_fatal("gfx_metal: postfx pipeline creation failed: %s",
+                      perr.localizedDescription.UTF8String);
+        }
+
+        MTLSamplerDescriptor *sd = [MTLSamplerDescriptor new];
+        sd.minFilter = MTLSamplerMinMagFilterLinear;
+        sd.magFilter = MTLSamplerMinMagFilterLinear;
+        sd.sAddressMode = MTLSamplerAddressModeClampToEdge;
+        sd.tAddressMode = MTLSamplerAddressModeClampToEdge;
+        mtl_pp_sampler = [mtl_device newSamplerStateWithDescriptor:sd];
+    }
+}
+
+static void gfx_metal_init(void) {
+    if (!gePortMetalLayer) sys_fatal("gfx_metal_init: no CAMetalLayer -- gfx_sdl.init() must run first");
+    mtl_layer = (__bridge CAMetalLayer *)gePortMetalLayer;
+    mtl_device = mtl_layer.device ?: MTLCreateSystemDefaultDevice();
+    mtl_layer.device = mtl_device;
+    mtl_layer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    /* framebufferOnly=YES (the normal case) forbids getBytes/blit-copy from the drawable's
+     * own texture -- Apple's documented restriction, not a bug to route around cleverly.
+     * GETV_SHOTFRAME (see ge_shot_maybe_metal() below) needs to read it, so drop the
+     * optimization only when a capture was actually asked for. */
+    { const char *e = getenv("GETV_SHOTFRAME");
+      mtl_layer.framebufferOnly = (e && *e) ? NO : YES; }
+
+    /* GETV_SUPERSAMPLE=<1-4> -- off (1, gfx_pc.c's own compiled-in default) unless
+     * explicitly requested, matching every other GETV_* enhancement gate in this file
+     * (mipmaps/aniso/HD textures all opt-in, retail-safe by default). Deliberately NOT
+     * gfx_opengl.c's TVOS_SUPERSAMPLE default-2 -- that is a tvOS-GL-specific workaround for
+     * having only one fixed 1920x1080 mode with no other way to get a sharper image; RAPI_METAL
+     * serves iOS too, which has no such constraint, so "97 Console" must mean supersample=1
+     * here same as everywhere else. Setting gfx_supersample (gfx_pc.h) is the ONLY thing this
+     * needs to do to activate gfx_pc.c's already-existing, backend-agnostic dimension inflation
+     * (gfx_start_frame) -- see ge_metal_postfx_active()/gfx_metal_ensure_offscreen_targets
+     * above for what Metal does with the result. */
+    { const char *e = getenv("GETV_SUPERSAMPLE");
+      if (e && *e) {
+          int v = atoi(e);
+          if (v >= 1 && v <= 4) gfx_supersample = (unsigned) v;
+      } }
+
+    mtl_queue = [mtl_device newCommandQueue];
+
+    tex_cache_size = TEX_CACHE_STEP;
+    tex_cache = (struct MetalTexture *)calloc(tex_cache_size, sizeof(struct MetalTexture));
+    if (!tex_cache) sys_fatal("out of memory allocating metal texture cache");
+
+    gfx_metal_ensure_height_placeholder();
+
+    for (int i = 0; i < VBO_POOL_COUNT; i++)
+        mtl_vbo_pool[i] = [mtl_device newBufferWithLength:VBO_POOL_BYTES options:MTLResourceStorageModeShared];
+
+    gfx_metal_build_depth_states();
+
+    printf("[getv][metal] device=%s\n", mtl_device.name.UTF8String);
+    fflush(stdout);
+
+#ifdef GE_WITH_IMGUI
+    /* Not called from gfx_sdl2.c's gfx_sdl_init(), unlike the GL path -- gePortImguiInit()
+     * needs mtl_device, which does not exist until this function has run this far, and
+     * gfx_pc.c's gfx_init() always calls gfx_wapi->init() (where gfx_sdl_init() would have
+     * called it) before gfx_rapi->init() (this function). Passing NULL for glctx: ImGui
+     * doesn't use it here (see ge_imgui.cpp's RAPI_METAL branch, which calls
+     * ImGui_ImplSDL2_InitForMetal(window) instead of ...InitForOpenGL(window, glctx)). */
+    { extern void gePortImguiInit(void *window, void *glctx);
+      gePortImguiInit(gePortMetalWindow, NULL); }
+#endif
+}
+
+void gePortMetalArmDiagnosticCapture(void)
+{
+    if (!mtl_layer) { return; }
+    mtl_diag_readback_armed = 1;
+    mtl_diag_capture_tex = nil;
+    /* The SDL-event bridge handles F3 before gfx_metal_start_frame(), so the nextDrawable obtained
+     * for this same frame observes framebufferOnly=NO. Restore the optimization in FinishFrame. */
+    mtl_layer.framebufferOnly = NO;
+}
+
+static void gfx_metal_on_resize(void) {
+}
+
+static void gfx_metal_ensure_depth_target(uint32_t w, uint32_t h) {
+    if (mtl_depth_tex && mtl_depth_w == w && mtl_depth_h == h) return;
+    @autoreleasepool {
+        MTLTextureDescriptor *dd = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatDepth32Float
+                                                                                        width:w height:h mipmapped:NO];
+        dd.usage = MTLTextureUsageRenderTarget;
+        dd.storageMode = MTLStorageModePrivate;
+        mtl_depth_tex = [mtl_device newTextureWithDescriptor:dd];
+    }
+    mtl_depth_w = w; mtl_depth_h = h;
+}
+
+/* Shared by both branches below -- the parts of starting the game's own render pass that
+ * don't depend on which target it's aimed at. Kept as a macro-like inline block rather than
+ * its own function so the depth-clip-mode comment (below) stays exactly once, not duplicated
+ * per branch. */
+static void gfx_metal_begin_game_pass(MTLRenderPassDescriptor *pass, uint32_t w, uint32_t h) {
+    mtl_encoder = [mtl_cmdbuf renderCommandEncoderWithDescriptor:pass];
+    /* Default MTLDepthClipMode is .clip: a triangle with ANY vertex outside the valid
+     * [0,1] NDC z range (after the perspective divide) is discarded WHOLESALE by the
+     * GPU, not clamped and kept -- unlike GL, which this renderer's CPU-side
+     * GETV_NEARCLAMP (gfx_pc.c) was written against, and unlike the near-plane clamp
+     * that N64 hardware's own RDP performs (see that code's own comment: "the RDP's
+     * depth clamp produces [minimum depth]... The exact fix is GL_DEPTH_CLAMP /
+     * ARB_depth_clamp / EXT_depth_clamp... That belongs in the rendering backend").
+     * .clamp is that fix, at the encoder level, for every draw through this encoder at
+     * once -- ported from kenix3/libultraship's gfx_metal.cpp (port-maintenance
+     * branch), which sets this on every encoder it creates, for exactly this reason.
+     * Matters most for large, camera-adjacent geometry whose vertices are likeliest to
+     * straddle the near plane -- room walls and animated characters, not the small,
+     * stable gun/HUD geometry that kept rendering without it. */
+    [mtl_encoder setDepthClipMode:MTLDepthClipModeClamp];
+    cur_depth_test = false; cur_depth_mask = true; cur_zmode_decal = false; cur_zmode_cloud = false;
+    gfx_metal_apply_depth_state();
+    mtl_render_target_w = w; mtl_render_target_h = h;
+    gfx_metal_set_viewport(0, 0, (int)w, (int)h);
+    gfx_metal_set_scissor(0, 0, (int)w, (int)h);
+}
+
+static void gfx_metal_start_frame(void) {
+    frame_count++;
+    @autoreleasepool {
+        CGSize sz = mtl_layer.drawableSize;
+        if (sz.width < 1 || sz.height < 1) return;
+
+        if (ge_metal_postfx_active()) {
+            /* Inflated internal size -- gfx_pc.c's gfx_start_frame already computed this
+             * before gfx_rapi->start_frame() runs (backend-agnostic, unconditional; see
+             * GETV_SUPERSAMPLE's own comment in gfx_metal_init above). Falls back to native
+             * size only if that inflation somehow produced nothing usable, so this can never
+             * hand a zero-sized texture descriptor to Metal. */
+            uint32_t iw = gfx_current_dimensions.width;
+            uint32_t ih = gfx_current_dimensions.height;
+            if (iw < 1 || ih < 1) { iw = (uint32_t)sz.width; ih = (uint32_t)sz.height; }
+            gfx_metal_ensure_offscreen_targets(iw, ih);
+
+            mtl_cmdbuf = [mtl_queue commandBuffer];
+
+            MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
+            pass.colorAttachments[0].loadAction = MTLLoadActionClear;
+            pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 1);
+            pass.depthAttachment.loadAction = MTLLoadActionClear;
+            pass.depthAttachment.clearDepth = 1.0;
+            pass.depthAttachment.storeAction = MTLStoreActionDontCare;
+            if (mtl_pp_color_ms) {
+                /* MSAA active: the game draws into the multisample target, Metal resolves it
+                 * into mtl_pp_color automatically on endEncoding (MultisampleResolve), no
+                 * manual blit needed -- simpler than GL's explicit resolve. Depth is never
+                 * resolved (mtl_pp_depth stays unused on this path); nothing reads it back
+                 * either way. */
+                pass.colorAttachments[0].texture = mtl_pp_color_ms;
+                pass.colorAttachments[0].resolveTexture = mtl_pp_color;
+                pass.colorAttachments[0].storeAction = MTLStoreActionMultisampleResolve;
+                pass.depthAttachment.texture = mtl_pp_depth_ms;
+            } else {
+                pass.colorAttachments[0].texture = mtl_pp_color;
+                pass.colorAttachments[0].storeAction = MTLStoreActionStore;
+                pass.depthAttachment.texture = mtl_pp_depth;
+            }
+
+            gfx_metal_begin_game_pass(pass, iw, ih);
+            /* mtl_drawable deliberately NOT acquired here -- deferred to
+             * gfx_metal_end_frame()'s composite pass, the first point this frame that
+             * actually needs it. Safe now that gfx_metal_set_scissor above reads
+             * mtl_render_target_w/h instead of mtl_drawable.texture directly: nothing
+             * mid-frame touches mtl_drawable on this path any more. A real frame-pacing
+             * win (Apple's own guidance: acquire as late as possible so the drawable
+             * spends less time held out of the display's presentation queue), free once
+             * that read was removed rather than requiring its own justification. */
+        } else {
+            /* Fast path, byte-for-byte the pre-supersampling behaviour: draws straight into
+             * the drawable, depth target sized to it directly. This is what makes "the
+             * 97-Console default must not change at all" trivially true -- when
+             * ge_metal_postfx_active() is false, every line below is identical to what ran
+             * before increment 3 existed. */
+            gfx_metal_ensure_depth_target((uint32_t)sz.width, (uint32_t)sz.height);
+
+            mtl_drawable = [mtl_layer nextDrawable];
+            if (!mtl_drawable) return;
+
+            MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
+            pass.colorAttachments[0].texture = mtl_drawable.texture;
+            pass.colorAttachments[0].loadAction = MTLLoadActionClear;
+            pass.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 1);
+            pass.colorAttachments[0].storeAction = MTLStoreActionStore;
+            pass.depthAttachment.texture = mtl_depth_tex;
+            pass.depthAttachment.loadAction = MTLLoadActionClear;
+            pass.depthAttachment.clearDepth = 1.0;
+            pass.depthAttachment.storeAction = MTLStoreActionDontCare;
+
+            mtl_cmdbuf = [mtl_queue commandBuffer];
+            gfx_metal_begin_game_pass(pass, (uint32_t)sz.width, (uint32_t)sz.height);
+        }
+    }
+    mtl_vbo_offset = 0;
+}
+
+/* GETV_SHOTFRAME: deterministic frame capture, Metal side. Same env vars, same 24-bit BMP
+ * layout, same log line as gfx_opengl.c's ge_shot_maybe() -- see that function's own
+ * comment for why a wall-clock screenshot cannot substitute for this in an A/B. Kept as a
+ * literal byte-for-byte port of the file format so nothing downstream (a diff tool, a
+ * script) needs to know which renderer produced a given .bmp.
+ *
+ * Must run after [mtl_cmdbuf waitUntilCompleted] -- the GPU has to have actually finished
+ * writing the drawable's texture before getBytes reads it back; unlike glReadPixels, which
+ * blocks on the GL command stream itself, Metal's command buffer is asynchronous until
+ * explicitly waited on. Reading AFTER presentDrawable:/commit is safe: presenting hands the
+ * texture to the compositor for display, it does not invalidate CPU access to it, and
+ * nothing else in this file mutates mtl_drawable.texture's contents between commit and the
+ * mtl_drawable = nil a few lines below in gePortMetalFinishFrame(). */
+static int ge_shot_write_bmp_metal(const char *path, const unsigned char *px, int w, int h)
+{
+    const int pad = (4 - (w * 3) % 4) % 4;
+    const unsigned long imgsz = (unsigned long)(w * 3 + pad) * h;
+    FILE *f = fopen(path, "wb");
+    unsigned char hdr[54] = {0};
+    unsigned long fsz;
+    static const unsigned char zero[3] = {0, 0, 0};
+    int y;
+
+    if (!f) {
+        fprintf(stderr, "[getv][shot] fopen failed for '%s': %s\n", path, strerror(errno));
+        fflush(stderr);
+        return 0;
+    }
+
+    fsz = 54 + imgsz;
+    hdr[0] = 'B'; hdr[1] = 'M';
+    hdr[2] = (unsigned char)(fsz); hdr[3] = (unsigned char)(fsz >> 8);
+    hdr[4] = (unsigned char)(fsz >> 16); hdr[5] = (unsigned char)(fsz >> 24);
+    hdr[10] = 54; hdr[14] = 40;
+    hdr[18] = (unsigned char)(w); hdr[19] = (unsigned char)(w >> 8);
+    hdr[20] = (unsigned char)(w >> 16); hdr[21] = (unsigned char)(w >> 24);
+    hdr[22] = (unsigned char)(h); hdr[23] = (unsigned char)(h >> 8);
+    hdr[24] = (unsigned char)(h >> 16); hdr[25] = (unsigned char)(h >> 24);
+    hdr[26] = 1; hdr[28] = 24;
+    hdr[34] = (unsigned char)(imgsz); hdr[35] = (unsigned char)(imgsz >> 8);
+    hdr[36] = (unsigned char)(imgsz >> 16); hdr[37] = (unsigned char)(imgsz >> 24);
+    fwrite(hdr, 1, 54, f);
+    for (y = h - 1; y >= 0; y--) {
+        const unsigned char *row = px + (size_t)y * w * 4;
+        int x;
+        for (x = 0; x < w; x++) {
+            fwrite(row + x * 4, 1, 3, f);
+        }
+        if (pad) fwrite(zero, 1, (size_t)pad, f);
+    }
+    if (fclose(f) != 0) {
+        fprintf(stderr, "[getv][shot] fclose failed for '%s': %s\n", path, strerror(errno));
+        fflush(stderr);
+        return 0;
+    }
+    return 1;
+}
+
+static int ge_shot_capture_texture_metal(const char *path, id<MTLTexture> tex,
+                                         int *out_w, int *out_h)
+{
+    int w;
+    int h;
+    unsigned char *px;
+    int ok;
+
+    if (!tex || path == NULL) { return 0; }
+    w = (int)tex.width;
+    h = (int)tex.height;
+    if (w <= 0 || h <= 0) { return 0; }
+
+    px = (unsigned char *)malloc((size_t)w * h * 4);
+    if (!px) { return 0; }
+    [tex getBytes:px
+      bytesPerRow:(NSUInteger)(w * 4)
+       fromRegion:MTLRegionMake2D(0, 0, (NSUInteger)w, (NSUInteger)h)
+      mipmapLevel:0];
+    ok = ge_shot_write_bmp_metal(path, px, w, h);
+    free(px);
+    if (ok) {
+        if (out_w) *out_w = w;
+        if (out_h) *out_h = h;
+    }
+    return ok;
+}
+
+static void ge_shot_maybe_metal(id<MTLCommandBuffer> cmdbuf, id<MTLTexture> tex) {
+    static int shot_frame = -2;
+    static unsigned long fno;
+    static const char *shot_path;
+    static char shot_path_buf[1024];
+    const char *diag_path;
+    int scheduled;
+    if (shot_frame == -2) {
+        const char *e = getenv("GETV_SHOTFRAME");
+        shot_frame = (e && *e) ? atoi(e) : -1;
+        shot_path = getenv("GETV_SHOTPATH");
+        if (!shot_path || !*shot_path) {
+            /* A bare relative name only works where the process's CWD is writable -- true
+             * on desktop, false on tvOS/iOS, where the app bundle itself is read-only and
+             * fopen() fails with EPERM (found the hard way: this failed completely
+             * silently before the diagnostic a few lines below existed). TMPDIR is a
+             * standard POSIX env var every process on the platform already has set, to
+             * that app's own sandboxed container -- no per-install UUID to discover or
+             * guess at from outside the process. */
+            const char *tmp = getenv("TMPDIR");
+            if (tmp && *tmp) {
+                snprintf(shot_path_buf, sizeof shot_path_buf, "%s/getv_shot.bmp", tmp);
+                shot_path = shot_path_buf;
+            } else {
+                shot_path = "getv_shot.bmp";
+            }
+        }
+    }
+    fno++;
+    /* Cheap on every other frame: the counter above has to run unconditionally to know
+     * which frame this is, but the GPU stall below is the one thing GETV_SHOTFRAME is
+     * supposed to cost only on the single frame actually being captured. */
+    scheduled = shot_frame > 0 && (long)fno == (long)shot_frame;
+    diag_path = gePortDiagnosticScreenshotPath();
+    if (!scheduled && diag_path == NULL) return;
+    if (!tex && scheduled) return;
+
+    /* mtl_cmdbuf was already committed by the caller (presentDrawable: schedules
+     * presentation for when the GPU finishes, it does not itself block) -- wait for that
+     * GPU work to land before getBytes, or this reads whatever was in the texture before
+     * this frame's draws, not this frame. */
+    [cmdbuf waitUntilCompleted];
+
+    if (scheduled) {
+        int w = 0, h = 0;
+        if (ge_shot_capture_texture_metal(shot_path, tex, &w, &h)) {
+            fprintf(stderr, "[getv][shot] frame %lu -> %s (%dx%d)\n", fno, shot_path, w, h);
+            fflush(stderr);
+        }
+    }
+    if (diag_path != NULL) {
+        int w = 0, h = 0;
+        int ok = ge_shot_capture_texture_metal(diag_path, mtl_diag_capture_tex, &w, &h);
+        gePortDiagnosticScreenshotComplete(ok, w, h);
+        if (ok) {
+            fprintf(stderr, "[getv][diag] screenshot frame %lu -> %s (%dx%d)\n",
+                    fno, diag_path, w, h);
+            fflush(stderr);
+        }
+    }
+}
+
+/* Ends the GAME's render encoder only -- does NOT present or commit. That split (and this
+ * whole file being reachable from outside gfx_pc.c's GfxRenderingAPI table at all) exists
+ * for one reason: ImGui. gfx_pc.c calls gfx_rapi->end_frame() and then
+ * gfx_wapi->swap_buffers_begin() (gfx_sdl2.c), which is where the launcher/dev-overlay
+ * draws and where GL's SDL_GL_SwapWindow() lives -- i.e. the overlay draws INTO THE SAME
+ * FRAME, after the game but before it reaches the screen. Metal has no equivalent of "draw
+ * more into an already-presented drawable": presentDrawable+commit is terminal. So end_frame
+ * here only closes out the game's own encoder, the command buffer and drawable stay alive,
+ * and gePortMetalFinishFrame() below -- called from gfx_sdl2.c in GL's SDL_GL_SwapWindow
+ * slot, i.e. AFTER the overlay's own encoder (gePortMetalImguiBeginPass/EndPass) has run --
+ * is what actually presents and commits. Without ImGui built in this still runs exactly the
+ * same way; gePortMetalFinishFrame() is unconditional, not GE_WITH_IMGUI-gated, because
+ * something has to present the frame either way. */
+static void gfx_metal_end_frame(void) {
+    if (!mtl_encoder) return;
+    [mtl_encoder endEncoding];
+    mtl_encoder = nil;
+
+    if (ge_metal_postfx_active()) {
+        /* The composite pass: acquire the drawable now (deferred from start_frame, see its
+         * own comment), sample mtl_pp_color -- the game's just-finished offscreen frame --
+         * and downsample it into the real output. mtl_drawable has to be set by the time
+         * this function returns: gePortMetalImguiBeginPass() (gfx_sdl2.c, runs between here
+         * and gePortMetalFinishFrame()) guards on `if (!mtl_cmdbuf || !mtl_drawable) return;`
+         * and its own loadAction=Load depends on this pass having already written real
+         * pixels for it to preserve. */
+        @autoreleasepool {
+            mtl_drawable = [mtl_layer nextDrawable];
+            if (mtl_drawable) {
+                gfx_metal_ensure_postfx_pipeline();
+
+                MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
+                pass.colorAttachments[0].texture = mtl_drawable.texture;
+                /* Fully overwritten by the full-screen triangle below -- unlike the ImGui
+                 * overlay pass, which deliberately uses Load to preserve THIS pass's
+                 * output, this pass has nothing to preserve from before it. */
+                pass.colorAttachments[0].loadAction = MTLLoadActionDontCare;
+                pass.colorAttachments[0].storeAction = MTLStoreActionStore;
+
+                id<MTLRenderCommandEncoder> ppenc = [mtl_cmdbuf renderCommandEncoderWithDescriptor:pass];
+                [ppenc setRenderPipelineState:mtl_pp_pipeline];
+                [ppenc setFragmentTexture:mtl_pp_color atIndex:0];
+                [ppenc setFragmentSamplerState:mtl_pp_sampler atIndex:0];
+                if (ge_metal_fxaa_enabled()) {
+                    /* mtl_pp_color's own size, not the drawable's -- the FXAA pass samples
+                     * mtl_pp_color, and texel spacing has to match the texture being
+                     * neighbour-sampled, not the (possibly different, post-downsample)
+                     * output size. Matches gfx_metal_ensure_postfx_pipeline's ppFragment,
+                     * which declares this buffer only when FXAA is compiled in. */
+                    float res[2] = { (float)mtl_pp_w, (float)mtl_pp_h };
+                    [ppenc setFragmentBytes:res length:sizeof res atIndex:0];
+                }
+                [ppenc drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+                [ppenc endEncoding];
+            }
+        }
+        mtl_render_target_w = (uint32_t)mtl_layer.drawableSize.width;
+        mtl_render_target_h = (uint32_t)mtl_layer.drawableSize.height;
+    }
+
+    /* Preserve the game-only drawable before gfx_sdl2.c gives ImGui its load-preserving pass.
+     * The blit is ordered in the same command buffer after the game/postfx work and before the
+     * overlay, so the private texture is the exact frame F3 was pressed on without debug UI. */
+    if (mtl_diag_readback_armed && gePortDiagnosticScreenshotPath() != NULL) {
+        if (mtl_drawable != nil && mtl_cmdbuf != nil) {
+            NSUInteger w = mtl_drawable.texture.width;
+            NSUInteger h = mtl_drawable.texture.height;
+            MTLTextureDescriptor *desc =
+                [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
+                                                                    width:w
+                                                                   height:h
+                                                                mipmapped:NO];
+            desc.storageMode = MTLStorageModeShared;
+            mtl_diag_capture_tex = [mtl_device newTextureWithDescriptor:desc];
+            if (mtl_diag_capture_tex != nil) {
+                id<MTLBlitCommandEncoder> blit = [mtl_cmdbuf blitCommandEncoder];
+                [blit copyFromTexture:mtl_drawable.texture
+                          sourceSlice:0
+                          sourceLevel:0
+                         sourceOrigin:MTLOriginMake(0, 0, 0)
+                           sourceSize:MTLSizeMake(w, h, 1)
+                            toTexture:mtl_diag_capture_tex
+                     destinationSlice:0
+                     destinationLevel:0
+                    destinationOrigin:MTLOriginMake(0, 0, 0)];
+                [blit endEncoding];
+            } else {
+                gePortDiagnosticScreenshotComplete(0, 0, 0);
+            }
+        } else {
+            gePortDiagnosticScreenshotComplete(0, 0, 0);
+        }
+    }
+}
+
+void gePortMetalFinishFrame(void) {
+    int restore_framebuffer_only = mtl_diag_readback_armed;
+    if (!mtl_cmdbuf) {
+        if (restore_framebuffer_only) {
+            gePortDiagnosticScreenshotComplete(0, 0, 0);
+            mtl_diag_capture_tex = nil;
+            mtl_diag_readback_armed = 0;
+            { const char *e = getenv("GETV_SHOTFRAME");
+              if (!(e && *e)) mtl_layer.framebufferOnly = YES; }
+        }
+        return;
+    }
+    if (mtl_drawable) [mtl_cmdbuf presentDrawable:mtl_drawable];
+    [mtl_cmdbuf commit];
+    ge_shot_maybe_metal(mtl_cmdbuf, mtl_drawable.texture);
+    mtl_diag_capture_tex = nil;
+    mtl_diag_readback_armed = 0;
+    if (restore_framebuffer_only) {
+        const char *e = getenv("GETV_SHOTFRAME");
+        if (!(e && *e)) mtl_layer.framebufferOnly = YES;
+    }
+    mtl_cmdbuf = nil;
+    mtl_drawable = nil;
+    mtl_vbo_index = (mtl_vbo_index + 1) % VBO_POOL_COUNT;
+}
+
+#ifdef GE_WITH_IMGUI
+int gePortMetalImguiInit(void) {
+    if (!ImGui_ImplMetal_Init(mtl_device)) return 0;
+    /* Build EVERY device object -- depth-stencil state and the font atlas texture -- NOW, via
+     * CreateDeviceObjects(), not lazily inside the first ImGui_ImplMetal_NewFrame() call. Two
+     * bugs, found on this exact code path (ge_launcher_metal.mm hit both first; see its much
+     * longer comment for the full story):
+     *   1. ImGui::NewFrame() asserts g.IO.Fonts->IsBuilt() before any renderer backend call
+     *      runs at all, so the atlas must exist before the loop's first NewFrame() -- not
+     *      merely before the first draw, which is where gePortMetalImguiBeginPass() runs.
+     *   2. ImGui_ImplMetal_NewFrame() lazily calls CreateDeviceObjects() itself the first time
+     *      (`if (depthStencilState == nil)`), and CreateDeviceObjects() unconditionally
+     *      REBUILDS the font texture even if one already exists. Calling just
+     *      CreateFontsTexture() here (the first, incomplete fix) left depthStencilState nil,
+     *      so that lazy rebuild still fired on the first BeginPass() -- after ImGui::Render()
+     *      had already recorded draw commands referencing the FIRST texture, which ARC then
+     *      deallocated out from under them the moment the second one replaced it in the
+     *      strong property. CreateDeviceObjects() sets depthStencilState too, so the lazy
+     *      branch never fires. */
+    return ImGui_ImplMetal_CreateDeviceObjects(mtl_device) ? 1 : 0;
+}
+
+/* A second render pass on the SAME drawable texture the game just drew into, loadAction=
+ * Load so those pixels are kept rather than cleared. ImGui_ImplMetal_NewFrame only stashes
+ * this pass's pixel format/sample count for pipeline-state matching and lazily creates
+ * device objects (font texture) on first call -- it does not touch ImGuiIO/layout state, so
+ * calling it here rather than at the conventional start-of-frame point (where we have no
+ * pass yet -- gfx_wapi->start_frame() runs before gfx_rapi->start_frame(), see gfx_pc.c) is
+ * safe. No depth attachment: ImGui doesn't test or write depth. */
+void gePortMetalImguiBeginPass(void) {
+    if (!mtl_cmdbuf || !mtl_drawable) return;
+    @autoreleasepool {
+        MTLRenderPassDescriptor *pass = [MTLRenderPassDescriptor renderPassDescriptor];
+        pass.colorAttachments[0].texture = mtl_drawable.texture;
+        pass.colorAttachments[0].loadAction = MTLLoadActionLoad;
+        pass.colorAttachments[0].storeAction = MTLStoreActionStore;
+        ImGui_ImplMetal_NewFrame(pass);
+        mtl_overlay_encoder = [mtl_cmdbuf renderCommandEncoderWithDescriptor:pass];
+        /* Same reasoning as the game encoder's identical call above -- matching upstream
+         * libultraship, which sets this on every encoder it creates, not just one. */
+        [mtl_overlay_encoder setDepthClipMode:MTLDepthClipModeClamp];
+    }
+}
+
+int gePortMetalImguiRenderDrawData(void *draw_data) {
+    if (!mtl_overlay_encoder) return 0;
+    ImGui_ImplMetal_RenderDrawData((ImDrawData *)draw_data, mtl_cmdbuf, mtl_overlay_encoder);
+    return 1;
+}
+
+void gePortMetalImguiEndPass(void) {
+    if (!mtl_overlay_encoder) return;
+    [mtl_overlay_encoder endEncoding];
+    mtl_overlay_encoder = nil;
+}
+
+void gePortMetalImguiShutdown(void) {
+    ImGui_ImplMetal_Shutdown();
+}
+#endif /* GE_WITH_IMGUI */
+
+static void gfx_metal_finish_render(void) {
+}
+
+static void gfx_metal_shutdown(void) {
+}
+
+struct GfxRenderingAPI gfx_metal_api = {
+    gfx_metal_z_is_from_0_to_1,
+    gfx_metal_unload_shader,
+    gfx_metal_load_shader,
+    gfx_metal_create_and_load_new_shader,
+    gfx_metal_lookup_shader,
+    gfx_metal_shader_get_info,
+    gfx_metal_new_texture,
+    gfx_metal_select_texture,
+    gfx_metal_upload_texture,
+    gfx_metal_upload_height_texture,
+    gfx_metal_clear_height_texture,
+    gfx_metal_set_sampler_parameters,
+    gfx_metal_set_depth_test,
+    gfx_metal_set_depth_mask,
+    gfx_metal_set_zmode_decal,
+    gfx_metal_set_zmode_cloud,
+    gfx_metal_set_viewport,
+    gfx_metal_set_scissor,
+    gfx_metal_set_use_alpha,
+    gfx_metal_draw_triangles,
+    gfx_metal_init,
+    gfx_metal_on_resize,
+    gfx_metal_start_frame,
+    gfx_metal_end_frame,
+    gfx_metal_finish_render,
+    gfx_metal_shutdown
+};
+
+#endif // RAPI_METAL

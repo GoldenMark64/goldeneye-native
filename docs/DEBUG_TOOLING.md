@@ -255,14 +255,323 @@ typed payload. Diagnostic export uses this structure, not the raw line typed by 
 ### Delivery slices
 
 1. ROM-free parser/registry/result-ring library, bounded queue and unit tests.
-2. Cross-renderer ImGui console, SDL captv‹­¦ëm®éÜj×¢¸ Šv¥jšk£¦j×­¢G§r‹§·]uç~XYÛ›ÜİXÈØ\\™K‚‹H›ÈY]šY[ËÚ[]ÛœË[\ÜÈÜˆ\˜š]˜\H›Ü\HÜš]\È[ˆ[œÜXİÜˆŒKˆÜÙH\™BˆÛÛ[X[™ËÚ]ÛÛ[X[™Y]Y]H[™[ˆ]Y]™\İ[Yˆ^H\™HYY]\‹‚‚ˆÈÈÈ[]™\HÛXÙ\Â‚ŒKˆ™\œÚ[Û™YÛ˜\ÚİİXİ\™\Ë›İšY\ˆ[\™˜XÙ\È[™˜ZÙK\›İšY\ˆ\İË‚Œ‹ˆ^Y\‹Ù[™[^KÛØš™Xİ]™HØ\\™H]HÙ]YYœ˜[YH›İ[™\K‚ŒËˆ[QİZHX›\Ëš[\š[™ËİX›HÙ[Xİ[Ûˆ[™]™[\İÜK‚ˆØY™H”ÓÓˆ›Ú™Xİ[ÛˆÛÛœİ[YY]\ˆHXYÛ›ÜİXÜË‚‚ˆÈÈÈXØÙ\[˜ÙHØ]B‚‹HHRH™XYÈÛ›HÜ[İÛ™YÛ˜\ÚİÈ[™\È›È™]Z[™Y˜]ÈØ[YHÚ[\œË‚‹H[›İ\ˆ^Y\ˆÛİÈ\™H^XÚ]È›Èİ\œ™[\^Y\ˆİ\œÛÜˆ\ÈØ[\Y‚‹H[™[^HÙ[Xİ[Ûˆİ\š]™\È\İ™[Ü™\š[™È[™\È[˜[Y]YÛˆİYÙH\ØÚÚ[™ÙK‚‹HXœÙ[šY[Ëİ]XÈ]K\š]™Y]H[™]™H]H\™Hš\ÚX›H\İ[˜İ‚‹H›İ[™È[™[˜Ø][Ûˆ\™H\İY[™š\ÚX›K‚‹HÜ[‘Ó[™Y][ÚİÈHØ[YH]K[™Ø\\™HÛÜİ\ÈYX\İ\™YÚ]H[œÜXİÜˆÛÜÙY[™ˆÜ[‹‚‹HH“ÓKYœ™YH˜ZÙHÛ˜\Úİš]™\ÈHÛÛ\]HX›KÙš[\‹ÜÙ[Xİ[Ûˆ[Ù[[ˆ\İË‚‹HHØY™H”ÓÓˆ›Ú™Xİ[Ûˆ™Z™XİÈ˜]ÈÚ[\œÈ[™[œ™YÚ\İ\™Yœ™YKY›Ü›HšY[Ë‚‚ˆÈÈÛÜšÜİ™X[HÎˆÛ™KXÛXÚÈØØ[XYÛ›ÜİXÈ[™B‚ˆÈÈÈYX[š[™ÈÙˆÛ™HÛXÚÂ‚[ˆ[‹YØ[YH
-ŠØ\\™HXYÛ›ÜİXÜÊŠˆXİ[Û‹\ÈHÛÛœÛÛH[X\ËÜ™X]\ÈÛ™H™]ÈØØ[\™XİÜKœÚİÜÈ]È][™İ]\È]›İ[™ÈØ\È\ØYYˆH\™XİÜH\È™XYH›Üˆ[X[ˆ™]šY]È[™™›Üˆ[\ÜHÛÛËØÛÛXİØY×Ü™\ÜœX‚‚”X›\Ú[™È[ˆ\ÜİYH™[XZ[œÈHÙ\\˜]K^XÚ]\›İ˜[İ\ˆHØ[YH]\İ›İØ[Ú]X‹›Ü[ˆHœ›İÜÙ\ˆİX›Z\ÜÚ[ÛˆÜˆÚ[[H]XÚš[\Ë‚‚ˆÈÈÈİ\œ™[ŒH[\[Y[][Û‚‚‘\ÚİÜZ[È›İÈ™\Ù\™HŒØ›ÜˆHØØ[XYÛ›ÜİXÈØ\\™KˆHÙ^H\ÈYÙK]šYÙÙ\™Y
-ÑšÙ^H™\X]Ù\È›İÜ™X]H][\H[™\ÊK\ÈÛÛœİ[YY™Y›Ü™HØ[Y\^H[œ][™ÛÜšÜÈ]™[‚Ú[ˆH]™[Ü\ˆÛÛœÛÛHİÛœÈÙ^X›Ø\™[œ]‚‚•H˜]]™HŒH\™XİÜHÛÛZ[œÎ‚‚‹H™\Ü›YˆØØ[[Û›H™\ÜİXˆÚ]H^Xİœ˜[YKİXÚËÜİYÙKÙY™šXİ[NÂ‹HÙ\ÜÚ[Û‹šœÛÛ˜ˆØÚ[XH™\œÚ[ÛˆK]›Ü›KØ\˜Ú]Xİ\™KÜ™[™\™\‹ØY™HY™™Xİ]™HÙ][™ÜËˆ™\ÛÛ™Y[œ]š[™[™ÜËØÜ™Y[œÚİİ]\È[™\İYœ˜[YHY[]NÂ‹Hİ]KšœÛÛ˜ˆ›İ[™Y^Y\ˆšY[È[™Øš™Xİ]™Hİ]\Ù\ÎÂ‹H]™[ËšœÛÛ›ˆH™]Ù\İ\Y]™[X\È™XÛÜ™ËÛ\İš\œİÈ[™‹HØÜ™Y[œÚİ˜›\ˆH™[™\™\‹[˜]]™HØÙ[™HØ\\™K‚‚“Ü[‘Ó™XYÈHØ[YH™KR[QİZHØÙ[™H\ÙYHÑU—ÔÒÕ”SQXˆY][[\Ü˜\š[HXZÙ\ÈÛ›HB‘ŒÈœ˜[YIÜÈ˜]ØX›H™XYX›K›]ÈHØ[YKÜÜİ™\İ[ÈHš]˜]H^\™H™Y›Ü™H[QİZK[™œ™\İÜ™\Èœ˜[YXY™™\“Û›XY\Ø\™ˆHÚ[][[™[İ\ÈÑU—ÔÒÕ”SQX™\]Y\İ™[XZ[œÈ[™\[™[‚‚•\È\È[[[Û˜[HH
-Š›ØØ[Ø\\™H›Ü›X]
-Š‹›İY]HX›XØ][Û‹\™XYH[™H\ØÜšX™Y˜HHXØÙ\[˜ÙHØ]H™[İËˆH[›š[™Èš[˜\HÙ\È›İİ\œ™[H^Ü[ˆ]]Üš]]]™B˜Z[ÛÛ[Z]ØÛÛ\]Xš[]HQÛÈÜÙHšY[È\™H^XÚ][˜[Y\È˜]\ˆ[ˆİY\ÜÙY™œ›ÛHH]\ˆÛÛXİÜˆÚXÚÛİ]ˆ˜]]™HŒH[ÛÈÙ\È›İY]Ü™X]HX[šY™\İšœÛÛ˜˜ÛÛ[X[™ËšœÛÛ›[œÜXİÜ‹šœÛÛ˜ÒKLMˆ[šY\ÈÜˆHY]Y]KYœ™YH‘ÎÈÜÙH™[XZ[‚˜ÛÛXİÜ‹ÜØÚ[XH›ÛİË[ÛˆÛÜšËˆÛÛËØÛÛXİØY×Ü™\ÜœX™[XZ[œÈHØ[š]^˜][Ûˆ[™”‘Ë[›Ü›X[^˜][Ûˆ›İ[™\H™Y›Ü™H[][™È\ÈÚ\™Y‚‚‘ŒÈ[ÛÈØ[››İXYÛ›ÜÙHH\™œ™Y^™HÛ˜ÙHHXZ[ˆ™XY\ÈİÜY[\[™ÈÑ]™[Ë‚˜ÑU—ÔÕSPÑOLX›İÈÛİ™\œÈ]Ø\Ú]HXYÛ›ÜİXË[Û›HØ]ÚÙËˆHØ[YH™XYX›\Ú\Â›Û›H[YÙ\ˆ\ÙKÚİÜİ[[Y]H›İYÚÑ]ÛZXÜÎÈHØ]ÚÙÈ™XY™]™\ˆ™XYÈ]™HØ[YBœİXİ\™\ËˆYˆHXXÜ›È\ÙHÙ\È›İY˜[˜ÙH›ÜˆL\È]™\ÜÈH\ÙK\İ›ÛÛK[ØYÓÔÂšİÜİ[™›İ[™Y\‹Yœ˜[YHÛİ[\œË™\X][™È][ÜİÛ˜ÙH\ˆÙXÛÛ™[[›ÙÜ™\ÜÈ™\İ[Y\Ë‚•\È\È[[™YÈØØ[^™HH[™È™Y›Ü™HHXYÙÙ\‹Ü\™ˆ\ÜË›İÈ™\XÙHİXÚÈØ[\[™ÈÚ[‚H™\ÜY\ÙHİ[ÛÛZ[œÈÛÈ]XÚÛÙK‚‚ˆÈÈÈ™[™\™\ˆ[™ÔH›YÚ™XÛÜ™\œÂ‚•HKŒ™YH[ÛÈÛÛZ[œÈHY\\ˆ™[™\™\‹Y›Ü™[œÚXÜÈ^Y\ˆÜ™X]Y›ÜˆH[[\š\ÈH[™Âš[™\İYØ][Û‹ˆ]\È[X™\˜][HÜ›X[\š[™È›Ü›X[^Kˆ›İ[™È\È[ØØ]YÜˆÜš][‚[›\ÜÈHÛÜœ™\ÜÛ™[™ÈXYÛ›ÜİXÈÙ][™È\È^XÚ]Hİ\YY‚‚‹HÑU—ÑÔQ“QÒO]˜Ü™X]\È[ˆ[X\X˜XÚÙY›Û[™È™XÛÜ™ÙˆÜ[‘ÓİX›Z\ÜÚ[ÛœËˆ™XÛÜ™ÈØ\œBˆœ˜[YKÙ˜]ÈÙ\šX[Ë“ÈÚ^™\È[™\Ú\ËÚY\‹Ü›ÙÜ˜[HY[]K^\™HY[]H[™\Ú\Ëˆ\Ø›[™ÙXØ[İ]K˜\İÑÛÛ[X[™ÛÛ^[™\Ü^K[\İ›İ™[˜[˜ÙK‚‹HÑU—ÑÔQ“QÒÔVSĞQÕ‘T•ÏO˜Y][Û˜[H™]Z[œÈ^Xİ“È^[ØYÈ›ÜˆHÙ[XİY™\^ˆÛİ[ÛÈH\™Ø\™H˜]ÚØ[ˆ™HÛÛ\\™Y]KY›Ü‹X]HÚ]İ]™XÛÜ™[™È]™\H˜]È^[ØY‚‹HÑU—Ñ•S‘“QÒO]˜™XÛÜ™ÈH™[™\™\ˆØ[ÚZ[ˆ
-ÙÜ[˜\Ü^K[\İ^Xİ][Û‹ˆ›\Ú\ËÛY™™\‘]XÛ˜]Ğ\œ˜^\Ø
-H[™[šÜÈXXÚ˜]Ú˜XÚÈÈHÔKY›YÚÙ\šX[‚‹HÑU—ÔÕSPÑOLX[œÈHİËYœ™\]Y[˜ŞHØ]ÚÙÈ\ØÜšX™YX›İ™KˆÛˆHİ\İZ[™Yİ[]ˆœ™Y^™\ÈH[˜İ[Û‹Y›YÚš[™ÈÛÈH™XÛİ™\˜X›H[‹\ÙXÛÛ™ÔH[™ÈØ[››İİ™\Üš]HBˆİX‹\ÙXÛÛ™\İÜH]Y[È]‚‚•HÛÛ\[š[ÛˆÛÛÈ\™HXÛÙWÙÜWÙ›YÚœXXÛÙWÙ[˜İ[Û—Ù›YÚœX˜X\ÙÜWÚ[™×Ù˜]ËœX[˜[^™WÙœ›Ş™[—ÙÜWÚ[™ËœXØ\\™WÙÜWÚ[™ËœÚ[™˜[—ÙÜWÚ[™×Ø]]ØØ\\™KœÚˆH[˜][™Y][˜Ú\ˆ^\İÈ™XØ]\ÙHH™X[ÔHÙYÙHØ[ˆœ™Y^™BHÙ^X›Ø\™[İ\ÙH[™\ÚİÜ[Û™ÈÚ]HØ[YNˆ]™KX]]Üš^™\ÈHš]š[YÙYØ\\™KØZ]È›ÜˆH[˜İ[Ûˆš[™ÈÈœ™Y^™H[™›ÜˆNLMIÜÈš\œİY\œ›Üˆİ]HÈ˜[YHHØ[YHQ[‚˜Ø\\™\ÈH]šY[˜ÙH[™\›Z[˜]\ÈHØ[YHÚ]İ]™\]Z\š[™È[œ]\š[™ÈHİ[‚‚•\ÙH˜]È›YÚš[\È\™HØØ[[™Ú[™Y\š[™È]šY[˜ÙK›İYË\™\Ü]XÚY[Ëˆ^HØ[ˆ™Bš[™™YÈÙˆYYØX]\È[™X^HÛÛZ[ˆ^Xİ˜[œÚY[™[™\ˆY™™\œËˆ™YXÙH[HÈ›İ[™Y^Ú]HXÛÙ\‹Ø[˜[^™\ˆÛÛÈ™Y›Ü™HÚ\š[™È[][™ËˆH[ÛÜšÙ›İÈ[™HKŒ[[Ø\ÙBœİYH\™H[ˆØ‘S‘T‘T—Õ“ÕP“TÒÓÕS‘Ë›YJ‘S‘T‘T—Õ“ÕP“TÒÓÕS‘Ë›Y
-K‚‚ˆÈÈÈ]]Üš]]]™HÙ\ÜÚ[ÛˆX[šY™\İ‚YH™\œÚ[Û™Y˜]]™HÙ\ÜÚ[Û‹šœÛÛ˜ˆ]\È]]Üš]]]™H›ÜˆHš[˜\H[™Ù\ÜÚ[Ûˆ]Ù\™B˜XİX[H\İY‚‚‹HXYÛ›ÜİXÈØÚ[XH™\œÚ[Ûˆ[™Ø\\™H[Y\İ[\Â‹Hš[˜\HZ[ÛÛ[Z][™Z[ÛÛ\]Xš[]HQÂ‹H]›Ü›K\˜Ú]Xİ\™H[™™[™\™\ˆ™\ÜYHH[›š[™Èš[˜\NÂ‹HİYÙKY™šXİ[KİYÙH\ØÚØ[YHXÚÈ[™™[™\™Yœ˜[YNÂ‹HY™™Xİ]™H[[YHÛÛ™šYİ\˜][Û‹œ›ÛH[ˆ[İÛ\İÙˆ›Û‹\ÙXÜ™]Ù][™ÜÎÂ‹H]™[Ü\‹]ÛÛİ]H[™Ú]\ˆ]]][ÛˆÛÛ[X[™ÈÙ\™H\ÙYÂ‹H\Y˜Xİ\Kš[[˜[YK]HÛİ[[™ÒKLMÈ[™‹H[˜Ø][Û‹[˜]˜Z[X›K\›İšY\ˆ[™Ø\\™KY˜Z[\™H™X\ÛÛœË‚‚•\ÈÛÜœ™XİÈÛÈ[Z]][ÛœÈ[ˆHİ\œ™[ÛÛXİÜ‹ˆ]È™\ÜÚ]ÜHY]Y]H\ØÜšX™\ÈB˜ÚXÚÛİ][›š[™ÈH]ÛˆÛÛÚXÚX^H›İ™HHÚXÚÛİ]]Z[HØ[YKˆ]Â˜ÑU—Ê˜ØØ[ˆ\ØÜšX™\ÈHÛÛXİÜˆ›ØÙ\ÜËÚXÚX^H›İ]™H[š\š]YHØ[YIÜÈY™™Xİ]™B˜ÛÛ™šYİ\˜][Û‹ˆY\ˆÙ\ÜÚ[Ûˆ[\ÜH™\ÜÚİ[˜[YH\ÙHÙ\\˜][H\È
-Š\İYš[˜\B˜[™Ù\ÜÚ[ÛŠŠˆ™\œİ\È
-Š˜ÛÛXİÜˆÚXÚÛİ][™[š\›Û›Y[
-Š‹‚‚•[šÛ›İÛˆØÚ[XH™\œÚ[ÛœÈ˜Z[ÛÜÙYÚ]H\ÙY[\œ›Ü‹ˆ™]ÈÜ[Û˜[šY[ÈX^H™HYYÚ][‚˜H™\œÚ[Û‹]Ú[™Ú[™ÈYX[š[™ÈÜˆXØÙ\[™ÈH™]È\Y˜Xİ˜[Z[H™\]Z\™\ÈHØÚ[XH[\[™\İË‚‚ˆÈÈÈ[™HÛÛ[Â‚•HÛ™KXÛXÚÈ\™XİÜHX^HÛÛZ[ˆÛ›H™YÚ\İ\™Y›İ[™Y\Y˜XİÎ‚‚Ÿš[HÛÛ[ÈŸKKHKKHŸ™\Ü›YØØ[˜YÚ]Ù\ÜÚ[Ûˆ˜XİËØ\\™HÛÛ[È[™ÜXÙ\È›ÜˆXİX[Ù^XİYÜ™\›ÙXİ[Û‹ˆŸX[šY™\İšœÛÛ˜ØY™]Hİ]H[™\Ú\È›Üˆ]™\HİYÙY\Y˜XİˆŸÙ\ÜÚ[Û‹šœÛÛ˜]]Üš]]]™H\İYXš[˜\H[™Y™™Xİ]™K\Ù\ÜÚ[Ûˆ˜XİËˆŸÛÛ[X[™ËšœÛÛ›™XÙ[XYÛ›ÜİXË\ØY™H\œÙYÛÛ[X[™È[™™\İ[ÎÈ›È˜]È[œ][™\ËˆŸ]™[ËšœÛÛ›™XÙ[™YÚ\İ\™Y]™[ÈÚ]XÚËÙœ˜[YH[™\Y[YÙ\ˆšY[ËˆŸ[œÜXİÜ‹šœÛÛ˜Û™H›İ[™YÛ˜\Úİ\ÈÙ[XİY™XÛÜ™\Ú[™ÈH[œÜXİÜˆØÚ[XKˆŸØÜ™Y[œÚİœ™ØÜ[Û˜[Y]Y]KYœ™YHØÙ[™HØ\\™HZÙ[ˆ™Y›Ü™HH]™[Ü\ˆİ™\›^H\È˜]Û‹ˆ‚“Z\ÜÚ[™ÈÜ[Û˜[\Y˜XİÈ\™H™\™\Ù[YHH™X\ÛÛˆ[ˆHX[šY™\İˆÙ[™\˜[İİ]Üİ\œ‚›ÙÜÈ[™Ü˜\Ú™\ÜÈ™[XZ[ˆÜ[Û˜[[œ]ÈÈH]ÛˆÛÛXİÜ‹ÚXÚ[™XYHØ[š]^™\Â[KˆH˜]]™H^Ü\ˆÚİ[›İÛÜH\˜š]˜\Hš[\Ë‚‚’YˆHİ\œ™[˜]]™H™[™\™\ˆ\È›ÈØY™HY]Y]KYœ™YH‘È]YÜˆY\HÙ\\˜][Bœ™]šY]ÙY\›Z\ÜÚ]™H[˜ÛÙ\ˆÚ]]È›İXÙKÜˆXZÙHØÜ™Y[œÚİÛÛ\][ÛˆH›Øİ\ÙY™\™\]Z\Ú]K‚‘È›İØ[H]›Ü›HØÜ™Y[œÚİÙ\šXÙH]X^HØ\\™Hİ\ˆÚ[™İÜË[™È›İÚ\H“T˜\ÈHİ\ÜÙYHX›XØ][Û‹\™XYH]XÚY[‚‚ˆÈÈÈÛÛXİÜˆ[™ÚÚ[[YÜ˜][Û‚‚‘^[™ÛÛËØÛÛXİØY×Ü™\ÜœXÚ]HÙ\ÜÚ[Û‹Z[\ÜÜ[Ûˆ]‚‚‹H˜[Y]\ÈHØÚ[XKš[HÙ]›İ[™Ë\Ú\ËU‹NÒ”ÓÓˆÚ\H[™\Y˜Xİ\\ÎÂ‹H™Y\Ù\ÈŞ[[[šÜË˜]™\œØ[[šÛ›İÛˆš[\ËØ]™\Ë\˜Ú]™\È[™š[˜\H^[ØYÎÂ‹H™X]ÈH[›š[™ÈØ[YIÜÈX[šY™\İ\È]]Üš]]]™H›Üˆ\İYš[˜\KÜ™[™\™\‹ÜİYÙKÜÙ][™ÜÎÂ‹H™XÛÜ™ÈÛÛXİÜˆÚXÚÛİ]ÜŞ\İ[H[™›Ü›X][Ûˆ[™\ˆHÙ\\˜]HÙ^NÂ‹H™K\[œÈHX›XØ][ÛˆİX\™İ™\ˆ]™\H[\ÜY\Y˜XİÂ‹H™\Ù\™\È^\İ[™ÈX[X[ÙËØÜ˜\ÚÜØÜ™Y[œÚİ[œ]ÎÈ[™‹HÜ™X]\ÈHœ™\Úİ]]\™XİÜH˜]\ˆ[ˆY][™ÈHÛİ\˜ÙHØ\\™H[ˆXÙK‚‚•\]HÛÛËİ\İËİ\İØYÙ[İÛÛËœXØÜËĞQÑS•P×ĞÓÓ•’P•US‘Ë›Y[™˜˜YÙ[ËÜÚÚ[ËÜ™\ÜYÛÛ[™^YKXYËÔÒÒS›Y[ˆH›Øİ\ÙYˆ]Ú[™Ù\È\È]šY[˜ÙB˜ÛÛ˜XİˆHÚÚ[Úİ[[H™\Ü\ˆÈØ\\™HØØ[K[œÜXİ]™\Hš[KÙX\˜Ú›ÜˆB™\XØ]H[™ØZ[ˆ^XÚ]\›İ˜[›ÜˆH^Xİ\ÜİYH›ÙH[™]XÚY[Ë‚‚ˆÈÈÈXØÙ\[˜ÙHØ]B‚‹HÛ™H[‹YØ[YHXİ[ÛˆÜ™X]\ÈH™]È™]šY]È\™XİÜHİ]ÚYHH™\ÜÚ]ÜH[™ÛX\›Hİ]\Âˆ]]Ø\È›İ\ØYY‚‹HH\İYš[˜\HÛÛ[Z]™[™\™\‹İYÙKÙY™šXİ[H[™Y™™Xİ]™HÙ][™ÜÈÛÛYHœ›ÛHBˆ[›š[™ÈÙ\ÜÚ[Û‹›İH]\ˆÛÛXİÜˆ›ØÙ\ÜË‚‹HİXİ\™YÛÛ[X[™Ù]™[Ú[œÜXİÜˆ\Y˜XİÈ\™H›İ[™YØÚ[XK]˜[Y]Y[™ØY™HBˆÛÛœİXİ[Û‹‚‹HHØÜ™Y[œÚİ^ÛY\ÈHİ™\›^H[™\ÈHY]Y]KYœ™YH‘ËÜˆHX[šY™\İİ]\ÈÚH›ÂˆØÜ™Y[œÚİØ\ÈØ\\™Y‚‹HH^Ü\ˆ™]™\ˆ[˜ÛY\ÈH“ÓKØ]™K]ZXÚÜİ]K˜\ÙKš\^˜XİY]K˜]ÈY[[ÜKˆ\˜š]˜\Hš[HÜˆ\˜Ú]™K‚‹HÛÛXİÜˆ\İÈÛİ™\ˆ˜[Y[\Ü[šÛ›İÛˆØÚ[XK[\\™Y\Ú˜]™\œØ[ÜŞ[[[šË[™^XİYˆ\Y˜Xİİ™\œÚ^™Y]K›Ü˜šY[ˆš[[˜[YKØÛÛ[[™[\›˜[H[˜ÛÛœÚ\İ[Z[ÜÙ\ÜÚ[Û‚ˆY[]HšY[ËˆHÛÛXİÜ‹XÚXÚÛİ]Z\ÛX]Ú\È[İÙY[™™\ÜY›İ™X]Y\ÈH˜YˆØ\\™K‚‹HH^\İ[™ÈX[X[ÛÛXİÜˆÛÜšÙ›İÈ™[XZ[œÈÛÛ\]X›K‚‹HHÚXÚÙYZ[ˆYË\™\ÜÚÚ[[™ÛÛšX][™ÈØİ[Y[][ÛˆX]ÚH[\[Y[YØÚ[XK‚‚ˆÈÈÜ[Û˜[YÚ]˜[YH›ÛİË[ÛœÂ‚‘È›İØÚY[H\ÙH\È[\[Y[][Ûˆ\ÜİY\È[[H™YHš[Üš]^™YÛÜšÜİ™X[\È]™H™X[\ÙH[™YX\İ\™[Y[Ë‚‚ˆÈÈÈ™\›ÙXİ[Ûˆ™XÛÜ™[™È[™^X˜XÚÂ‚•\È™XÛÛY\È\ÙY[˜]\ˆ[ˆÜXİ[]]™KÛ˜ÙHÛÛ[X[™È]™HİX›HQËİ]H\ÈİX›BšY[]H[™XYÛ›ÜİXÜÈÛ›İÈH\İYZ[ˆHÚ\™XX›H™XÛÜ™[™ÈÚİ[ÛÛZ[ˆÛ›Bœ\‹]XÚÈÛÛ›Û\ˆ[[œ˜[YH[KŞ[˜Ú›Ûš^™Y™XÛÜ™X›HÛÛ[X[™Ë“‘Èš[™Ù\œš[È[™™\œÚ[Û™YY]Y]Kˆ]]\İ›İÛÛZ[ˆHØ]™K˜]ÈY[[ÜHÜˆ^˜XİYØ[YH]K‚‚•HÛËÛ›ËYÛÈ]Y\İ[Ûˆ\È˜XİXØ[ˆY\ˆÛÛœÛÛK[œÜXİÜˆ[™[™\È\™H\ÙYÛˆ™X[YÜË˜\™H[\Ü[™\ÜÈİ[\™È™\›ÙXÙHœ›ÛHZ\ˆİXİ\™Y]šY[˜ÙOÈYˆY\Ë›İİ\Bœ™XÛÜ™[™ÈYØZ[œİ]\›Z[š\İXÈ\İ[œÈ[™™\]Z\™HH^X˜XÚÈ]™\™Ù[˜ÙH™\ÜˆYˆ›ËÙY\HÛX[\ˆÛÛË‚‚•Hİ\œ™[X›XØ][ÛˆÚXÚÙ\ˆ™Z™XİÈ[™^XİYš[˜\H›Ü›X]È[™\˜Ú]™\ËˆH]\™BœÚ\™XX›H™XÛÜ™[™È™YYÈ[ˆ^XÚ]H˜[Y]Y^Ò”ÓÓˆ™\™\Ù[][ÛˆÜˆH[X™\˜]K\İYØY™]K\ÛXŞH\]KˆÈ›İÜ™X]H[ˆÜ\]YH™Ù\™\›Ø[™\\ÜÈHÚXÚÙ\‹‚‚ˆÈÈÈØ[YK\›ØÙ\ÜÈ]ZXÚÜİ]\Â‚•\ÙHØ[ˆÜYYØØ[]\˜][Ûˆ]Úİ[[š]X[H™H\[Y\˜[Ø[YK\›ØÙ\ÜÈ[™Ø[YKXZ[‚•^H™\]Z\™HHİXœŞ\İ[HØ]™KÜ™\İÜ™H™YÚ\İK^XÚ][˜[Y][Ûˆ[™›ÛÙˆ]Ú[\œËœ™[™\™\ˆ™\Ûİ\˜Ù\Ë]Y[Èİ]H[™^\›˜[[™\È\™H›İ™\İÜ™Y\Èİ[H]\Ëˆ^H\™B›™]™\ˆHYË\™\Ü]XÚY[‚‚ˆÈÈÈÜX›HÙ[X[XÈÛ˜\ÚİÂ‚HÜX›HÛ˜\ÚİÛİ[™\İÜ™H˜[YYÙ[X[XÈİ]H›İYÚ™\œÚ[Û™YY\\œÈ˜]\ˆ[‚˜ÛÜZ[™ÈSKˆ]\È]XÚ[Ü™H^[œÚ]™H[™Ø[ˆİ[˜Z[È™XÜ™X]HRKØÜš\Ë[Y\œÈ[™œ™[™\™\ˆİ]KˆÛÛœÚY\ˆ]Û›HYˆ]\›Z[š\İXÈ^X˜XÚÈ[™ØØ[]ZXÚÜİ]\ÈX]™HHYX\İ\™Y™XYÛ›ÜİXÈØ\ˆH™XY[Û›HÙ[X[XÈÛ˜\Úİ\ÙY\È]šY[˜ÙH\È[™XYH›İšYYHBš[œÜXİÜÈ™\İÜ˜][Ûˆ\ÈHÙ\\˜]H›Ø›[K‚‚ˆÈÈ[]™\H[™ÛÛÜ™[˜][Û‚‚•\ÙHÛ™H˜XÚÚ[™È\ÜİYK™YHÚ[\ÜİY\È[™H›ÜÜÙY]™[Ü\ˆÛÛ[™ÈŒXZ[\İÛ™KˆBœ™\ÜÚ]ÜHİ\œ™[H\ÈHİ[™\™[š[˜Ù[Y[[™Øİ[Y[][Û˜X™[È]›ÈYXØ]Y™]™[Ü\‹]ÛÛÈX™[È\ÙH^\İ[™ÈX™[È[š]X[H˜]\ˆ[ˆÜ™X][™È^Û›Û^H›Üˆ›İ\‚š\ÜİY\Ë‚‚”™XÛÛ[Y[™YÜ™\‚‚ŒKˆ[™ÛÛœÛÛH™YÚ\İKÜ]Y]YH[™Ü›ÜÜË\™[™\™\ˆRKÚ[œ]™Z]š[Ü‹‚Œ‹ˆ[™™\šYšYY™XY[Û›H[™]]][ÛˆY\\œË‚ŒËˆ[™H™XY[Û›HÛ˜\Úİ[Ù[[™[œÜXİÜ‹‚ˆ[™˜]]™HXYÛ›ÜİXÈ^Ü[ˆÛÛXİÜ‹ÜØÚ[XKÜÚÚ[[YÜ˜][Û‹‚‚™Y›Ü™Hİ\[™ÈXXÚ‹™XÚXÚÈİ\œ™[\ÜİY\ËœÈ[™ØØ[]›Ü›HÛÜšËˆÛÛœÛÛHRKÚ[œ]\Â™\ÜXÚX[HZÙ[HÈİ™\›\][˜Ú\‹Ñ[œ][™™[™\™\ˆÚ[™Ù\Ëˆ™X˜\ÙHÛÈİ\œ™[XZ[˜˜[™ÙY\XXÚˆ]Û™HXœİ˜Xİ[Ûˆ›İ[™\K‚‚•H^\İ[™È›İY›Øİ\ÙYØÜËÔ“ĞQPT›YÚİ[™XÙZ]™HÛ›HHÚÜ[šÈY\ˆ\È[ˆ\Â˜XØÙ\YÈ\XØ][™È\È\˜Ú]Xİ\™H\™HÛİ[Ü™X]HÛÈÛİ\˜Ù\ÈÙˆ]‚‚ˆÈÈ™]šY]ÈXÚ\Ú[ÛœÂ‚\›İ™H\È[ˆÛ›HYˆHXZ[Z[™\ˆYÜ™Y\ÈÚ][ÙˆH›ÛİÚ[™Î‚‚‹HH[Ù\›ˆÛÛœÛÛH\ÈÜ[İÛ™Y[™Ù\\˜]Hœ›ÛH˜\™IÜÈÜšYÚ[˜[XYË[Y[HRNÂ‹H[š]X[]]][ÛˆÛÛ[X[™È\™H˜\œ›İË^XÚ]\Ûİ[™›ØÚÙY[ˆ™]^NÂ‹HÛÛœÛÛHÜ[š[™È\Ù\ÈİÛ™Y]\ÙHÙ[X[XÜÈ[™™]™\ˆXZÜÈ\Y[œ][ÈØ[Y\^NÂ‹HÜ[‘Ó[™Y][\™H›İ\ÙˆÛÛœÛÛKÚ[œÜXİÜˆXØÙ\[˜ÙKÚ[H›ËR[QİZHZ[È™[XZ[‚ˆİ\ÜYÂ‹HH[œÜXİÜˆ\È™XY[Û›H[™Û˜\ÚİX˜\ÙYÚ]İX›HQÈ[™Û™\İXœÙ[šY[ÎÂ‹HÛ™KXÛXÚÈXYÛ›ÜİXÜÈYX[œÈØØ[Ø\\™K›İ]]ÛX]XÈX›XØ][ÛÂ‹HH[›š[™ÈÙ\ÜÚ[Ûˆ\È]]Üš]]]™H›Üˆ\İYZ[ØÛÛ™šYİ\˜][ÛˆY]Y]NÂ‹HXYÛ›ÜİXÈ^ÜÈ™]™\ˆÛÛZ[ˆØ]™\Ë]ZXÚÜİ]\Ë˜]ÈY[[ÜK\˜Ú]™\ÈÜˆ\˜š]˜\Hš[\ÎÂ‹HH™YHÛÜšÜİ™X[\ÈX^H\ÙHÙ]™\˜[›Øİ\ÙYœÈ[œİXYÙˆÛ™H\™ÙH[\[Y[][ÛˆÈ[™‹H™\›ÙXİ[Ûˆ^X˜XÚÈ[™İ]H™\İÜ˜][Ûˆ™[XZ[ˆÜ[Û˜[[[™X[\ØYÙH[[Ûœİ˜]\ÈBˆY][Û˜[˜[YK‚‚’Yˆ[HÙˆÜÙHXÚ\Ú[ÛœÈÚİ[Ú[™ÙK™]š\ÙH\ÈØİ[Y[[™HÛÜœ™\ÜÛ™[™È\ÜİYH˜Y˜™Y›Ü™HÜ™X][™ÈÚ]Xˆ\ÜİY\ËˆÛ˜ÙHXØÙ\YÜ™X]HHZ[\İÛ™H[™˜XÚÚ[™È\ÜİYHš\œİYH\ÜÚYÛ™Y\ÜİYH[X™\œÈÈHÚ[˜YË[ˆX›\ÚH™YHÚ[\ÜİY\Ë‚
+2. Cross-renderer ImGui console, SDL capture and focus handling.
+3. Owned solo pause behavior with explicit multiplayer and netplay policy.
+4. Read-only session/player/objective commands through a bounded provider contract.
+5. Runtime gibs setter and explicit-slot player mutations, each with focused tests or harnesses.
+6. Controlled `restart` and `level` transitions with catalog validation and atomic provider tests.
+
+These may be separate PRs under one issue. A PR must not mix a renderer fix, several unrelated
+game adapters and diagnostic export merely because all are eventually visible in the console.
+
+### Acceptance gate
+
+- The registry and parser have ROM-free tests for valid input, invalid input, quoting, bounds,
+  completion metadata and stable result codes.
+- Requests execute at the documented game-thread boundary and exactly once.
+- Keyboard/mouse input is swallowed only while the console claims it; opening, typing and closing
+  do not generate gameplay edges.
+- Solo pause ownership restores the prior state; multiplayer/netplay behavior is explicit.
+- OpenGL and Metal display and operate the same console, and a no-ImGui build still compiles.
+- Initial read-only and mutation commands report resolved targets and refusals accurately.
+- Mutating commands are refused in netplay and unsupported stages instead of partially applying.
+- With the console closed and developer overlay disabled, no ImGui frame is built and existing
+  automated measurement runs remain idle and deterministic.
+
+## Workstream 2: player and entity inspector
+
+### Scope
+
+Inspector v1 is read-only and covers the state already available through honest APIs:
+
+- session: stage, difficulty, game tick, render frame, pause and netplay state;
+- all player slots: position, room, heading, health/armour, weapon/ammo and counters when present;
+- live enemies: `chrnum`, position, health, alertness and target-belief fields when present;
+- objectives and known world records, clearly labeled as static, derived or live; and
+- recent structured events plus one selected record's full typed detail.
+
+Props and doors should appear in v1 when the existing world API can identify them, but the UI
+must not imply that static placement data is live door state. A future live prop/door adapter can
+add fields without changing the inspector's identity and presence rules.
+
+### Snapshot contract
+
+Introduce a port-owned, versioned `GeDebugFrame`-style snapshot with:
+
+- schema version, capture sequence, stage ID, stage epoch, game tick and render frame;
+- effective renderer/difficulty/session flags;
+- bounded arrays for players, enemies, objectives/world records and recent events;
+- field-presence and source flags on every record family; and
+- total, captured and truncated counts for every bounded array.
+
+The producer copies at a settled-frame boundary. The UI never retains or dereferences a game
+pointer. Switching levels increments the epoch and invalidates selections from the prior stage.
+Selection follows stable IDs rather than list indices, which may be reordered or reused.
+
+The JSON diagnostic representation is a projection of this same snapshot. The UI and exporter
+must not maintain competing definitions of player/entity state.
+
+### User experience
+
+- Filter by kind, ID and near-player distance.
+- Select a player/entity and keep selection while that stable ID remains valid.
+- Show absent fields as unavailable and display the provider/source.
+- Highlight snapshot truncation and age.
+- Copy a safe semantic row or attach the selected record to the next diagnostic capture.
+- No edit fields, kill buttons, teleports or arbitrary property writes in inspector v1. Those are
+  commands, with command metadata and an audit result, if they are added later.
+
+### Delivery slices
+
+1. Versioned snapshot structures, provider interfaces and fake-provider tests.
+2. Player/enemy/objective capture at the settled-frame boundary.
+3. ImGui tables, filtering, stable selection and event history.
+4. Safe JSON projection consumed later by diagnostics.
+
+### Acceptance gate
+
+- The UI reads only port-owned snapshots and has no retained raw game pointers.
+- All four player slots are explicit; no current-player cursor is sampled.
+- Enemy selection survives list reordering and is invalidated on stage epoch change.
+- Absent fields, static data, derived data and live data are visibly distinct.
+- Bounds and truncation are tested and visible.
+- OpenGL and Metal show the same data, and capture cost is measured with the inspector closed and
+  open.
+- A ROM-free fake snapshot drives the complete table/filter/selection model in tests.
+- The safe JSON projection rejects raw pointers and unregistered free-form fields.
+
+## Workstream 3: one-click local diagnostic bundle
+
+### Meaning of one click
+
+An in-game **Capture diagnostics** action, plus a console alias, creates one new local directory,
+shows its path and states that nothing was uploaded. The directory is ready for human review and
+for import by `tools/collect_bug_report.py`.
+
+Publishing an issue remains a separate, explicit approval step. The game must not call GitHub,
+open a browser submission or silently attach files.
+
+### Current v1 implementation
+
+Desktop builds now reserve `F3` for a local diagnostic capture. The key is edge-triggered (SDL
+key repeat does not create multiple bundles), is consumed before gameplay input, and works even
+when the developer console owns keyboard input.
+
+The native v1 directory contains:
+
+- `report.md`: local-only report stub with the exact frame/tick/stage/difficulty;
+- `session.json`: schema version 1, platform/architecture/renderer, safe effective settings,
+  resolved input bindings, screenshot status and tested frame identity;
+- `state.json`: bounded player fields and objective statuses;
+- `events.jsonl`: the newest 64 typed event-bus records, oldest first; and
+- `screenshot.bmp`: the renderer-native scene capture.
+
+OpenGL reads the same pre-ImGui scene used by `GETV_SHOTFRAME`. Metal temporarily makes only the
+F3 frame's drawable readable, blits the game/postfx result to a private texture before ImGui, and
+restores `framebufferOnly` afterward. A simultaneous `GETV_SHOTFRAME` request remains independent.
+
+This is intentionally a **local capture format**, not yet the publication-ready bundle described
+by the acceptance gate below. The running binary does not currently export an authoritative
+build commit/compatibility ID, so those fields are explicit `null` values rather than guessed
+from the later collector checkout. Native v1 also does not yet create `manifest.json`,
+`commands.jsonl`, `inspector.json`, SHA-256 entries or a metadata-free PNG; those remain
+collector/schema follow-on work. `tools/collect_bug_report.py` remains the sanitization and
+PNG-normalization boundary before anything is shared.
+
+F3 also cannot diagnose a hard freeze once the main thread has stopped pumping SDL events.
+`GETV_STALLTRACE=1` now covers that gap with a diagnostic-only watchdog. The game thread publishes
+only integer phase/hotspot telemetry through SDL atomics; the watchdog thread never reads live game
+structures. If a macro phase does not advance for 250 ms it reports the phase, last room-load/LOS
+hotspot and bounded per-frame counters, repeating at most once per second until progress resumes.
+This is intended to localize a hang before a debugger/perf pass, not to replace stack sampling when
+the reported phase still contains too much code.
+
+### Renderer and GPU flight recorders
+
+The 1.0 tree also contains a deeper renderer-forensics layer created for the Intel Iris Xe hang
+investigation. It is deliberately dormant during normal play. Nothing is allocated or written
+unless the corresponding diagnostic setting is explicitly supplied.
+
+- `GETV_GPUFLIGHT=<path>` creates an mmap-backed rolling record of OpenGL submissions. Records carry
+  frame/draw serials, VBO sizes and hashes, shader/program identity, texture identity and hashes,
+  depth/blend/decal state, Fast3D command context and display-list provenance.
+- `GETV_GPUFLIGHT_PAYLOAD_VERTS=<n>` additionally retains exact VBO payloads for the selected vertex
+  count so a hardware batch can be compared byte-for-byte without recording every draw payload.
+- `GETV_FUNFLIGHT=<path>` records the renderer call chain (`gfx_run`, display-list execution,
+  flushes, `glBufferData`, `glDrawArrays`) and links each batch back to the GPU-flight serial.
+- `GETV_STALLTRACE=1` runs the low-frequency watchdog described above. On a sustained stall it
+  freezes the function-flight ring so a recoverable ten-second GPU hang cannot overwrite the
+  sub-second history that led into it.
+
+The companion tools are `decode_gpu_flight.py`, `decode_function_flight.py`,
+`map_gpu_hang_draw.py`, `analyze_frozen_gpu_hang.py`, `capture_gpu_hang.sh` and
+`run_gpu_hang_autocapture.sh`. The unattended launcher exists because a real GPU wedge can freeze
+the keyboard, mouse and desktop along with the game: it pre-authorizes the privileged capture,
+waits for the function ring to freeze and for i915's first-error state to name the same PID, then
+captures the evidence and terminates the game without requiring input during the stall.
+
+These raw flight files are local engineering evidence, not bug-report attachments. They can be
+hundreds of megabytes and may contain exact transient render buffers. Reduce them to bounded text
+with the decoder/analyzer tools before sharing anything. The full workflow and the 1.0 Intel case
+study are in [`RENDERER_TROUBLESHOOTING.md`](RENDERER_TROUBLESHOOTING.md).
+
+### Authoritative session manifest
+
+Add a versioned native `session.json`. It is authoritative for the binary and session that were
+actually tested:
+
+- diagnostic schema version and capture timestamp;
+- binary build commit and build compatibility ID;
+- platform, architecture and renderer reported by the running binary;
+- stage, difficulty, stage epoch, game tick and rendered frame;
+- effective runtime configuration, from an allowlist of non-secret settings;
+- developer-tool state and whether mutation commands were used;
+- artifact type, filename, byte count and SHA-256; and
+- truncation, unavailable-provider and capture-failure reasons.
+
+This corrects two limitations in the current collector. Its repository metadata describes the
+checkout running the Python tool, which may not be the checkout that built the game. Its
+`GETV_*` scan describes the collector process, which may not have inherited the game's effective
+configuration. After session import, the report should name these separately as **tested binary
+and session** versus **collector checkout and environment**.
+
+Unknown schema versions fail closed with a useful error. New optional fields may be added within
+a version, but changing meaning or accepting a new artifact family requires a schema bump and
+tests.
+
+### Bundle contents
+
+The one-click directory may contain only registered, bounded artifacts:
+
+| File | Contents |
+| --- | --- |
+| `report.md` | Local draft with session facts, capture contents and spaces for actual/expected/reproduction. |
+| `manifest.json` | Safety state and hashes for every staged artifact. |
+| `session.json` | Authoritative tested-binary and effective-session facts. |
+| `commands.jsonl` | Recent diagnostic-safe parsed commands and results; no raw input lines. |
+| `events.jsonl` | Recent registered events with tick/frame and typed integer fields. |
+| `inspector.json` | One bounded snapshot plus selected record, using the inspector schema. |
+| `screenshot.png` | Optional metadata-free scene capture taken before the developer overlay is drawn. |
+
+Missing optional artifacts are represented by a reason in the manifest. General stdout/stderr
+logs and crash reports remain optional inputs to the Python collector, which already sanitizes
+them. The native exporter should not copy arbitrary files.
+
+If the current native renderer has no safe metadata-free PNG path, add or adapt a separately
+reviewed permissive encoder with its notice, or make screenshot completion a focused prerequisite.
+Do not call a platform screenshot service that may capture other windows, and do not ship a BMP
+as a supposedly publication-ready attachment.
+
+### Collector and skill integration
+
+Extend `tools/collect_bug_report.py` with a session-import option that:
+
+- validates the schema, file set, bounds, hashes, UTF-8/JSON shape and artifact types;
+- refuses symlinks, traversal, unknown files, saves, archives and binary payloads;
+- treats the running game's manifest as authoritative for tested binary/renderer/stage/settings;
+- records collector checkout/system information under a separate key;
+- re-runs the publication guard over every imported artifact;
+- preserves existing manual log/crash/screenshot inputs; and
+- creates a fresh output directory rather than editing the source capture in place.
+
+Update `tools/tests/test_agent_tools.py`, `docs/AGENTIC_CONTRIBUTING.md` and
+`.agents/skills/report-goldeneye-bug/SKILL.md` in the focused PR that changes this evidence
+contract. The skill should tell a reporter to capture locally, inspect every file, search for a
+duplicate and obtain explicit approval for the exact issue body and attachments.
+
+### Acceptance gate
+
+- One in-game action creates a new review directory outside the repository and clearly states
+  that it was not uploaded.
+- The tested binary commit, renderer, stage/difficulty and effective settings come from the
+  running session, not the later collector process.
+- Structured command/event/inspector artifacts are bounded, schema-validated and safe by
+  construction.
+- The screenshot excludes the overlay and is a metadata-free PNG, or the manifest states why no
+  screenshot was captured.
+- The exporter never includes a ROM, save, quickstate, `base.zip`, extracted data, raw memory,
+  arbitrary file or archive.
+- Collector tests cover valid import, unknown schema, tampered hash, traversal/symlink, unexpected
+  artifact, oversized data, forbidden filename/content and internally inconsistent build/session
+  identity fields. A collector-checkout mismatch is allowed and reported, not treated as a bad
+  capture.
+- The existing manual collector workflow remains compatible.
+- The checked-in bug-report skill and contributing documentation match the implemented schema.
+
+## Optional high-value follow-ons
+
+Do not schedule these as implementation issues until the three prioritized workstreams have real
+use and measurements.
+
+### Reproduction recording and playback
+
+This becomes useful, rather than speculative, once commands have stable IDs, state has stable
+identity and diagnostics know the tested build. A shareable recording should contain only
+per-tick controller intent, frame delta, synchronized recordable commands, RNG fingerprints and
+versioned metadata. It must not contain a save, raw memory or extracted game data.
+
+The go/no-go question is practical: after console, inspector and bundles are used on real bugs,
+are important reports still hard to reproduce from their structured evidence? If yes, prototype
+recording against deterministic test runs and require a playback divergence report. If no, keep
+the smaller tools.
+
+The current publication checker rejects unexpected binary formats and archives. A future
+shareable recording needs an explicitly validated text/JSON representation or a deliberate,
+tested safety-policy update. Do not create an opaque `.gerepro` and bypass the checker.
+
+### Same-process quickstates
+
+These can speed local iteration but should initially be ephemeral, same-process and same-build.
+They require a subsystem save/restore registry, explicit invalidation and proof that pointers,
+renderer resources, audio state and external handles are not restored as stale bytes. They are
+never a bug-report attachment.
+
+### Portable semantic snapshots
+
+A portable snapshot would restore named semantic state through versioned adapters rather than
+copying RAM. It is much more expensive and can still fail to recreate AI, scripts, timers and
+renderer state. Consider it only if deterministic playback and local quickstates leave a measured
+diagnostic gap. A read-only semantic snapshot used as evidence is already provided by the
+inspector; restoration is a separate problem.
+
+## Delivery and coordination
+
+Use one tracking issue, three child issues and a proposed `Developer tooling v1` milestone. The
+repository currently has the standard `enhancement` and `documentation` labels but no dedicated
+developer-tools label; use existing labels initially rather than creating taxonomy for four
+issues.
+
+Recommended order:
+
+1. Land console registry/queue and cross-renderer UI/input behavior.
+2. Land verified read-only and mutation adapters.
+3. Land the read-only snapshot model and inspector.
+4. Land native diagnostic export, then collector/schema/skill integration.
+
+Before starting each PR, recheck current issues, PRs and local platform work. Console UI/input is
+especially likely to overlap launcher, SDL input and renderer changes. Rebase onto current `main`
+and keep each PR at one abstraction boundary.
+
+The existing bot-focused `docs/ROADMAP.md` should receive only a short link after this plan is
+accepted; duplicating this architecture there would create two sources of truth.
+
+## Review decisions
+
+Approve this plan only if the maintainer agrees with all of the following:
+
+- the modern console is port-owned and separate from Rare's original debug-menu UI;
+- initial mutation commands are narrow, explicit-slot and blocked in netplay;
+- console opening uses owned pause semantics and never leaks typed input into gameplay;
+- OpenGL and Metal are both part of console/inspector acceptance, while no-ImGui builds remain
+  supported;
+- the inspector is read-only and snapshot-based, with stable IDs and honest absent fields;
+- one-click diagnostics means local capture, not automatic publication;
+- the running session is authoritative for tested build/configuration metadata;
+- diagnostic exports never contain saves, quickstates, raw memory, archives or arbitrary files;
+- the three workstreams may use several focused PRs instead of one large implementation PR; and
+- reproduction playback and state restoration remain optional until real usage demonstrates the
+  additional value.
+
+If any of those decisions should change, revise this document and the corresponding issue draft
+before creating GitHub issues. Once accepted, create the milestone and tracking issue first, add
+the assigned issue numbers to the child drafts, then publish the three child issues.

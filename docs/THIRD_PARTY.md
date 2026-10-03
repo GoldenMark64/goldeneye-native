@@ -24,7 +24,7 @@ Last verified 2026-08-22 against the working tree and against upstream over the 
 | Files fetched | 15 |
 | Fetch script | `tools/fetch-thirdparty.sh` |
 | File list | `getv/patches/thirdparty/MANIFEST` |
-| Local changes | `getv/patches/thirdparty/0001-getv-port-layer.patch` |
+| Local changes | ordered patch stack under `getv/patches/thirdparty/` |
 
 To build, run this once from the repository root:
 
@@ -33,9 +33,9 @@ tools/fetch-thirdparty.sh
 ```
 
 It clones sm64ex at the pinned commit, copies the fifteen files into place, and applies the
-patch that carries every change this project made to them. `tools/fetch-thirdparty.sh verify`
-re-derives all fifteen files from the pin and the patch and compares them byte for byte against
-what is on disk.
+ordered patch stack that carries this project's changes. `tools/fetch-thirdparty.sh verify`
+re-derives all fifteen files from the pin plus that patch stack and compares them byte for byte
+against what is on disk.
 
 ---
 
@@ -146,11 +146,38 @@ is why it is fetched rather than kept.
 
 ## 6. The patch
 
-`getv/patches/thirdparty/0001-getv-port-layer.patch` is a single unified diff, roughly 298 KB,
-from the pinned upstream files to this project's versions. It is generated with **zero context
-lines** (`diff -U0`). Zero context is safe here because the patch is only ever applied to one
+`getv/patches/thirdparty/0001-getv-port-layer.patch` is the historical baseline diff from the
+pinned upstream files to the established GoldenEye port. It is generated with **zero context
+lines** (`diff -u0`). Zero context is safe here because the patch is only ever applied to one
 exact commit, so there is nothing for context to disambiguate, and it keeps unmodified upstream
 lines out of a file the repository does distribute.
+
+Later focused fixes may live as numerically ordered overlay patches in the same directory.
+Keeping those changes separate prevents a tiny renderer repair from marking the entire historical
+baseline patch as changed for safety review. `0002-dynamic-texture-refresh.patch`, for example,
+contains only the cache-hit rule needed to re-upload mutable textures sourced from the game's
+transient graphics buffers.
+
+For 1.0, `0002-baseline-catchup-1.0.patch` also preserves a small set of pre-overlay renderer
+diagnostic/state seams without rewriting the already-published historical `0001`. The public
+baseline plus that catch-up and overlays `0002-dynamic-texture-refresh` through
+`0007-function-submission-flight-recorder` was reconstructed in a clean scratch tree and matched
+all fifteen working Fast3D/mixer files byte-for-byte.
+
+`0006-perfect-dark-renderer-ab.patch` is a deliberately opt-in compatibility/backend experiment
+adapted from `perfect-dark-pc-port/perfect_dark` commit
+`514bf7affd3259b7919165201342ff81a026d92c`, specifically `port/fast3d/gfx_opengl.cpp`. That
+project is MIT-licensed; the retained notice is in `LICENSES/perfect-dark-port-MIT.txt`.
+
+The overlay takes only backend-generation ideas that can sit behind GoldenEye's existing Fast3D
+frontend: a desktop GL 3.3 compatibility context, GLSL 1.30 `in`/`out`/`texture` vocabulary, a
+dedicated VAO, `GL_RGBA8` texture storage and an explicit end-of-frame `glFlush()`. It does **not**
+import Perfect Dark's vertex format, display lists, game renderer frontend or game code. It is
+enabled only with `GETV_PD_RENDERER=1` / `pd_renderer = 1`; the 1.0 default is off.
+
+This overlay was useful as a controlled A/B during the 1.0 Intel GPU-hang investigation, but it
+did not cure that hang. It remains available for compatibility testing and renderer diagnosis,
+not as the stability fix.
 
 The patch is the substance of the port's rendering work, not a thin adaptation layer. Across the
 fifteen files it introduces 70 distinct `GETV_*` switches and diagnostic probes. The corrections
@@ -167,9 +194,11 @@ that matter most for output correctness are:
 - `GETV_PROBE_AFTER` and the surrounding probe family - the instrumentation used to measure all
   of the above.
 
-The remainder are listed in the patch itself. `tools/fetch-thirdparty.sh regen` rewrites the
-patch from the current working tree; run it after editing any manifest file, because the patch
-is the only place such an edit is recorded.
+The remainder are listed in the patch files themselves. `tools/fetch-thirdparty.sh regen`
+rewrites only the `0001` historical baseline: it first reverse-applies the focused overlays in a
+temporary comparison tree, regenerates `0001`, then `verify` reapplies the complete stack. Add a
+new focused overlay instead when the intent is to keep a small new renderer fix independently
+reviewable.
 
 ## 7. Terms
 

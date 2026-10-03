@@ -1,0 +1,180 @@
+--- a/getv/port/fast3d/gfx_opengl.c
++++ b/getv/port/fast3d/gfx_opengl.c
+@@ -121,0 +122,15 @@
++static GLuint ge_pd_vao = 0;
++
++/* Renderer A/B adapted from perfect-dark-pc-port/perfect_dark @
++ * 514bf7affd3259b7919165201342ff81a026d92c, port/fast3d/gfx_opengl.cpp
++ * (MIT, Copyright (c) 2022 Ryan Dwyer; see LICENSES/perfect-dark-port-MIT.txt).
++ * GoldenEye's vertex/Fast3D frontend is deliberately retained because the Rare games use
++ * incompatible Vtx layouts; this gate changes only the backend generation/state profile. */
++static bool ge_pd_renderer_mode(void) {
++    static int resolved = -1;
++    if (resolved < 0) {
++        const char *e = getenv("GETV_PD_RENDERER");
++        resolved = (e && *e == '1') ? 1 : 0;
++    }
++    return resolved != 0;
++}
+@@ -151,2 +166,5 @@
+-        glEnableVertexAttribArray(prg->attrib_locations[i]);
+-        glVertexAttribPointer(prg->attrib_locations[i], prg->attrib_sizes[i], GL_FLOAT, GL_FALSE, num_floats * sizeof(float), (void *) (pos * sizeof(float)));
++        if (prg->attrib_locations[i] >= 0) {
++            glEnableVertexAttribArray(prg->attrib_locations[i]);
++            glVertexAttribPointer(prg->attrib_locations[i], prg->attrib_sizes[i], GL_FLOAT, GL_FALSE,
++                                  num_floats * sizeof(float), (void *) (pos * sizeof(float)));
++        }
+@@ -401,0 +420,2 @@
++    append_line(vs_buf, &vs_len, "#define GE_ATTR attribute");
++    append_line(vs_buf, &vs_len, "#define GE_VARY varying");
+@@ -403 +423,13 @@
+-    append_line(vs_buf, &vs_len, "#version 120");
++    if (ge_pd_renderer_mode()) {
++        /* Perfect Dark's backend moved this renderer family onto GLSL 1.30+.
++         * Keep GoldenEye's combiner formula and VBO layout, but compile that same logic
++         * using the newer qualifier vocabulary so this is a backend A/B rather than a
++         * game/display-list rewrite. */
++        append_line(vs_buf, &vs_len, "#version 130");
++        append_line(vs_buf, &vs_len, "#define GE_ATTR in");
++        append_line(vs_buf, &vs_len, "#define GE_VARY out");
++    } else {
++        append_line(vs_buf, &vs_len, "#version 120");
++        append_line(vs_buf, &vs_len, "#define GE_ATTR attribute");
++        append_line(vs_buf, &vs_len, "#define GE_VARY varying");
++    }
+@@ -405 +437 @@
+-    append_line(vs_buf, &vs_len, "attribute vec4 aVtxPos;");
++    append_line(vs_buf, &vs_len, "GE_ATTR vec4 aVtxPos;");
+@@ -407,2 +439,2 @@
+-        append_line(vs_buf, &vs_len, "attribute vec2 aTexCoord;");
+-        append_line(vs_buf, &vs_len, "varying vec2 vTexCoord;");
++        append_line(vs_buf, &vs_len, "GE_ATTR vec2 aTexCoord;");
++        append_line(vs_buf, &vs_len, "GE_VARY vec2 vTexCoord;");
+@@ -419,2 +451,2 @@
+-        append_line(vs_buf, &vs_len, "attribute vec3 aViewPos;");
+-        append_line(vs_buf, &vs_len, "varying vec3 vViewPos;");
++        append_line(vs_buf, &vs_len, "GE_ATTR vec3 aViewPos;");
++        append_line(vs_buf, &vs_len, "GE_VARY vec3 vViewPos;");
+@@ -424,2 +456,2 @@
+-        append_line(vs_buf, &vs_len, "attribute vec4 aFog;");
+-        append_line(vs_buf, &vs_len, "varying vec4 vFog;");
++        append_line(vs_buf, &vs_len, "GE_ATTR vec4 aFog;");
++        append_line(vs_buf, &vs_len, "GE_VARY vec4 vFog;");
+@@ -429,2 +461,2 @@
+-        vs_len += sprintf(vs_buf + vs_len, "attribute vec%d aInput%d;\n", opt_alpha ? 4 : 3, i + 1);
+-        vs_len += sprintf(vs_buf + vs_len, "varying vec%d vInput%d;\n", opt_alpha ? 4 : 3, i + 1);
++        vs_len += sprintf(vs_buf + vs_len, "GE_ATTR vec%d aInput%d;\n", opt_alpha ? 4 : 3, i + 1);
++        vs_len += sprintf(vs_buf + vs_len, "GE_VARY vec%d vInput%d;\n", opt_alpha ? 4 : 3, i + 1);
+@@ -452,0 +485,3 @@
++    append_line(fs_buf, &fs_len, "#define GE_VARY varying");
++    append_line(fs_buf, &fs_len, "#define GE_TEXTURE texture2D");
++    append_line(fs_buf, &fs_len, "#define GE_FRAGCOLOR gl_FragColor");
+@@ -454 +489,12 @@
+-    append_line(fs_buf, &fs_len, "#version 120");
++    if (ge_pd_renderer_mode()) {
++        append_line(fs_buf, &fs_len, "#version 130");
++        append_line(fs_buf, &fs_len, "#define GE_VARY in");
++        append_line(fs_buf, &fs_len, "#define GE_TEXTURE texture");
++        append_line(fs_buf, &fs_len, "out vec4 geFragColor;");
++        append_line(fs_buf, &fs_len, "#define GE_FRAGCOLOR geFragColor");
++    } else {
++        append_line(fs_buf, &fs_len, "#version 120");
++        append_line(fs_buf, &fs_len, "#define GE_VARY varying");
++        append_line(fs_buf, &fs_len, "#define GE_TEXTURE texture2D");
++        append_line(fs_buf, &fs_len, "#define GE_FRAGCOLOR gl_FragColor");
++    }
+@@ -458 +504 @@
+-        append_line(fs_buf, &fs_len, "varying vec2 vTexCoord;");
++        append_line(fs_buf, &fs_len, "GE_VARY vec2 vTexCoord;");
+@@ -461 +507 @@
+-        append_line(fs_buf, &fs_len, "varying vec4 vFog;");
++        append_line(fs_buf, &fs_len, "GE_VARY vec4 vFog;");
+@@ -464 +510 @@
+-        fs_len += sprintf(fs_buf + fs_len, "varying vec%d vInput%d;\n", opt_alpha ? 4 : 3, i + 1);
++        fs_len += sprintf(fs_buf + fs_len, "GE_VARY vec%d vInput%d;\n", opt_alpha ? 4 : 3, i + 1);
+@@ -505 +551 @@
+-            append_line(fs_buf, &fs_len, "#define TEX_OFFSET(off) texture2D(tex, texCoord - (off)/texSize)");
++            append_line(fs_buf, &fs_len, "#define TEX_OFFSET(off) GE_TEXTURE(tex, texCoord - (off)/texSize)");
+@@ -518 +564 @@
+-            append_line(fs_buf, &fs_len, "return texture2D(tex, uv);");
++            append_line(fs_buf, &fs_len, "return GE_TEXTURE(tex, uv);");
+@@ -522 +568 @@
+-            append_line(fs_buf, &fs_len, "return texture2D(tex, uv);");
++            append_line(fs_buf, &fs_len, "return GE_TEXTURE(tex, uv);");
+@@ -551 +597 @@
+-        append_line(fs_buf, &fs_len, "float parallaxHeight = texture2D(uTexHeight, vTexCoord).r - 0.5;");
++        append_line(fs_buf, &fs_len, "float parallaxHeight = GE_TEXTURE(uTexHeight, vTexCoord).r - 0.5;");
+@@ -604 +650 @@
+-        append_line(fs_buf, &fs_len, "gl_FragColor = texel;");
++        append_line(fs_buf, &fs_len, "GE_FRAGCOLOR = texel;");
+@@ -606 +652 @@
+-        append_line(fs_buf, &fs_len, "gl_FragColor = vec4(texel, 1.0);");
++        append_line(fs_buf, &fs_len, "GE_FRAGCOLOR = vec4(texel, 1.0);");
+@@ -614 +660 @@
+-            append_line(fs_buf, &fs_len, "gl_FragColor = vec4(texVal0.rgb, 1.0);");
++            append_line(fs_buf, &fs_len, "GE_FRAGCOLOR = vec4(texVal0.rgb, 1.0);");
+@@ -616 +662 @@
+-            append_line(fs_buf, &fs_len, "gl_FragColor = vec4(vInput1.rgb, 1.0);");
++            append_line(fs_buf, &fs_len, "GE_FRAGCOLOR = vec4(vInput1.rgb, 1.0);");
+@@ -825 +871,2 @@
+-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba32_buf);
++    glTexImage2D(GL_TEXTURE_2D, 0, ge_pd_renderer_mode() ? GL_RGBA8 : GL_RGBA,
++                 width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba32_buf);
+@@ -1635,0 +1683,10 @@
++    if (ge_pd_renderer_mode()) {
++        if (is_es || vmajor < 3) {
++            sys_fatal("GETV_PD_RENDERER=1 requires desktop OpenGL 3.x+. Reported: %s%d.%d",
++                      is_es ? "ES" : "", vmajor, vminor);
++        }
++        printf("[getv][pdrender] enabled: PD-style GL3 backend profile (GE Fast3D frontend retained)\n");
++        printf("[getv][pdrender] GLSL 130 + dedicated VAO + RGBA8 textures + end-frame glFlush\n");
++        fflush(stdout);
++    }
++
+@@ -1638,0 +1696,7 @@
++
++#ifndef USE_GLES
++    if (ge_pd_renderer_mode()) {
++        glGenVertexArrays(1, &ge_pd_vao);
++        glBindVertexArray(ge_pd_vao);
++    }
++#endif
+@@ -1947,0 +2012,6 @@
++
++    /* Perfect Dark's backend explicitly glFlush()es at end_frame. Keep this behind the
++     * renderer A/B gate so the control path remains byte-for-byte behaviorally unchanged. */
++    if (ge_pd_renderer_mode()) {
++        glFlush();
++    }
+@@ -1953,0 +2024,6 @@
++#ifndef USE_GLES
++    if (ge_pd_vao != 0) {
++        glDeleteVertexArrays(1, &ge_pd_vao);
++        ge_pd_vao = 0;
++    }
++#endif
+--- a/getv/port/fast3d/gfx_sdl2.c
++++ b/getv/port/fast3d/gfx_sdl2.c
+@@ -257,0 +258,22 @@
++#ifdef GE_PLATFORM_DESKTOP
++    /* GETV_PD_RENDERER=1: controlled Perfect Dark renderer A/B.
++     *
++     * Adapted from perfect-dark-pc-port/perfect_dark @
++     * 514bf7affd3259b7919165201342ff81a026d92c (MIT; see
++     * LICENSES/perfect-dark-port-MIT.txt).
++     *
++     * Perfect Dark's current PC backend is built around a newer GL/GLSL generation
++     * than this port's inherited sm64ex-style GL2 path.  Do not switch the whole game
++     * globally: request a modern compatibility context only for the experiment so the
++     * existing GoldenEye Fast3D frontend and postfx remain legal while gfx_opengl.c can
++     * exercise the PD-style shader/VAO path below it. */
++    {
++        const char *pd = getenv("GETV_PD_RENDERER");
++        if (pd && *pd == '1') {
++            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
++            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
++            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
++        }
++    }
++#endif
++

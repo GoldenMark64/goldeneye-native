@@ -1,0 +1,160 @@
+--- a/src/game/bg.c
++++ b/src/game/bg.c
+@@ -22,6 +22,13 @@
+ #include "stan.h"
+ #include "explosion.h"
+ #include "bgroomtrans.h"
++#ifdef GE_PORT_NATIVE
++extern void gePortGdlSourceRegister(const void *target, u32 kind, s32 id,
++                                    const void *owner, u32 aux, const char *name);
++#define GE_GDL_SOURCE_BG_MISC       1u
++#define GE_GDL_SOURCE_BG_PRIMARY    2u
++#define GE_GDL_SOURCE_BG_SECONDARY  3u
++#endif
+ 
+ /* GETV_LOADTRACE -- see gePortLoadTrace() in getv/port/src/port_support.c.
+  *
+@@ -1930,6 +1937,10 @@
+ 
+     if (dword_CODE_bss_8007FF88 == 1)
+     {
++#ifdef GE_PORT_NATIVE
++        gePortGdlSourceRegister(dword_CODE_bss_8007BF98, GE_GDL_SOURCE_BG_MISC,
++                                -1, NULL, 0, "bg.misc");
++#endif
+         gSPDisplayList(arg0++, dword_CODE_bss_8007BF98);
+     }
+     else
+@@ -3951,6 +3962,11 @@
+             gdl = applyRoomMatrixToDisplayList(gdl, room_index);
+ 
+             gSPSegment(gdl++, SPSEGMENT_BG_VTX, OS_K0_TO_PHYSICAL(g_BgRoomInfo[room_index].vertices));
++#ifdef GE_PORT_NATIVE
++            gePortGdlSourceRegister(g_BgRoomInfo[room_index].ptr_expanded_mapping_info,
++                                    GE_GDL_SOURCE_BG_PRIMARY, room_index, NULL, 0,
++                                    "bg.primary");
++#endif
+             gSPDisplayList(gdl++, OS_K0_TO_PHYSICAL(g_BgRoomInfo[room_index].ptr_expanded_mapping_info));
+ 
+             // Set the room's state to "loaded"
+@@ -3986,6 +4002,11 @@
+             gdl = applyRoomMatrixToDisplayList(gdl, room_index);
+ 
+             gSPSegment(gdl++, SPSEGMENT_BG_VTX, OS_K0_TO_PHYSICAL(g_BgRoomInfo[room_index].vertices));
++#ifdef GE_PORT_NATIVE
++            gePortGdlSourceRegister(g_BgRoomInfo[room_index].ptr_secondary_expanded_mapping_info,
++                                    GE_GDL_SOURCE_BG_SECONDARY, room_index, NULL, 0,
++                                    "bg.secondary");
++#endif
+             gSPDisplayList(gdl++, OS_K0_TO_PHYSICAL(g_BgRoomInfo[room_index].ptr_secondary_expanded_mapping_info));
+ 
+             // Set the room's state to "loaded"
+--- a/src/game/model.c
++++ b/src/game/model.c
+@@ -18,6 +18,16 @@
+ #include "objecthandler.h"
+ #include "quaternion.h"
+ #include "random.h"
++#ifdef GE_PORT_NATIVE
++extern void gePortGdlSourceRegister(const void *target, u32 kind, s32 id,
++                                    const void *owner, u32 aux, const char *name);
++#define GE_GDL_SOURCE_MODEL_CONVERTED           10u
++#define GE_GDL_SOURCE_MODEL_GUNDL_PRIMARY       11u
++#define GE_GDL_SOURCE_MODEL_GUNDL_SECONDARY     12u
++#define GE_GDL_SOURCE_MODEL_COLLISION_DYNAMIC   13u
++#define GE_GDL_SOURCE_MODEL_COLLISION_SECONDARY 14u
++#define GE_GDL_SOURCE_MODEL_ROTTEX_PRIMARY      15u
++#endif
+ 
+ /* GETV_LOADTRACE -- see gePortLoadTrace() in getv/port/src/port_support.c.
+  *
+@@ -4691,11 +4701,19 @@
+                 modelApplyRenderModeType2(renderdata);
+             }
+ 
++#ifdef GE_PORT_NATIVE
++            gePortGdlSourceRegister(rodata->Primary, GE_GDL_SOURCE_MODEL_GUNDL_PRIMARY,
++                                    rodata->ModelType, arg1, arg1->Opcode, NULL);
++#endif
+             gSPDisplayList(renderdata->gdl++, rodata->Primary);
+ 
+             if ((rodata->ModelType == 3) && rodata->Secondary)
+             {
+                 modelApplyRenderModeType3(renderdata, 0);
++#ifdef GE_PORT_NATIVE
++                gePortGdlSourceRegister(rodata->Secondary, GE_GDL_SOURCE_MODEL_GUNDL_SECONDARY,
++                                        rodata->ModelType, arg1, arg1->Opcode, NULL);
++#endif
+                 gSPDisplayList(renderdata->gdl++, rodata->Secondary);
+             }
+         }
+@@ -4710,6 +4728,10 @@
+             }
+ 
+             modelApplyRenderModeType4(renderdata, 0);
++#ifdef GE_PORT_NATIVE
++            gePortGdlSourceRegister(rodata->Secondary, GE_GDL_SOURCE_MODEL_GUNDL_SECONDARY,
++                                    rodata->ModelType, arg1, arg1->Opcode, NULL);
++#endif
+             gSPDisplayList(renderdata->gdl++, rodata->Secondary);
+         }
+     }
+@@ -5030,11 +5052,23 @@
+ 
+                 gSPSegment(renderdata->gdl++, SPSEGMENT_MODEL_VTX, osVirtualToPhysical(rwdata->DisplayListCollisions.Vertices));
+ 
++#ifdef GE_PORT_NATIVE
++                gePortGdlSourceRegister(rwdata->DisplayListCollisions.gdl,
++                                        GE_GDL_SOURCE_MODEL_COLLISION_DYNAMIC,
++                                        rodata->DisplayListCollisions.ModelType, node,
++                                        node->Opcode, NULL);
++#endif
+                 gSPDisplayList(renderdata->gdl++, rwdata->DisplayListCollisions.gdl);
+ 
+                 if (rodata->DisplayListCollisions.ModelType == 3 && rodata->DisplayListCollisions.Secondary)
+                 {
+                     modelApplyRenderModeType3(renderdata, FALSE);
++#ifdef GE_PORT_NATIVE
++                    gePortGdlSourceRegister(rodata->DisplayListCollisions.Secondary,
++                                            GE_GDL_SOURCE_MODEL_COLLISION_SECONDARY,
++                                            rodata->DisplayListCollisions.ModelType, node,
++                                            node->Opcode, NULL);
++#endif
+                     gSPDisplayList(renderdata->gdl++, rodata->DisplayListCollisions.Secondary);
+                 }
+             }
+@@ -5057,6 +5091,12 @@
+ 
+                 modelApplyRenderModeType4(renderdata, FALSE);
+ 
++#ifdef GE_PORT_NATIVE
++                gePortGdlSourceRegister(rodata->DisplayListCollisions.Secondary,
++                                        GE_GDL_SOURCE_MODEL_COLLISION_SECONDARY,
++                                        rodata->DisplayListCollisions.ModelType, node,
++                                        node->Opcode, NULL);
++#endif
+                 gSPDisplayList(renderdata->gdl++, rodata->DisplayListCollisions.Secondary);
+             }
+         }
+@@ -5109,6 +5149,10 @@
+             gSPSegment(renderdata->gdl++, SPSEGMENT_MODEL_COL1, osVirtualToPhysical(rodata->BaseAddr));
+ 
+             gDPSetFogColor(renderdata->gdl++, 0x00, 0x00, 0x00, 0x00);
++#ifdef GE_PORT_NATIVE
++            gePortGdlSourceRegister(rodata->Primary, GE_GDL_SOURCE_MODEL_ROTTEX_PRIMARY,
++                                    0, node, node->Opcode, NULL);
++#endif
+             gSPDisplayList(renderdata->gdl++, rodata->Primary);
+ 
+             for (i = 0; i < rodata->numVertices; i++)
+@@ -7259,6 +7303,10 @@
+                 return NULL;
+             }
+             bcopy(final_src, blk, final_cmds * sizeof(Gfx));
++#ifdef GE_PORT_NATIVE
++            gePortGdlSourceRegister(blk, GE_GDL_SOURCE_MODEL_CONVERTED,
++                                    0, NULL, 0, ge_model_convert_name);
++#endif
+             out = blk;
+         }
+     }

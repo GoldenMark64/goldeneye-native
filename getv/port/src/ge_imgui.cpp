@@ -15,14 +15,153 @@
 
 #include "ge_imgui.h"
 #include "ge_imgui_policy.h"
+#include "ge_diagnostic_capture.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(GE_WITH_IMGUI)
-
 #include <SDL2/SDL.h>
+
+#if defined(RAPI_METAL)
+#include "../fast3d/gfx_metal.h"
+#else
+#define GL_GLEXT_PROTOTYPES 1
+#if defined(_WIN32)
+#define GLEW_STATIC
+#include <GL/glew.h>
+#endif
+#if defined(USE_GLES)
+#include <SDL2/SDL_opengles2.h>
+#else
+#include <SDL2/SDL_opengl.h>
+#endif
+#endif
+
+namespace {
+
+int ge_diagnostic_event(void *sdl_event)
+{
+    if (sdl_event == NULL) return 0;
+    SDL_Event *event = (SDL_Event *)sdl_event;
+
+    if ((event->type == SDL_KEYDOWN || event->type == SDL_KEYUP) &&
+        event->key.keysym.scancode == SDL_SCANCODE_F3) {
+        if (event->type == SDL_KEYDOWN && event->key.repeat == 0) {
+            gePortDiagnosticRequest();
+#if defined(RAPI_METAL)
+            if (gePortDiagnosticScreenshotPath() != NULL) {
+                gePortMetalArmDiagnosticCapture();
+            }
+#endif
+        }
+        return 1;
+    }
+    return 0;
+}
+
+#if !defined(RAPI_METAL)
+int ge_diagnostic_write_bmp(const char *path, const unsigned char *pixels, int width, int height)
+{
+    const int pad = (4 - (width * 3) % 4) % 4;
+    const unsigned long image_size = (unsigned long)(width * 3 + pad) * height;
+    const unsigned long file_size = 54 + image_size;
+    static const unsigned char zero[3] = {0, 0, 0};
+    unsigned char header[54] = {0};
+    FILE *out = fopen(path, "wb");
+
+    if (out == NULL) {
+        fprintf(stderr, "[getv][diag] screenshot fopen failed for '%s': %s\n",
+                path, strerror(errno));
+        fflush(stderr);
+        return 0;
+    }
+
+    header[0] = 'B'; header[1] = 'M';
+    header[2] = (unsigned char)file_size;
+    header[3] = (unsigned char)(file_size >> 8);
+    header[4] = (unsigned char)(file_size >> 16);
+    header[5] = (unsigned char)(file_size >> 24);
+    header[10] = 54; header[14] = 40;
+    header[18] = (unsigned char)width;
+    header[19] = (unsigned char)(width >> 8);
+    header[20] = (unsigned char)(width >> 16);
+    header[21] = (unsigned char)(width >> 24);
+    header[22] = (unsigned char)height;
+    header[23] = (unsigned char)(height >> 8);
+    header[24] = (unsigned char)(height >> 16);
+    header[25] = (unsigned char)(height >> 24);
+    header[26] = 1; header[28] = 24;
+    header[34] = (unsigned char)image_size;
+    header[35] = (unsigned char)(image_size >> 8);
+    header[36] = (unsigned char)(image_size >> 16);
+    header[37] = (unsigned char)(image_size >> 24);
+    fwrite(header, 1, sizeof header, out);
+
+    for (int y = 0; y < height; y++) {
+        const unsigned char *row = pixels + (size_t)y * width * 3;
+        for (int x = 0; x < width; x++) {
+            unsigned char bgr[3] = {row[x * 3 + 2], row[x * 3 + 1], row[x * 3]};
+            fwrite(bgr, 1, sizeof bgr, out);
+        }
+        if (pad) fwrite(zero, 1, (size_t)pad, out);
+    }
+
+    if (fclose(out) != 0) {
+        fprintf(stderr, "[getv][diag] screenshot fclose failed for '%s': %s\n",
+                path, strerror(errno));
+        fflush(stderr);
+        return 0;
+    }
+    return 1;
+}
+
+void ge_diagnostic_capture_opengl(void)
+{
+    const char *path = gePortDiagnosticScreenshotPath();
+    SDL_Window *window;
+    unsigned char *pixels;
+    GLint old_pack_alignment = 4;
+    int width = 0;
+    int height = 0;
+    int ok;
+
+    if (path == NULL) return;
+
+    window = SDL_GL_GetCurrentWindow();
+    if (window != NULL) SDL_GL_GetDrawableSize(window, &width, &height);
+    if (width <= 0 || height <= 0) {
+        gePortDiagnosticScreenshotComplete(0, 0, 0);
+        return;
+    }
+
+    pixels = (unsigned char *)malloc((size_t)width * height * 3);
+    if (pixels == NULL) {
+        gePortDiagnosticScreenshotComplete(0, 0, 0);
+        return;
+    }
+
+    glGetIntegerv(GL_PACK_ALIGNMENT, &old_pack_alignment);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    glPixelStorei(GL_PACK_ALIGNMENT, old_pack_alignment);
+
+    ok = ge_diagnostic_write_bmp(path, pixels, width, height);
+    free(pixels);
+    gePortDiagnosticScreenshotComplete(ok, width, height);
+    if (ok) {
+        fprintf(stderr, "[getv][diag] screenshot -> %s (%dx%d)\n", path, width, height);
+        fflush(stderr);
+    }
+}
+#else
+void ge_diagnostic_capture_opengl(void) {}
+#endif
+
+} /* namespace */
+
+#if defined(GE_WITH_IMGUI)
 
 #include "ge_console.h"
 #include "ge_console_input.h"
@@ -42,16 +181,6 @@ extern "C" int  gePortMetalImguiRenderDrawData(void *draw_data);
 extern "C" void gePortMetalImguiEndPass(void);
 extern "C" void gePortMetalImguiShutdown(void);
 #else
-#define GL_GLEXT_PROTOTYPES 1
-#if defined(_WIN32)
-#define GLEW_STATIC
-#include <GL/glew.h>
-#endif
-#if defined(USE_GLES)
-#include <SDL2/SDL_opengles2.h>
-#else
-#include <SDL2/SDL_opengl.h>
-#endif
 #include "imgui_impl_opengl2.h"
 #endif
 
@@ -399,6 +528,7 @@ extern "C" void gePortImguiNewFrame(void)
 
 extern "C" void gePortImguiRender(void)
 {
+    ge_diagnostic_capture_opengl();
     if (!g_active || !g_frame_open) return;
     g_frame_open = false;
     ImGui::Render();
@@ -490,6 +620,7 @@ extern "C" void gePortImguiRender(void)
 
 extern "C" int gePortImguiEvent(void *sdl_event)
 {
+    if (ge_diagnostic_event(sdl_event)) return 1;
     if (!g_active || sdl_event == NULL) return 0;
     SDL_Event *event = (SDL_Event *)sdl_event;
 
@@ -582,8 +713,8 @@ extern "C" void gePortImguiInit(void *window, void *glctx)
 }
 
 extern "C" void gePortImguiNewFrame(void) {}
-extern "C" void gePortImguiRender(void) {}
-extern "C" int  gePortImguiEvent(void *sdl_event) { (void)sdl_event; return 0; }
+extern "C" void gePortImguiRender(void) { ge_diagnostic_capture_opengl(); }
+extern "C" int  gePortImguiEvent(void *sdl_event) { return ge_diagnostic_event(sdl_event); }
 extern "C" void gePortImguiShutdown(void) {}
 extern "C" int  gePortImguiActive(void) { return 0; }
 extern "C" int  gePortImguiConsoleOpen(void) { return 0; }

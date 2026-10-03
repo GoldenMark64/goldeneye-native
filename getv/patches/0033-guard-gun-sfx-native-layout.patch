@@ -1,0 +1,67 @@
+--- a/src/game/chraction.c
++++ b/src/game/chraction.c
+@@ -40,6 +40,7 @@
+ s32 g_geChrDbgSpawnStan;
+ s32 g_geChrDbgSpawnHdr;
+ extern s32 ge_chr_dbg_on(void);
++extern int gePortAudioDebugLevel(void);
+ extern void gePortGibsRecordHit(const void *character, s32 cause, f32 damage,
+                                 f32 impulse_x, f32 impulse_y, f32 impulse_z);
+ extern s32 gePortGibsMarkCharacter(const void *character);
+@@ -5716,18 +5717,32 @@
+ void sub_GAME_7F02BFE4(ChrRecord *self, s32 arg1, s32 arg2)
+ {
+     PropRecord *prop;
++#ifndef GE_PORT_NATIVE
+     ChrRecord *temp_v1;
++#endif
+     s32 phi_a1;
+     u8 sp33;
+     s16 sp30;
+     ALSoundState **phi_a2;
++    s32 weapon_item;
+ 
+     prop = chrGetEquippedWeaponProp(self, arg1);
++#ifdef GE_PORT_NATIVE
++    /*
++     * The retail expression reaches the equipped WeaponObjRecord's weaponnum
++     * through the ChrRecord action-union layout. That alias only lines up on
++     * the original 32-bit layout; native pointer widening moves weaponnum.
++     * Read the semantic weapon field directly on native hosts.
++     */
++    weapon_item = (s32)prop->weapon->weaponnum;
++#else
+     temp_v1 = prop->chr;
++    weapon_item = (s32)temp_v1->act_attack.attack_item;
++#endif
+     phi_a1 = 0;
+ 
+-    sp33 = bondwalkItemGetSoundTriggerRate((s32) temp_v1->act_attack.attack_item);
+-    sp30 = bondwalkItemGetSound((s32) temp_v1->act_attack.attack_item);
++    sp33 = bondwalkItemGetSoundTriggerRate(weapon_item);
++    sp30 = bondwalkItemGetSound(weapon_item);
+ 
+     if (arg2 != 0)
+     {
+@@ -5777,7 +5792,20 @@
+ 
+             if (phi_a2 != NULL)
+             {
+-                sndPlaySfx(g_musicSfxBufferPtr, sp30, (ALSoundState *) phi_a2);
++                ALSoundState *started = sndPlaySfx(g_musicSfxBufferPtr, sp30, (ALSoundState *) phi_a2);
++#ifdef GE_PORT_NATIVE
++                if (gePortAudioDebugLevel() > 1)
++                {
++                    s32 postvol = sub_GAME_7F0539E4(&self->prop->pos);
++                    osSyncPrintf("[getv] guard-gun-sfx: chr=%d hand=%d item=%d sfx=%d rate=%u "
++                                 "trigger=%d slot=%p started=%p stored=%p vol=%d pos=(%.1f,%.1f,%.1f)\n",
++                                 (int)self->chrnum, (int)arg1,
++                                 (int)weapon_item, (int)sp30, (unsigned)sp33,
++                                 (int)arg2, (void *)phi_a2, (void *)started, (void *)*phi_a2,
++                                 (int)postvol,
++                                 self->prop->pos.x, self->prop->pos.y, self->prop->pos.z);
++                }
++#endif
+                 chrobjSndCreatePostEventDefault(*phi_a2, &self->prop->pos);
+                 self->field_178[arg1] = ((0, g_GlobalTimer)) + ((s32) sp33);
+                 self->hidden |= 0x80;

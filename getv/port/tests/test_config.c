@@ -102,6 +102,9 @@ static void reset(void)
     unsetenv("GETV_BLOOD_LIMIT");
     unsetenv("GETV_IMGUI");
     unsetenv("GETV_CONSOLE_KEY");
+    unsetenv("GETV_GUNBARREL_BOND_SPEED");
+    unsetenv("GETV_GUNBARREL_SEQUENCE_SPEED");
+    unsetenv("GETV_PD_RENDERER");
     configFiltering = 2;
     configWidescreen = 1;
     g_errors = 0;
@@ -144,6 +147,51 @@ int main(void)
     check_env("developer_tools enables the debug overlay", "GETV_IMGUI", "1");
     check("console_key accepted", set("console_key", "F10"), 1);
     check_env("console_key reaches SDL UI", "GETV_CONSOLE_KEY", "F10");
+
+    /* ---- gunbarrel Bond-only visual calibration ------------------------------------ */
+    reset();
+    check("gunbarrel Bond speed accepted", set("gunbarrel_bond_speed", "0.84"), 1);
+    check("gunbarrel Bond speed no error", g_errors, 0);
+    check_env("gunbarrel Bond speed reaches intro", "GETV_GUNBARREL_BOND_SPEED", "0.84");
+
+    reset();
+    check("gunbarrel walk alias accepted", set("gunbarrel_walk_speed", "0.80"), 1);
+    check_env("gunbarrel walk alias reaches same gate", "GETV_GUNBARREL_BOND_SPEED", "0.80");
+
+    reset();
+    setenv("GETV_GUNBARREL_BOND_SPEED", "0.77", 1);
+    check("environment precedence accepts config key", apply("gunbarrel_bond_speed", "0.84", 0), 1);
+    check_env("environment beats ini value", "GETV_GUNBARREL_BOND_SPEED", "0.77");
+
+    reset();
+    check("gunbarrel speed text rejected", set("gunbarrel_bond_speed", "banana"), 1);
+    check("gunbarrel speed text counts error", g_errors, 1);
+    check_env("invalid gunbarrel speed sets nothing", "GETV_GUNBARREL_BOND_SPEED", NULL);
+
+    reset();
+    check("gunbarrel speed low rejected", set("gunbarrel_bond_speed", "0.24"), 1);
+    check("gunbarrel speed low counts error", g_errors, 1);
+
+    reset();
+    check("gunbarrel speed high rejected", set("gunbarrel_bond_speed", "1.51"), 1);
+    check("gunbarrel speed high counts error", g_errors, 1);
+    reset();
+    check("gunbarrel sequence speed accepted", set("gunbarrel_sequence_speed", "0.692308"), 1);
+    check_env("gunbarrel sequence speed reaches intro", "GETV_GUNBARREL_SEQUENCE_SPEED", "0.692308");
+    reset();
+    check("gunbarrel sequence alias accepted", set("gunbarrel_speed", "0.70"), 1);
+    check_env("gunbarrel sequence alias reaches same gate", "GETV_GUNBARREL_SEQUENCE_SPEED", "0.70");
+    reset();
+    check("gunbarrel sequence speed >1 rejected", set("gunbarrel_sequence_speed", "1.01"), 1);
+    check("gunbarrel sequence >1 counts error", g_errors, 1);
+    check("primary config filename is goldeneye.ini", strcmp(GE_CFG_BASENAME, "goldeneye.ini"), 0);
+    check("legacy config filename remains accepted", strcmp(GE_CFG_LEGACY_BASENAME, "goldeneye.cfg"), 0);
+    check("default ini documents gunbarrel speed",
+          strstr(DEFAULT_CFG, "gunbarrel_bond_speed = 0.91") != NULL, 1);
+    check("default ini carries calibrated gunbarrel sequence speed",
+          strstr(DEFAULT_CFG, "gunbarrel_sequence_speed = 0.692308") != NULL, 1);
+    check("default ini keeps PD renderer compatibility off",
+          strstr(DEFAULT_CFG, "pd_renderer = 0") != NULL, 1);
 
     /* ---- framerate: the key that keeps going wrong ---------------------------------- */
 
@@ -264,6 +312,12 @@ int main(void)
     check("widescreen CLI value accepted", set("widescreen", "on"), 1);
     check_env("widescreen CLI beats the environment", "GETV_WIDESCREEN", "1");
     check("widescreen CLI reaches the global", (int)configWidescreen, 1);
+
+    reset();
+    check("PD renderer file value accepted", apply("pd_renderer", "1", 0), 1);
+    check_env("PD renderer is explicitly opt-in", "GETV_PD_RENDERER", "1");
+    check("PD renderer alias accepted", set("perfect_dark_renderer", "off"), 1);
+    check_env("PD renderer alias disables the gate", "GETV_PD_RENDERER", "0");
 
     reset();
     check("resolution accepted",          set("resolution", "1600x900"), 1);
@@ -492,10 +546,10 @@ int main(void)
     check("create synthetic config directory", dir != NULL, 1);
     if (dir) {
         char canonical[1024], adjacent[1024], cli[1024], executable[1024];
-        snprintf(canonical, sizeof canonical, "%s/goldeneye.cfg", dir);
+        snprintf(canonical, sizeof canonical, "%s/goldeneye.ini", dir);
         snprintf(adjacent, sizeof adjacent, "%s/metal", dir);
         mkdir(adjacent, 0700);
-        snprintf(adjacent, sizeof adjacent, "%s/metal/goldeneye.cfg", dir);
+        snprintf(adjacent, sizeof adjacent, "%s/metal/goldeneye.ini", dir);
         snprintf(executable, sizeof executable, "%s/metal/goldeneye-metal", dir);
         snprintf(cli, sizeof cli, "%s/explicit.cfg", dir);
         const char *paths[] = {canonical, adjacent, cli};

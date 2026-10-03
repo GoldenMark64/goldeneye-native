@@ -116,7 +116,7 @@ done
     def test_rebundling_preserves_binary_and_settings(self) -> None:
         binary, app = self.bundle()
         original = binary.read_bytes()
-        config = binary.parent / "goldeneye.cfg"
+        config = binary.parent / "goldeneye.ini"
         config.write_text("resolution = 1280x960\n", encoding="utf-8")
         result = self.run_build("gl", "bundle")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

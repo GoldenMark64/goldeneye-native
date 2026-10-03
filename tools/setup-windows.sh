@@ -172,7 +172,22 @@ for p in 0001-source 0006-fov-live-setter 0007-load-trace \
          0018-coop-one-death-is-not-the-team 0019-coop-respawn 0020-kill-selftest 0021-stan-pointer-return-decls \
          0022-lockstep-stop-shuffling-every-frame 0023-enemy-gibs 0024-multi-ammo-endianness \
          0025-cuff-native-pointer-stride 0026-bloodier-gibs 0027-external-rom-path 0028-prop-allocator-telemetry 0029-modern-mouse-look 0030-autocrouch-render-ticks \
-         0031-native-joy-poll-handshake 0032-manual-reload; do
+         0031-native-joy-poll-handshake 0032-manual-reload 0033-guard-gun-sfx-native-layout \
+         0034-surface2-remote-mine-native-layout 0035-gunbarrel-authored-cadence \
+         0036-tank-mount-diagnostic 0037-file-select-hitbox-native-layout \
+         0038-tank-contact-native-tolerance 0039-tank-inner-diagnostic \
+         0040-tank-native-object-state-alias 0041-archives-stall-watchdog-hooks \
+         0042-gunbarrel-native-cadence-split 0043-gunbarrel-native-bond-resync \
+         0044-depot-timedmine-diagnostic 0045-proximity-box-stall-diagnostic \
+         0046-stan-room-buffer-native-terminator 0047-stan-los-subphase-diagnostic \
+         0048-stan-los-deep-diagnostic 0049-native-collision-polygon-extent \
+         0050-gfx-run-progress-diagnostic 0051-gpu-sync-present-diagnostic \
+         0052-draw-sync-attribution-diagnostic 0054-native-ladder-locus-record \
+         0055-stan-recovery-safety 0056-stan-ground-cylinder-recovery \
+         0057-native-reverse-animation-interpolation \
+         0058-bunker2-cctv-objective-diagnostic \
+         0059-gunbarrel-bond-speed-calibration \
+         0060-gpu-render-source-provenance; do
   if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/$p.patch" ) 2>/dev/null; then
     echo "$p.patch: already applied"
   else

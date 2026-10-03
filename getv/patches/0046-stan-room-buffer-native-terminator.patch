@@ -1,0 +1,16 @@
+--- a/src/game/stan.c
++++ b/src/game/stan.c
+@@ -1701,7 +1701,13 @@
+     s32 loop_flag;
+     s32 sp124; // sp124
+     s32 padding;
++#ifdef GE_PORT_NATIVE
++    /* The room walk can legitimately return all 20 room IDs. Keep one extra
++     * slot for the -1 terminator consumed by roomGetProps(). */
++    s32 spD0[0x15]; //spD0
++#else
+     s32 spD0[0x14]; //spD0
++#endif
+     s32 spCC; // spCC
+     s32 next;
+     f32 spC4;

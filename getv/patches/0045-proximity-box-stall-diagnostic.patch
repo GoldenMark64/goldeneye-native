@@ -1,0 +1,253 @@
+--- a/src/game/chrprop.c
++++ b/src/game/chrprop.c
+@@ -39,6 +39,15 @@
+ #include "tex.h"
+ 
+ #ifdef GE_PORT_NATIVE
++/*
++ * Diagnostic generation counter for callers which consume the shared
++ * ptr_list_object_lookup_indices buffer across calls that may recurse back
++ * through roomGetProps().  The buffer itself remains unchanged.
++ */
++unsigned long ge_roomprops_generation;
++#endif
++
++#ifdef GE_PORT_NATIVE
+ /* GETV_CHR_DEBUG counters -- reported by ge_chr_dbg_report() in chr.c. */
+ s32 g_geChrDbgPropRender;      /* chrpropRender() calls, any prop type */
+ s32 g_geChrDbgPropRenderChr;   /* ... of which PROP_TYPE_CHR           */
+@@ -3598,6 +3607,10 @@
+     s32 i;
+     s32 j;
+ 
++#ifdef GE_PORT_NATIVE
++    ge_roomprops_generation++;
++#endif
++
+     room = *rooms;
+ 
+     // Iterate rooms
+--- a/src/game/explosion.c
++++ b/src/game/explosion.c
+@@ -27,6 +27,7 @@
+ #include <assets/oddtextures.h>
+ 
+ #ifdef GE_PORT_NATIVE
++#include <stdio.h>
+ #include "../../../../getv/port/src/ge_blood_math.h"
+ extern Gfx globalDL_0xa50;
+ extern s32 gePortBloodMode(void);
+@@ -34,6 +35,55 @@
+ extern s32 gePortBaseGame(void);
+ extern void gePortGibsRecordHit(const void *character, s32 cause, f32 damage,
+                                 f32 impulse_x, f32 impulse_y, f32 impulse_z);
++extern unsigned long ge_roomprops_generation;
++
++static s32 ge_proxbox_debug_on(void)
++{
++    static s32 cached = -1;
++
++    if (cached < 0)
++    {
++        extern char *getenv(const char *);
++        const char *e = getenv("GETV_PROXBOX_DEBUG");
++        cached = (e && *e == '1') ? 1 : 0;
++    }
++
++    return cached;
++}
++
++static s32 ge_proxbox_source_weapon(struct Explosion *exp)
++{
++    PropRecord *source;
++
++    if (!exp)
++    {
++        return -1;
++    }
++
++    source = exp->source;
++
++    if (source && source->type == PROP_TYPE_WEAPON && source->weapon)
++    {
++        return source->weapon->weaponnum;
++    }
++
++    return -1;
++}
++
++static s32 ge_proxbox_roomlist_count(void)
++{
++    s32 i;
++
++    for (i = 0; i < PTR_LIST_OBJECT_LOOKUP_INDICES_LEN; i++)
++    {
++        if (ptr_list_object_lookup_indices[i] < 0)
++        {
++            return i;
++        }
++    }
++
++    return PTR_LIST_OBJECT_LOOKUP_INDICES_LEN;
++}
+ #endif
+ 
+ // bss
+@@ -1000,15 +1050,40 @@
+     s16 *var_s3;
+     s_explosiontype *temp_s6;
+     struct Explosion *temp_s2;
++#ifdef GE_PORT_NATIVE
++    s32 ge_proxbox;
++    s32 ge_proxbox_lines;
++    unsigned long ge_scan_generation;
++#endif
+ 
+     temp_s2 = arg0->explosion;
+     temp_s6 = &g_ExplosionTypes[temp_s2->explosion_type];
+ 
++#ifdef GE_PORT_NATIVE
++    ge_proxbox = ge_proxbox_debug_on()
++        && ge_proxbox_source_weapon(temp_s2) == ITEM_PROXIMITYMINE;
++    ge_proxbox_lines = 0;
++    ge_scan_generation = ge_roomprops_generation;
++#endif
++
+     if (temp_s2->age >= temp_s2->unk3CA)
+     {
+         chraiGetPropRoomIds(arg0, &spE0[0]);
+         roomGetProps(&spE0[0]);
+ 
++#ifdef GE_PORT_NATIVE
++        ge_scan_generation = ge_roomprops_generation;
++        if (ge_proxbox)
++        {
++            printf("[getv][proxbox] scan-begin exp=%p age=%d gen=%lu count=%d "
++                   "range=(%.2f,%.2f) source=%p\n",
++                   (void *)temp_s2, temp_s2->age, ge_scan_generation,
++                   ge_proxbox_roomlist_count(), (double)horiz_range,
++                   (double)vert_range, (void *)temp_s2->source);
++            fflush(stdout);
++        }
++#endif
++
+         for (var_s3 = ptr_list_object_lookup_indices; *var_s3 >= 0; var_s3++)
+         {
+             temp_s0 = &g_Props[*var_s3];
+@@ -1078,12 +1153,38 @@
+ 
+                         if (!(spCC->runtime_bitflags & 0x1000) && !(spCC->flags2 & 0x200400))
+                         {
++#ifdef GE_PORT_NATIVE
++                            unsigned long ge_before_generation = ge_roomprops_generation;
++                            s16 ge_before_index = *var_s3;
++
++                            if (ge_proxbox && ge_proxbox_lines < 96)
++                            {
++                                ge_proxbox_lines++;
++                                printf("[getv][proxbox] damage-enter slot=%d prop=%p proptype=%d "
++                                       "obj=%p objtype=%d model=%d state=0x%x gen=%lu\n",
++                                       (s32)ge_before_index, (void *)temp_s0, temp_s0->type,
++                                       (void *)spCC, spCC->type, spCC->obj, spCC->state,
++                                       ge_before_generation);
++                                fflush(stdout);
++                            }
++#endif
+                             maybe_detonate_object_and_its_children(
+                                 temp_s0,
+                                 ((RANDOMFRAC() * 0.5f) + 1.0f) * minfrac,
+                                 &spCC->runtime_pos,
+                                 0x1D,
+                                 (s32) temp_s2->player);
++#ifdef GE_PORT_NATIVE
++                            if (ge_proxbox && ge_roomprops_generation != ge_before_generation)
++                            {
++                                printf("[getv][proxbox] ROOMLIST-MUTATED slot_before=%d "
++                                       "gen_before=%lu gen_after=%lu count_now=%d cursor=%td\n",
++                                       (s32)ge_before_index, ge_before_generation,
++                                       ge_roomprops_generation, ge_proxbox_roomlist_count(),
++                                       var_s3 - ptr_list_object_lookup_indices);
++                                fflush(stdout);
++                            }
++#endif
+                         }
+                     }
+ 
+@@ -1199,6 +1300,17 @@
+             }
+         }
+ 
++#ifdef GE_PORT_NATIVE
++        if (ge_proxbox)
++        {
++            printf("[getv][proxbox] scan-end exp=%p age=%d start_gen=%lu end_gen=%lu "
++                   "count=%d\n",
++                   (void *)temp_s2, temp_s2->age, ge_scan_generation,
++                   ge_roomprops_generation, ge_proxbox_roomlist_count());
++            fflush(stdout);
++        }
++#endif
++
+         temp_s2->unk3CA = temp_s2->age + (temp_s6->duration >> 2);
+     }
+ }
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -229,6 +229,37 @@
+     state->last_weaponnum = weapon->weaponnum;
+ }
+ 
++static s32 ge_proxbox_mine_debug_on(void)
++{
++    static s32 cached = -1;
++
++    if (cached < 0)
++    {
++        const char *e = getenv("GETV_PROXBOX_DEBUG");
++        cached = (e && *e == '1') ? 1 : 0;
++    }
++
++    return cached;
++}
++
++static void ge_proxbox_mine_debug_tick(const char *phase, PropRecord *prop,
++                                       ObjectRecord *obj, WeaponObjRecord *weapon)
++{
++    if (!ge_proxbox_mine_debug_on() || !obj || !weapon
++            || weapon->weaponnum != ITEM_PROXIMITYMINE)
++    {
++        return;
++    }
++
++    printf("[getv][proxbox] %s mine_obj=%p prop=%p model=%d timer=%d "
++           "runtime=0x%x stan=%p pos=(%.1f,%.1f,%.1f)\n",
++           phase, (void *)obj, (void *)prop, obj->obj, weapon->timer,
++           obj->runtime_bitflags, prop ? (void *)prop->stan : NULL,
++           (double)obj->runtime_pos.x, (double)obj->runtime_pos.y,
++           (double)obj->runtime_pos.z);
++    fflush(stdout);
++}
++
+ /* Restore the pre-fix values of the PropDefHeaderRecord group (type/state/extrascale) and
+  * the ObjectRecord group (obj/pad) exactly as the positional literal produced them.
+  * `type`/`pad` are the values the literal MEANT to place there. */
+@@ -3786,6 +3817,9 @@
+ 
+             if (weapon->timer == 0)
+             {
++#ifdef GE_PORT_NATIVE
++                ge_proxbox_mine_debug_tick("mine-explode-before", prop, obj, weapon);
++#endif
+ #if defined(VERSION_US)
+                 propExplode(prop, (obj->flags2 & PROPFLAG2_DOOR_ALTCOORDSYSTEM) ? EXPLOSION_DEF_MASSIVE : EXPLOSION_DEF_STANDARD);
+ #else
+@@ -3795,6 +3829,9 @@
+                     return;
+                 }
+ #endif
++#ifdef GE_PORT_NATIVE
++                ge_proxbox_mine_debug_tick("mine-explode-after", prop, obj, weapon);
++#endif
+ 
+                 weapon->timer = -1;
+                 obj->runtime_bitflags |= RUNTIMEBITFLAG_REMOVE;

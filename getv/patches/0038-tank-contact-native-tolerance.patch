@@ -1,0 +1,54 @@
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -236,6 +236,9 @@
+ #define SPEED_REGULAR_MAX  1.0f
+ #define SPEED_RUN_MAX      1.25f
+ #define SPEED_TICK_ADJUST  0.01f
++#ifdef GE_PORT_NATIVE
++#define GE_TANK_CONTACT_EPSILON 0.01f
++#endif
+ #define TANK_MAX_SPEED     15.0f
+ 
+ 
+@@ -3016,6 +3019,7 @@
+         s32 tank_outer_hit;
+         s32 tank_point_hit;
+         s32 tank_radius_hit;
++        f32 tank_contact_radius;
+         s32 tank_inner_hit = 0;
+ #ifdef GE_PORT_NATIVE
+         static struct PropRecord *tankdbg_last_world = NULL;
+@@ -3028,11 +3032,19 @@
+ #endif
+         chraiGetCollisionBoundsWithoutY(g_WorldTankProp, &polygon, &edges);
+ 
++        tank_contact_radius = g_CurrentPlayer->field_488.collision_radius;
++#ifdef GE_PORT_NATIVE
++        /* Native movement collision can settle Bond a few thousandths beyond the
++         * nominal radius at a tank face. Retail's strict-radius contact gate then
++         * never hands off to the tank climb state. Keep the tolerance local to the
++         * tank contact check rather than loosening the global polygon helper. */
++        tank_contact_radius += GE_TANK_CONTACT_EPSILON;
++#endif
+         tank_point_hit = chrpropTestPointInPolygon(
+             &g_CurrentPlayer->field_488.collision_position, polygon, edges) != 0;
+         tank_radius_hit = chrobjTestPointPolygonCollision(
+             &g_CurrentPlayer->field_488.collision_position,
+-            g_CurrentPlayer->field_488.collision_radius,
++            tank_contact_radius,
+             polygon, edges) != 0;
+         tank_outer_hit = (g_PlayerIsInTank == 1) || tank_point_hit || tank_radius_hit;
+ 
+@@ -3059,10 +3071,10 @@
+             }
+ 
+             osSyncPrintf("[getv][tank] outer world=%p edges=%d point=%d radius_hit=%d outer=%d "
+-                         "radius=%.6f minedge=%.6f col=(%.6f,%.6f,%.6f)\n",
++                         "radius=%.6f contact=%.6f minedge=%.6f col=(%.6f,%.6f,%.6f)\n",
+                          (void *)g_WorldTankProp, edges, tank_point_hit, tank_radius_hit,
+                          tank_outer_hit, (double)g_CurrentPlayer->field_488.collision_radius,
+-                         (double)min_edge_dist,
++                         (double)tank_contact_radius, (double)min_edge_dist,
+                          (double)g_CurrentPlayer->field_488.collision_position.f[0],
+                          (double)g_CurrentPlayer->field_488.collision_position.f[1],
+                          (double)g_CurrentPlayer->field_488.collision_position.f[2]);

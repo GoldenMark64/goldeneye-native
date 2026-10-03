@@ -1,0 +1,30 @@
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -10121,6 +10121,19 @@
+ 
+ 
+ void sub_GAME_7F04F218(PropRecord* prop, s32 arg1) {
++#ifdef GE_PORT_NATIVE
++    ObjectRecord *obj;
++    obj = prop->obj;
++
++    if (arg1 != 0)
++    {
++        obj->state = (u8) obj->state & ~PROPSTATE_20;
++    }
++    else
++    {
++        obj->state = (u8) obj->state | PROPSTATE_20;
++    }
++#else
+     ChrRecord* chr;
+     chr = prop->chr;
+ 
+@@ -10132,6 +10145,7 @@
+     {
+         chr->accuracyrating = (u8) chr->accuracyrating | 0x20;
+     }
++#endif
+ }
+ 
+ 

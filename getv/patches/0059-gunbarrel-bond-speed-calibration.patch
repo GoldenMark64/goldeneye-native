@@ -1,0 +1,271 @@
+--- a/src/game/title.c
++++ b/src/game/title.c
+@@ -2,6 +2,9 @@
+ #include <PR/gbi.h>
+ #include <PR/gu.h>
+ #include <PR/os.h>
++#ifdef GE_PORT_NATIVE
++#include <stdlib.h>
++#endif
+ #include <assets/font_dl.h>
+ #include <assets/animationtable_data.h>
+ #include <bondgame.h>
+@@ -105,6 +108,10 @@
+ u32 intro_state_blood_animation = 0;
+ struct coord3d D_8002A8A8 = { 0, 0, 0 };
+ 
++#ifdef GE_PORT_NATIVE
++static s32 geGunbarrelSequenceAdvance = 1;
++#endif
++
+ 
+ /**
+  * Manipulates matrices for the gun barrel and Rareware logo during the intro sequence.
+@@ -221,6 +228,10 @@
+ 
+             if (gunbarrelTimer == BOND_EYE_ANIM_START)
+             {
++#ifdef GE_PORT_NATIVE
++                /* Restore authored root-translation scaling before the turn/fire animation. */
++                modelSetAnimTranslationScale(chrModelInstance, 1.0f);
++#endif
+                 modelSetAnimation(chrModelInstance, (struct ModelAnimation *) ((uintptr_t)GE_ANIM_AT(GE_ANIMOFF_ANIM_DATA_bond_eye_fire)), 0, 2.0f, 0.910000026f, 16.0f);
+             }
+ 
+@@ -313,6 +324,8 @@
+ 
+ #if defined REFRESH_PAL
+     return sub_GAME_7F007F30(gdl, 1, &matrix);
++#elif defined GE_PORT_NATIVE
++    return sub_GAME_7F007F30(gdl, geGunbarrelSequenceAdvance ? 2 : 0, &matrix);
+ #else
+     return sub_GAME_7F007F30(gdl, 2, &matrix);
+ #endif
+@@ -451,6 +464,70 @@
+ }
+ 
+ 
++#ifdef GE_PORT_NATIVE
++static f32 geGunbarrelSequenceAccumulator = 0.0f;
++static f32 geGunbarrelSequenceSpeed = 0.692308f;
++
++static f32 geGunbarrelSequenceSpeedFromConfig(void)
++{
++    const char *value = getenv("GETV_GUNBARREL_SEQUENCE_SPEED");
++    f32 speed;
++
++    if (value == NULL || *value == '\0') {
++        return 0.692308f;
++    }
++
++    speed = (f32)atof(value);
++
++    /*
++     * This control intentionally supports slowdown only. Faster-than-render
++     * cadence would require multiple authored state steps per render.
++     */
++    if (speed != speed || speed < 0.25f || speed > 1.0f) {
++        return 0.692308f;
++    }
++
++    return speed;
++}
++
++static f32 geGunbarrelBondWalkSpeed(void)
++{
++    const char *value = getenv("GETV_GUNBARREL_BOND_SPEED");
++    f32 speed;
++
++    if (value == NULL || *value == '\0') {
++        return 0.91f;
++    }
++
++    /*
++     * vendor/ge-decomp/include/stdlib.h shadows libc's stdlib.h and declares
++     * atof(), but not strtof(). Calling strtof() here therefore compiled as an
++     * implicit int-returning function: libc put the float in XMM0 while the
++     * caller read EAX. The result was then rejected and silently fell back to
++     * 0.91, which is why 0.8, 0.7 and 0.6 all looked identical in playtesting.
++     */
++    speed = (f32)atof(value);
++
++    /*
++     * Native-port calibration setting for Bond's gunbarrel walk only. Keep
++     * obviously accidental values from destroying the intro while allowing a
++     * useful range around the retail 0.91 walk-animation rate. The friendly
++     * goldeneye.ini key gunbarrel_bond_speed publishes the same GETV gate before
++     * the intro starts.
++     */
++    if (speed != speed || speed < 0.25f || speed > 1.50f) {
++        return 0.91f;
++    }
++
++    {
++        extern void osSyncPrintf(const char *, ...);
++        osSyncPrintf("[getv] gunbarrel: Bond walk speed %.3f\n", (double)speed);
++    }
++    return speed;
++}
++#endif
++
++
+ void initializeGunBarrelIntro(u8 *gfxBuffer, s32 bufferSize)
+ {
+     struct ModelAnimation *animation;
+@@ -458,8 +535,20 @@
+     struct texpool texturePool;
+     s32 temp_t9;
+     s32 startframe;
++#ifdef GE_PORT_NATIVE
++    f32 gunbarrelBondWalkSpeed;
++#endif
+     
+     gunbarrel_mode = 2;
++#ifdef GE_PORT_NATIVE
++    geGunbarrelSequenceAccumulator = 0.0f;
++    geGunbarrelSequenceSpeed = geGunbarrelSequenceSpeedFromConfig();
++    geGunbarrelSequenceAdvance = 1;
++    {
++        extern void osSyncPrintf(const char *, ...);
++        osSyncPrintf("[getv] gunbarrel: sequence speed %.6f\n", (double)geGunbarrelSequenceSpeed);
++    }
++#endif
+     
+     guOrtho(matrixBufferGunbarrel0, 0.0f, 1280.0f, 0.0f, 960.0f, 1.0f, 8.0f, 256.0f);
+     
+@@ -533,7 +622,18 @@
+       osSyncPrintf("[getv] gunbarrel: chrModelInstance=%p\n", (void *)chrModelInstance); }
+     gePortBootMark("gb:6-modelSetScale");
+     modelSetScale(chrModelInstance, 0.18779343f);
++#ifdef GE_PORT_NATIVE
++    gunbarrelBondWalkSpeed = geGunbarrelBondWalkSpeed();
++    /*
++     * The walking animation contains root translation. Changing animation speed
++     * therefore changes both Bond's gait and his travel across the screen. The
++     * barrel relationship is already human-validated, so compensate root motion
++     * inversely: slower pose progression, same authored translation per render.
++     */
++    modelSetAnimTranslationScale(chrModelInstance, 0.91f / gunbarrelBondWalkSpeed);
++#else
+     modelSetAnimTranslationScale(chrModelInstance, 1.0f);
++#endif
+     setsuboffset(chrModelInstance, &sp50);
+     setsubroty(chrModelInstance, 0.0f);
+ #if defined(VERSION_EU)
+@@ -553,7 +653,11 @@
+         startframe += animation->unk04;
+     }
+     
++#ifdef GE_PORT_NATIVE
++    modelSetAnimation(chrModelInstance, (struct ModelAnimation *) animation, 0, (f32) startframe, gunbarrelBondWalkSpeed, 0.0f);
++#else
+     modelSetAnimation(chrModelInstance, (struct ModelAnimation *) animation, 0, (f32) startframe, 0.91f, 0.0f);
++#endif
+     load_object_fill_header(PitemZ_entries[PROP_CHRWPPK].header, PitemZ_entries[PROP_CHRWPPK].filename, gfxBuffer, bufferSize, &texturePool);
+     
+     temp_t9 = ((get_pc_buffer_remaining_value(PitemZ_entries[PROP_CHRWPPK].filename) + 0x3F) | 0x3F) ^ 0x3F;
+@@ -610,25 +714,53 @@
+  * Address: 0x7F009254
+ */
+ Gfx *renderGunbarrelEyeIntroSequence (Gfx *gdl) {
++#ifdef GE_PORT_NATIVE
++    s32 advance = 1;
++
++    /*
++     * Reference timing: about 13 seconds from Rare-logo disappearance to
++     * Bond's shot on NTSC N64, versus about 9 seconds in the native build.
++     * Before the shot, advance authored state fractionally while still
++     * rendering every host frame. After the shot, resume one step per render
++     * so the already-accepted blood cadence is unchanged.
++     */
++    if (gunbarrelTimer < BOND_EYE_FIRE_SHOT) {
++        geGunbarrelSequenceAccumulator += geGunbarrelSequenceSpeed;
++
++        if (geGunbarrelSequenceAccumulator >= 1.0f) {
++            geGunbarrelSequenceAccumulator -= 1.0f;
++            advance = 1;
++        } else {
++            advance = 0;
++        }
++    }
++
++    geGunbarrelSequenceAdvance = advance;
++#else
++    s32 advance = 1;
++#endif
++
+     D_8002A7D0 = (1 - D_8002A7D0);
+     switch (gunbarrel_mode - 2)
+     {
+     case 0:
+         gdl = manipulateGunbarrelAndLogoMatrices(gdl);
+-        g_TitleX += XINC;
+-        if (word_CODE_bss_80069584 < 0) {
+-            word_CODE_bss_80069584 = 200;
+-            titleTransitionX = (g_TitleX - XDEC);
+-        } else {
++        if (advance) {
++            g_TitleX += XINC;
++            if (word_CODE_bss_80069584 < 0) {
++                word_CODE_bss_80069584 = 200;
++                titleTransitionX = (g_TitleX - XDEC);
++            } else {
+ #if defined(VERSION_EU)
+-            word_CODE_bss_80069584 -= 7;
+-#else
+-            word_CODE_bss_80069584 -= 6;
+-#endif
+-        }
+-        if (g_TitleX > 1390.0f) {
+-            gunbarrel_mode++;
+-            g_TitleX = 1276.0f;
++                word_CODE_bss_80069584 -= 7;
++#else
++                word_CODE_bss_80069584 -= 6;
++#endif
++            }
++            if (g_TitleX > 1390.0f) {
++                gunbarrel_mode++;
++                g_TitleX = 1276.0f;
++            }
+         }
+         break;
+ 
+@@ -647,10 +779,12 @@
+         if (g_TitleX < 600.0f) {
+             gdl = insert_bond_eye_intro(gdl);
+         }
+-        g_TitleX -= XDEC3;
+-        if (g_TitleX <= -80.0f) {
+-            gunbarrel_mode++;
+-            intro_eye_counter = 20;
++        if (advance) {
++            g_TitleX -= XDEC3;
++            if (g_TitleX <= -80.0f) {
++                gunbarrel_mode++;
++                intro_eye_counter = 20;
++            }
+         }
+         break;
+ 
+@@ -658,12 +792,14 @@
+         gdl = insert_sniper_sight_eye_intro(gdl);
+         gdl = insert_sight_backdrop_eye_intro(gdl);
+         gdl = insert_bond_eye_intro(gdl);
+-        intro_eye_counter--;
+-        if (intro_eye_counter < 0) {
+-            gunbarrel_mode++;
+-            die_blood_image_routine(0);
+-            intro_state_blood_animation = 0;
+-            intro_eye_counter = 1;
++        if (advance) {
++            intro_eye_counter--;
++            if (intro_eye_counter < 0) {
++                gunbarrel_mode++;
++                die_blood_image_routine(0);
++                intro_state_blood_animation = 0;
++                intro_eye_counter = 1;
++            }
+         }
+         break;
+ 

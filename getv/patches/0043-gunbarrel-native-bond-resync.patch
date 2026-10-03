@@ -1,0 +1,11 @@
+--- a/src/game/title.c
++++ b/src/game/title.c
+@@ -311,7 +311,7 @@
+     
+     matrix_4x4_set_lookat_target(&matrix, gunbarrelPosition1[0], gunbarrelPosition1[1], gunbarrelPosition1[2], (gunbarrelPosition1[0] + gunbarrelPosition2[0]), (gunbarrelPosition1[1] + gunbarrelPosition2[1]), (gunbarrelPosition1[2] + gunbarrelPosition2[2]), gunbarrelPosition3[0], gunbarrelPosition3[1], gunbarrelPosition3[2]);
+ 
+-#if defined REFRESH_PAL || defined GE_PORT_NATIVE
++#if defined REFRESH_PAL
+     return sub_GAME_7F007F30(gdl, 1, &matrix);
+ #else
+     return sub_GAME_7F007F30(gdl, 2, &matrix);

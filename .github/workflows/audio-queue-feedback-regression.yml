@@ -1,0 +1,26 @@
+name: Audio queue feedback regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  audio-queue-feedback:
+    name: audio-queue-feedback-linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Run physical queue policy regression
+        shell: bash
+        run: |
+          test -f getv/port/tests/test_audio_queue.c
+          bash getv/port/tests/run_tests.sh audio_queue
+      - name: Run stall-debt source regression
+        run: python3 tools/tests/test_audio_queue_feedback.py

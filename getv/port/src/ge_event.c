@@ -32,6 +32,11 @@ typedef struct { GeEventFn fn; void *user; } GeEvSub;
 static GeEvSub ge_ev_subs[GE_EV_MAX_SUBS];
 static int     ge_ev_nsubs;
 static int     ge_ev_trace = -1;
+static GeEventRecord ge_ev_history[GE_EVENT_HISTORY_MAX];
+static size_t ge_ev_history_head;
+static size_t ge_ev_history_count;
+static unsigned long long ge_ev_history_sequence;
+static int ge_ev_frame = -1;
 
 /* Derivation state, per slot. */
 static struct {
@@ -88,6 +93,18 @@ void geEventEmit(GeEventType type, int a, int b, int c)
 {
     int i, n;
     GeEvSub snapshot[GE_EV_MAX_SUBS];
+    GeEventRecord *record = &ge_ev_history[ge_ev_history_head];
+
+    record->sequence = ++ge_ev_history_sequence;
+    record->frame = ge_ev_frame;
+    record->type = type;
+    record->a = a;
+    record->b = b;
+    record->c = c;
+    ge_ev_history_head = (ge_ev_history_head + 1u) % GE_EVENT_HISTORY_MAX;
+    if (ge_ev_history_count < GE_EVENT_HISTORY_MAX) {
+        ge_ev_history_count++;
+    }
 
     if (ge_ev_trace < 0) { ge_ev_trace = (getenv("GETV_EVENT_TRACE") != NULL); }
     if (ge_ev_trace) {
@@ -105,6 +122,22 @@ void geEventEmit(GeEventType type, int a, int b, int c)
     }
 }
 
+size_t geEventRecentCopy(GeEventRecord *out, size_t capacity)
+{
+    size_t count = ge_ev_history_count < capacity ? ge_ev_history_count : capacity;
+    size_t first;
+    size_t i;
+
+    if (out == NULL || count == 0) { return 0; }
+
+    /* A small caller still gets the most recent records, ordered oldest to newest. */
+    first = (ge_ev_history_head + GE_EVENT_HISTORY_MAX - count) % GE_EVENT_HISTORY_MAX;
+    for (i = 0; i < count; i++) {
+        out[i] = ge_ev_history[(first + i) % GE_EVENT_HISTORY_MAX];
+    }
+    return count;
+}
+
 static int ge_ev_was_near(int slot, int chrnum)
 {
     int i;
@@ -119,7 +152,7 @@ void gePortEventFrame(int frame)
     extern int bossGetStageNum(void);
     int stage, slot;
 
-    (void) frame;
+    ge_ev_frame = frame;
 
     /* Level change first: everything else is per-level state and must be reset before it is
      * compared, or the first frame of a new level reports a room change from the old level's

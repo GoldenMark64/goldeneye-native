@@ -1,0 +1,29 @@
+name: Diagnostic capture regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostic-capture:
+    name: diagnostic-capture-linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Run F3 capture regression
+        shell: bash
+        run: |
+          test -f getv/port/tests/test_diagnostic_capture.c
+          bash getv/port/tests/run_tests.sh diagnostic_capture
+      - name: Run bounded event-history regression
+        shell: bash
+        run: |
+          test -f getv/port/tests/test_event.c
+          bash getv/port/tests/run_tests.sh event

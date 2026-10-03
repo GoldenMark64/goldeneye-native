@@ -1,0 +1,185 @@
+--- a/src/game/title.c
++++ b/src/game/title.c
+@@ -13,6 +13,7 @@
+ #include "chr.h"
+ #include "chr_b.h"
+ #include "chrobjdata.h"
++#include "frametiming.h"
+ #include "image.h"
+ #include "initanitable.h"
+ #include "math.h"
+@@ -105,6 +106,18 @@
+ u32 intro_state_blood_animation = 0;
+ struct coord3d D_8002A8A8 = { 0, 0, 0 };
+ 
++static s32 geGunbarrelAuthoredStep(void)
++{
++#ifdef GE_PORT_NATIVE
++    /* The retail NTSC intro advanced at roughly 30 rendered frames per second even though the
++     * video field clock is 60 Hz. Native presentation can render at 60 Hz, so mutate intro state
++     * only when the existing half-field clock crosses an authored-cadence boundary. */
++    return halfMinusPreviousCounter > 0;
++#else
++    return 1;
++#endif
++}
++
+ 
+ /**
+  * Manipulates matrices for the gun barrel and Rareware logo during the intro sequence.
+@@ -312,9 +325,9 @@
+     matrix_4x4_set_lookat_target(&matrix, gunbarrelPosition1[0], gunbarrelPosition1[1], gunbarrelPosition1[2], (gunbarrelPosition1[0] + gunbarrelPosition2[0]), (gunbarrelPosition1[1] + gunbarrelPosition2[1]), (gunbarrelPosition1[2] + gunbarrelPosition2[2]), gunbarrelPosition3[0], gunbarrelPosition3[1], gunbarrelPosition3[2]);
+ 
+ #if defined REFRESH_PAL
+-    return sub_GAME_7F007F30(gdl, 1, &matrix);
++    return sub_GAME_7F007F30(gdl, geGunbarrelAuthoredStep() ? 1 : 0, &matrix);
+ #else
+-    return sub_GAME_7F007F30(gdl, 2, &matrix);
++    return sub_GAME_7F007F30(gdl, geGunbarrelAuthoredStep() ? 2 : 0, &matrix);
+ #endif
+ }
+ 
+@@ -598,25 +611,28 @@
+  * Address: 0x7F009254
+ */
+ Gfx *renderGunbarrelEyeIntroSequence (Gfx *gdl) {
++    s32 advance = geGunbarrelAuthoredStep();
+     D_8002A7D0 = (1 - D_8002A7D0);
+     switch (gunbarrel_mode - 2)
+     {
+     case 0:
+         gdl = manipulateGunbarrelAndLogoMatrices(gdl);
+-        g_TitleX += XINC;
+-        if (word_CODE_bss_80069584 < 0) {
+-            word_CODE_bss_80069584 = 200;
+-            titleTransitionX = (g_TitleX - XDEC);
+-        } else {
++        if (advance) {
++            g_TitleX += XINC;
++            if (word_CODE_bss_80069584 < 0) {
++                word_CODE_bss_80069584 = 200;
++                titleTransitionX = (g_TitleX - XDEC);
++            } else {
+ #if defined(VERSION_EU)
+-            word_CODE_bss_80069584 -= 7;
++                word_CODE_bss_80069584 -= 7;
+ #else
+-            word_CODE_bss_80069584 -= 6;
++                word_CODE_bss_80069584 -= 6;
+ #endif
+-        }
+-        if (g_TitleX > 1390.0f) {
+-            gunbarrel_mode++;
+-            g_TitleX = 1276.0f;
++            }
++            if (g_TitleX > 1390.0f) {
++                gunbarrel_mode++;
++                g_TitleX = 1276.0f;
++            }
+         }
+         break;
+ 
+@@ -635,10 +651,12 @@
+         if (g_TitleX < 600.0f) {
+             gdl = insert_bond_eye_intro(gdl);
+         }
+-        g_TitleX -= XDEC3;
+-        if (g_TitleX <= -80.0f) {
+-            gunbarrel_mode++;
+-            intro_eye_counter = 20;
++        if (advance) {
++            g_TitleX -= XDEC3;
++            if (g_TitleX <= -80.0f) {
++                gunbarrel_mode++;
++                intro_eye_counter = 20;
++            }
+         }
+         break;
+ 
+@@ -646,20 +664,24 @@
+         gdl = insert_sniper_sight_eye_intro(gdl);
+         gdl = insert_sight_backdrop_eye_intro(gdl);
+         gdl = insert_bond_eye_intro(gdl);
+-        intro_eye_counter--;
+-        if (intro_eye_counter < 0) {
+-            gunbarrel_mode++;
+-            die_blood_image_routine(0);
+-            intro_state_blood_animation = 0;
+-            intro_eye_counter = 1;
++        if (advance) {
++            intro_eye_counter--;
++            if (intro_eye_counter < 0) {
++                gunbarrel_mode++;
++                die_blood_image_routine(0);
++                intro_state_blood_animation = 0;
++                intro_eye_counter = 1;
++            }
+         }
+         break;
+ 
+     case 3:
+-        intro_eye_counter--;
+-        if (intro_eye_counter == 0) {
+-            intro_state_blood_animation = die_blood_image_routine(1);
+-            intro_eye_counter = 2;
++        if (advance) {
++            intro_eye_counter--;
++            if (intro_eye_counter == 0) {
++                intro_state_blood_animation = die_blood_image_routine(1);
++                intro_eye_counter = 2;
++            }
+         }
+         gdl = insert_sniper_sight_eye_intro(gdl);
+         gdl = insert_sight_backdrop_eye_intro(gdl);
+@@ -674,9 +696,11 @@
+         break;
+ 
+     case 4:
+-        word_CODE_bss_80069584 += INCVAL;
+-        intro_eye_counter++;
+-        g_TitleX = ((sins(word_CODE_bss_80069584) * 64.0f) / 32768.0f) + titleTransitionX;
++        if (advance) {
++            word_CODE_bss_80069584 += INCVAL;
++            intro_eye_counter++;
++            g_TitleX = ((sins(word_CODE_bss_80069584) * 64.0f) / 32768.0f) + titleTransitionX;
++        }
+         gdl = insert_sniper_sight_eye_intro(gdl);
+         gdl = insert_sight_backdrop_eye_intro(gdl);
+         gdl = insert_bond_eye_intro(gdl);
+@@ -689,14 +713,18 @@
+         break;
+ 
+     case 5:
+-        word_CODE_bss_80069584 += INCVAL;
+-        g_TitleX = ((sins(word_CODE_bss_80069584) * 64.0f) / 32768.0f) + titleTransitionX;
++        if (advance) {
++            word_CODE_bss_80069584 += INCVAL;
++            g_TitleX = ((sins(word_CODE_bss_80069584) * 64.0f) / 32768.0f) + titleTransitionX;
++        }
+         gdl = insert_sniper_sight_eye_intro(gdl);
+         gdl = insert_sight_backdrop_eye_intro(gdl);
+         gdl = insert_bond_eye_intro(gdl);
+         gdl = sub_GAME_7F01CA18(gdl);
+         
+-        intro_eye_counter += INTRO_EYE_COUNTER_CASE_5_ADD;
++        if (advance) {
++            intro_eye_counter += INTRO_EYE_COUNTER_CASE_5_ADD;
++        }
+         
+         gdl = sub_GAME_7F007E70(gdl, intro_eye_counter);
+         if (intro_eye_counter >= 0xF7) {
+@@ -708,9 +736,11 @@
+     case 6:
+         gSPDisplayList(gdl++, &dlBasicGeometry);
+         gdl = clear_framebuffer_black(gdl);
+-        if (intro_eye_counter++ >= INTRO_EYE_COUNTER_CASE_6) {
+-            intro_eye_counter = 0;
+-            gunbarrel_mode++;
++        if (advance) {
++            if (intro_eye_counter++ >= INTRO_EYE_COUNTER_CASE_6) {
++                intro_eye_counter = 0;
++                gunbarrel_mode++;
++            }
+         }
+         break;
+     };

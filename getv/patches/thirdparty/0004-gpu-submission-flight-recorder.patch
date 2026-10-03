@@ -1,0 +1,130 @@
+--- a/getv/port/fast3d/gfx_opengl.c
++++ b/getv/port/fast3d/gfx_opengl.c
+@@ -66,0 +67 @@
++#include "../src/ge_gpu_flight.h"
+@@ -87,0 +89,4 @@
++    uint64_t content_hash;
++    uint64_t height_hash;
++    int wrap_s;
++    int wrap_t;
+@@ -123,0 +129,2 @@
++static int ge_drawdiag_viewport[4];
++static int ge_drawdiag_scissor[4];
+@@ -712,0 +720,3 @@
++    geGpuFlightRecordShader(shader_id, shader_program,
++                            vs_buf, vs_len, fs_buf, fs_len);
++
+@@ -768,0 +779,4 @@
++    tex_cache[num_textures].content_hash = 0;
++    tex_cache[num_textures].height_hash = 0;
++    tex_cache[num_textures].wrap_s = 0;
++    tex_cache[num_textures].wrap_t = 0;
+@@ -804,0 +819,5 @@
++    if (geGpuFlightIsEnabled() && rgba32_buf != NULL && width > 0 && height > 0 &&
++        (size_t)width <= SIZE_MAX / (size_t)height / 4u) {
++        opengl_tex[opengl_curtex]->content_hash =
++            geGpuFlightHashBytes(rgba32_buf, (size_t)width * (size_t)height * 4u);
++    }
+@@ -854,0 +874,5 @@
++    if (geGpuFlightIsEnabled() && rgba32_buf != NULL && width > 0 && height > 0 &&
++        (size_t)width <= SIZE_MAX / (size_t)height / 4u) {
++        t->height_hash = geGpuFlightHashBytes(
++            rgba32_buf, (size_t)width * (size_t)height * 4u);
++    }
+@@ -869,0 +894 @@
++    opengl_tex[opengl_curtex]->height_hash = 0;
+@@ -919,0 +945,2 @@
++    const GLenum wrap_s = gfx_cm_to_opengl(cms);
++    const GLenum wrap_t = gfx_cm_to_opengl(cmt);
+@@ -936,2 +963,2 @@
+-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gfx_cm_to_opengl(cms));
+-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gfx_cm_to_opengl(cmt));
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
++    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+@@ -940,0 +968,2 @@
++        opengl_tex[tile]->wrap_s = (int)wrap_s;
++        opengl_tex[tile]->wrap_t = (int)wrap_t;
+@@ -975,0 +1005,4 @@
++    ge_drawdiag_viewport[0] = x;
++    ge_drawdiag_viewport[1] = y;
++    ge_drawdiag_viewport[2] = width;
++    ge_drawdiag_viewport[3] = height;
+@@ -979,0 +1013,4 @@
++    ge_drawdiag_scissor[0] = x;
++    ge_drawdiag_scissor[1] = y;
++    ge_drawdiag_scissor[2] = width;
++    ge_drawdiag_scissor[3] = height;
+@@ -993,0 +1031,2 @@
++    const int flight_enabled = geGpuFlightIsEnabled();
++    const int drawdiag_enabled = geDrawDiagIsEnabled();
+@@ -996 +1035 @@
+-    if (geDrawDiagIsEnabled()) {
++    if (drawdiag_enabled || flight_enabled) {
+@@ -998,0 +1038,2 @@
++        uintptr_t gfx_w0 = 0;
++        uintptr_t gfx_w1 = 0;
+@@ -1027,0 +1069,4 @@
++                state.texture_hash[tile] = opengl_tex[tile]->content_hash;
++                state.height_hash[tile] = opengl_tex[tile]->height_hash;
++                state.texture_wrap_s[tile] = opengl_tex[tile]->wrap_s;
++                state.texture_wrap_t[tile] = opengl_tex[tile]->wrap_t;
+@@ -1031,3 +1076,22 @@
+-        geDrawDiagBeforeSubmit((unsigned long)frame_count, buf_vbo, buf_vbo_len,
+-                               buf_vbo_num_tris, &state);
+-        drawdiag_selected = geDrawDiagLastSelected();
++        memcpy(state.viewport, ge_drawdiag_viewport, sizeof(state.viewport));
++        memcpy(state.scissor, ge_drawdiag_scissor, sizeof(state.scissor));
++        gfx_get_flight_command_context(&state.gfx_cmd_progress, &state.gfx_dl_depth,
++                                       &state.gfx_opcode, &gfx_w0, &gfx_w1);
++        state.gfx_w0 = (uint64_t)gfx_w0;
++        state.gfx_w1 = (uint64_t)gfx_w1;
++
++        if (flight_enabled) {
++            if (geGpuFlightNeedsGlInfo()) {
++                geGpuFlightSetGlInfo((const char *)glGetString(GL_VENDOR),
++                                     (const char *)glGetString(GL_RENDERER),
++                                     (const char *)glGetString(GL_VERSION));
++            }
++            geGpuFlightRecordDraw(frame_count, buf_vbo, buf_vbo_len,
++                                  buf_vbo_num_tris, &state);
++        }
++
++        if (drawdiag_enabled) {
++            geDrawDiagBeforeSubmit((unsigned long)frame_count, buf_vbo, buf_vbo_len,
++                                   buf_vbo_num_tris, &state);
++            drawdiag_selected = geDrawDiagLastSelected();
++        }
+--- a/getv/port/fast3d/gfx_pc.c
++++ b/getv/port/fast3d/gfx_pc.c
+@@ -5289,0 +5290,23 @@
++void gfx_get_flight_command_context(int *progress, int *depth, uint32_t *opcode,
++                                    uintptr_t *w0, uintptr_t *w1)
++{
++    unsigned int cur;
++    const struct gfx_trace_entry *e;
++
++    if (progress != NULL) *progress = ge_stall_gfx_cmd_progress;
++    if (depth != NULL) *depth = ge_dl_depth;
++
++    if (gfx_trace_total == 0) {
++        if (opcode != NULL) *opcode = 0;
++        if (w0 != NULL) *w0 = 0;
++        if (w1 != NULL) *w1 = 0;
++        return;
++    }
++
++    cur = (gfx_trace_pos + GFX_TRACE_N - 1) % GFX_TRACE_N;
++    e = &gfx_trace[cur];
++    if (opcode != NULL) *opcode = (uint32_t)((e->w0 >> 24) & 0xffu);
++    if (w0 != NULL) *w0 = e->w0;
++    if (w1 != NULL) *w1 = e->w1;
++}
++
+--- a/getv/port/fast3d/gfx_pc.h
++++ b/getv/port/fast3d/gfx_pc.h
+@@ -3,0 +4,2 @@
++#include <stdint.h>
++
+@@ -39,0 +42,2 @@
++void gfx_get_flight_command_context(int *progress, int *depth, uint32_t *opcode,
++                                    uintptr_t *w0, uintptr_t *w1);

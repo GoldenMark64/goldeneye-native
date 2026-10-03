@@ -254,6 +254,195 @@ else
     || die "0032-manual-reload.patch failed to apply"
 fi
 
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0033-guard-gun-sfx-native-layout.patch" ) 2>/dev/null; then
+  echo "0033-guard-gun-sfx-native-layout.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0033-guard-gun-sfx-native-layout.patch" ) \
+    || die "0033-guard-gun-sfx-native-layout.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0034-surface2-remote-mine-native-layout.patch" ) 2>/dev/null; then
+  echo "0034-surface2-remote-mine-native-layout.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0034-surface2-remote-mine-native-layout.patch" ) \
+    || die "0034-surface2-remote-mine-native-layout.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0035-gunbarrel-authored-cadence.patch" ) 2>/dev/null; then
+  echo "0035-gunbarrel-authored-cadence.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0035-gunbarrel-authored-cadence.patch" ) \
+    || die "0035-gunbarrel-authored-cadence.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0036-tank-mount-diagnostic.patch" ) 2>/dev/null; then
+  echo "0036-tank-mount-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0036-tank-mount-diagnostic.patch" ) \
+    || die "0036-tank-mount-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0037-file-select-hitbox-native-layout.patch" ) 2>/dev/null; then
+  echo "0037-file-select-hitbox-native-layout.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0037-file-select-hitbox-native-layout.patch" ) \
+    || die "0037-file-select-hitbox-native-layout.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0038-tank-contact-native-tolerance.patch" ) 2>/dev/null; then
+  echo "0038-tank-contact-native-tolerance.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0038-tank-contact-native-tolerance.patch" ) \
+    || die "0038-tank-contact-native-tolerance.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0039-tank-inner-diagnostic.patch" ) 2>/dev/null; then
+  echo "0039-tank-inner-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0039-tank-inner-diagnostic.patch" ) \
+    || die "0039-tank-inner-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0040-tank-native-object-state-alias.patch" ) 2>/dev/null; then
+  echo "0040-tank-native-object-state-alias.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0040-tank-native-object-state-alias.patch" ) \
+    || die "0040-tank-native-object-state-alias.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0041-archives-stall-watchdog-hooks.patch" ) 2>/dev/null; then
+  echo "0041-archives-stall-watchdog-hooks.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0041-archives-stall-watchdog-hooks.patch" ) \
+    || die "0041-archives-stall-watchdog-hooks.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0042-gunbarrel-native-cadence-split.patch" ) 2>/dev/null; then
+  echo "0042-gunbarrel-native-cadence-split.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0042-gunbarrel-native-cadence-split.patch" ) \
+    || die "0042-gunbarrel-native-cadence-split.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0043-gunbarrel-native-bond-resync.patch" ) 2>/dev/null; then
+  echo "0043-gunbarrel-native-bond-resync.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0043-gunbarrel-native-bond-resync.patch" ) \
+    || die "0043-gunbarrel-native-bond-resync.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0044-depot-timedmine-diagnostic.patch" ) 2>/dev/null; then
+  echo "0044-depot-timedmine-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0044-depot-timedmine-diagnostic.patch" ) \
+    || die "0044-depot-timedmine-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0045-proximity-box-stall-diagnostic.patch" ) 2>/dev/null; then
+  echo "0045-proximity-box-stall-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0045-proximity-box-stall-diagnostic.patch" ) \
+    || die "0045-proximity-box-stall-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0046-stan-room-buffer-native-terminator.patch" ) 2>/dev/null; then
+  echo "0046-stan-room-buffer-native-terminator.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0046-stan-room-buffer-native-terminator.patch" ) \
+    || die "0046-stan-room-buffer-native-terminator.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0047-stan-los-subphase-diagnostic.patch" ) 2>/dev/null; then
+  echo "0047-stan-los-subphase-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0047-stan-los-subphase-diagnostic.patch" ) \
+    || die "0047-stan-los-subphase-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0048-stan-los-deep-diagnostic.patch" ) 2>/dev/null; then
+  echo "0048-stan-los-deep-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0048-stan-los-deep-diagnostic.patch" ) \
+    || die "0048-stan-los-deep-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0049-native-collision-polygon-extent.patch" ) 2>/dev/null; then
+  echo "0049-native-collision-polygon-extent.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0049-native-collision-polygon-extent.patch" ) \
+    || die "0049-native-collision-polygon-extent.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0050-gfx-run-progress-diagnostic.patch" ) 2>/dev/null; then
+  echo "0050-gfx-run-progress-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0050-gfx-run-progress-diagnostic.patch" ) \
+    || die "0050-gfx-run-progress-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0051-gpu-sync-present-diagnostic.patch" ) 2>/dev/null; then
+  echo "0051-gpu-sync-present-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0051-gpu-sync-present-diagnostic.patch" ) \
+    || die "0051-gpu-sync-present-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0052-draw-sync-attribution-diagnostic.patch" ) 2>/dev/null; then
+  echo "0052-draw-sync-attribution-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0052-draw-sync-attribution-diagnostic.patch" ) \
+    || die "0052-draw-sync-attribution-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0054-native-ladder-locus-record.patch" ) 2>/dev/null; then
+  echo "0054-native-ladder-locus-record.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0054-native-ladder-locus-record.patch" ) \
+    || die "0054-native-ladder-locus-record.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0055-stan-recovery-safety.patch" ) 2>/dev/null; then
+  echo "0055-stan-recovery-safety.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0055-stan-recovery-safety.patch" ) \
+    || die "0055-stan-recovery-safety.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0056-stan-ground-cylinder-recovery.patch" ) 2>/dev/null; then
+  echo "0056-stan-ground-cylinder-recovery.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0056-stan-ground-cylinder-recovery.patch" ) \
+    || die "0056-stan-ground-cylinder-recovery.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0057-native-reverse-animation-interpolation.patch" ) 2>/dev/null; then
+  echo "0057-native-reverse-animation-interpolation.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0057-native-reverse-animation-interpolation.patch" ) \
+    || die "0057-native-reverse-animation-interpolation.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0058-bunker2-cctv-objective-diagnostic.patch" ) 2>/dev/null; then
+  echo "0058-bunker2-cctv-objective-diagnostic.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0058-bunker2-cctv-objective-diagnostic.patch" ) \
+    || die "0058-bunker2-cctv-objective-diagnostic.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0059-gunbarrel-bond-speed-calibration.patch" ) 2>/dev/null; then
+  echo "0059-gunbarrel-bond-speed-calibration.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0059-gunbarrel-bond-speed-calibration.patch" ) \
+    || die "0059-gunbarrel-bond-speed-calibration.patch failed to apply"
+fi
+
+if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/0060-gpu-render-source-provenance.patch" ) 2>/dev/null; then
+  echo "0060-gpu-render-source-provenance.patch: already applied"
+else
+  ( cd "$DECOMP" && git apply "$HERE/getv/patches/0060-gpu-render-source-provenance.patch" ) \
+    || die "0060-gpu-render-source-provenance.patch failed to apply"
+fi
+
 # The ROM's SHA-1, from whichever tool this machine actually has.
 #
 # sha1sum on its own is not enough. Under the setup wizard, which runs this script with its output

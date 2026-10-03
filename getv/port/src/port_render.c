@@ -29,6 +29,8 @@
 #include "ge_gl_debug.h"    /* GETV_GLDEBUG=1: who raises the GL_INVALID_OPERATION, and when */
 #include "ge_prop_allocator_telemetry.h"
 #include "ge_semantic_row.h"
+#include "ge_diagnostic_capture.h"
+#include "ge_stall_watchdog.h"
 
 /* ---- GETV_SKYDUMP: prove the sky RDP triangles are recoverable -----------------
  *
@@ -153,14 +155,17 @@ void gePortRenderDisplayList(void *firstGdl)
         /* Announce before each stage, not after. Printing a summary afterwards tells you
          * nothing when a stage never returns -- which is exactly what frame 1 does. */
         Uint32 t0 = SDL_GetTicks(), t1, t2, t3;
+        gePortStallGfxStartFrame();
         printf("[getv] frame %d: -> gfx_start_frame\n", rendered); fflush(stdout);
         gfx_start_frame();  t1 = SDL_GetTicks();
         /* Polled at each stage boundary so the culprit is BISECTED rather than guessed at:
          * "after gfx_run" and "after gfx_end_frame" are different bodies of code. */
         if (geGlDebugEnabled()) { geGlDebugPoll("after gfx_start_frame", rendered); }
+        gePortStallGfxRun();
         printf("[getv] frame %d: -> gfx_run (%ums)\n", rendered, t1 - t0); fflush(stdout);
         gfx_run((Gfx *)firstGdl); t2 = SDL_GetTicks();
         if (geGlDebugEnabled()) { geGlDebugPoll("after gfx_run", rendered); }
+        gePortStallGfxEndFrame();
         printf("[getv] frame %d: -> gfx_end_frame (%ums)\n", rendered, t2 - t1); fflush(stdout);
         gfx_end_frame();    t3 = SDL_GetTicks();
         if (geGlDebugEnabled()) { geGlDebugPoll("after gfx_end_frame", rendered); }
@@ -178,6 +183,7 @@ void gePortRenderDisplayList(void *firstGdl)
          * The GPU query closes AFTER gfx_end_frame, deliberately: the swap is inside it, and
          * whether the swap blocks is half of what this is trying to find out. */
         geGpuTimerFrameBegin();
+        gePortStallGfxStartFrame();
         gfx_start_frame();
 
         /* GETV_NODRAW=1 -- the bisection that separates "drawing costs 6 ms" from "a frame costs
@@ -207,9 +213,11 @@ void gePortRenderDisplayList(void *firstGdl)
                     fflush(stdout);
                 }
             }
+            gePortStallGfxRun();
             if (!nodraw) { gfx_run((Gfx *)firstGdl); }
         }
 
+        gePortStallGfxEndFrame();
         if (geGpuTimerEnabled()) {
             /* Wall time across the present, on the CPU side. Paired with the GPU figure this
              * separates "the GPU is busy" from "we are blocked waiting on the driver", which are
@@ -224,6 +232,7 @@ void gePortRenderDisplayList(void *firstGdl)
         geGpuTimerFrameEnd();
     }
     ge_rendered_frames++;
+    gePortStallPostFrame(rendered);
     geSemanticRowEnd();
     rendered = (int)ge_rendered_frames;
     {
@@ -367,6 +376,10 @@ void gePortRenderDisplayList(void *firstGdl)
         extern void gePortEventFrame(int frame);
         gePortEventFrame(rendered);
     }
+
+    /* F3 diagnostics are finalized only after the typed event bus has observed this settled
+     * frame. The renderer has already consumed the matching screenshot request above. */
+    gePortDiagnosticFinalizeFrame((unsigned long)rendered);
 
     {
         static int trace = -1;

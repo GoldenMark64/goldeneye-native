@@ -1,0 +1,113 @@
+--- a/getv/port/fast3d/gfx_pc.c
++++ b/getv/port/fast3d/gfx_pc.c
+@@ -459,0 +460 @@
++#define GE_DL_MAX_DEPTH 64
+@@ -461,0 +463,2 @@
++static const void *ge_dl_stack[GE_DL_MAX_DEPTH];
++static const void *ge_dl_callsite[GE_DL_MAX_DEPTH];
+@@ -5291 +5294,6 @@
+-                                    uintptr_t *w0, uintptr_t *w1)
++                                    uintptr_t *w0, uintptr_t *w1,
++                                    uintptr_t *cmd_ptr,
++                                    uint32_t *dl_stack_base_depth,
++                                    uintptr_t *dl_stack, uintptr_t *dl_callsite,
++                                    uint32_t dl_stack_cap,
++                                    uint32_t *dl_stack_count)
+@@ -5294,0 +5303,4 @@
++    uint32_t total;
++    uint32_t base;
++    uint32_t count;
++    uint32_t i;
+@@ -5297,0 +5310,21 @@
++    if (cmd_ptr != NULL) *cmd_ptr = 0;
++
++    total = ge_dl_depth >= 0 ? (uint32_t)ge_dl_depth + 1u : 0u;
++    if (total > GE_DL_MAX_DEPTH) total = GE_DL_MAX_DEPTH;
++    count = total;
++    if (count > dl_stack_cap) count = dl_stack_cap;
++    base = total - count;
++    if (dl_stack_base_depth != NULL) *dl_stack_base_depth = base;
++    if (dl_stack_count != NULL) *dl_stack_count = count;
++    if (dl_stack != NULL) {
++        for (i = 0; i < count; i++) {
++            dl_stack[i] = (uintptr_t)ge_dl_stack[base + i];
++            if (dl_callsite != NULL) dl_callsite[i] = (uintptr_t)ge_dl_callsite[base + i];
++        }
++        for (; i < dl_stack_cap; i++) {
++            dl_stack[i] = 0;
++            if (dl_callsite != NULL) dl_callsite[i] = 0;
++        }
++    } else if (dl_callsite != NULL) {
++        for (i = 0; i < dl_stack_cap; i++) dl_callsite[i] = 0;
++    }
+@@ -5310,0 +5344 @@
++    if (cmd_ptr != NULL) *cmd_ptr = (uintptr_t)e->cmd;
+@@ -5477,3 +5510,0 @@
+-/* Ten is what the RSP has; this is a deliberate superset so nothing legitimate is cut. */
+-#define GE_DL_MAX_DEPTH 64
+-
+@@ -5603,0 +5635,4 @@
++                    if (ge_dl_depth < GE_DL_MAX_DEPTH) {
++                        ge_dl_stack[ge_dl_depth] = target;
++                        ge_dl_callsite[ge_dl_depth] = cmd;
++                    }
+@@ -5604,0 +5640,4 @@
++                    if (ge_dl_depth < GE_DL_MAX_DEPTH) {
++                        ge_dl_stack[ge_dl_depth] = NULL;
++                        ge_dl_callsite[ge_dl_depth] = NULL;
++                    }
+@@ -5607,0 +5647,4 @@
++                    if (ge_dl_depth >= 0 && ge_dl_depth < GE_DL_MAX_DEPTH) {
++                        ge_dl_stack[ge_dl_depth] = target;
++                        ge_dl_callsite[ge_dl_depth] = cmd;
++                    }
+@@ -6002,0 +6046,3 @@
++    memset(ge_dl_stack, 0, sizeof(ge_dl_stack));
++    memset(ge_dl_callsite, 0, sizeof(ge_dl_callsite));
++    ge_dl_stack[0] = commands;
+--- a/getv/port/fast3d/gfx_pc.h
++++ b/getv/port/fast3d/gfx_pc.h
+@@ -43 +43,6 @@
+-                                    uintptr_t *w0, uintptr_t *w1);
++                                    uintptr_t *w0, uintptr_t *w1,
++                                    uintptr_t *cmd_ptr,
++                                    uint32_t *dl_stack_base_depth,
++                                    uintptr_t *dl_stack, uintptr_t *dl_callsite,
++                                    uint32_t dl_stack_cap,
++                                    uint32_t *dl_stack_count);
+--- a/getv/port/fast3d/gfx_opengl.c
++++ b/getv/port/fast3d/gfx_opengl.c
+@@ -67,0 +68 @@
++#include "../src/ge_gdl_source.h"
+@@ -1039,0 +1041,6 @@
++        uintptr_t gfx_cmd_ptr = 0;
++        uintptr_t gfx_dl_stack[8] = {0};
++        uintptr_t gfx_dl_callsite[8] = {0};
++        uint32_t gfx_dl_stack_base_depth = 0;
++        uint32_t gfx_dl_stack_count = 0;
++        struct GeGdlSourceInfo gfx_source;
+@@ -1041,0 +1049 @@
++        memset(&gfx_source, 0, sizeof(gfx_source));
+@@ -1079 +1087,5 @@
+-                                       &state.gfx_opcode, &gfx_w0, &gfx_w1);
++                                       &state.gfx_opcode, &gfx_w0, &gfx_w1,
++                                       &gfx_cmd_ptr, &gfx_dl_stack_base_depth,
++                                       gfx_dl_stack, gfx_dl_callsite,
++                                       (uint32_t)(sizeof(gfx_dl_stack) / sizeof(gfx_dl_stack[0])),
++                                       &gfx_dl_stack_count);
+@@ -1081,0 +1094,15 @@
++        state.gfx_cmd_ptr = (uint64_t)gfx_cmd_ptr;
++        state.gfx_dl_stack_base_depth = gfx_dl_stack_base_depth;
++        state.gfx_dl_stack_count = gfx_dl_stack_count;
++        for (uint32_t i = 0; i < gfx_dl_stack_count && i < 8u; i++) {
++            state.gfx_dl_stack[i] = (uint64_t)gfx_dl_stack[i];
++            state.gfx_dl_callsite[i] = (uint64_t)gfx_dl_callsite[i];
++        }
++        if (gfx_dl_stack_count > 0 &&
++            gePortGdlSourceLookup((const void *)gfx_dl_stack[gfx_dl_stack_count - 1], &gfx_source)) {
++            state.gfx_source_kind = gfx_source.kind;
++            state.gfx_source_id = gfx_source.id;
++            state.gfx_source_aux = gfx_source.aux;
++            state.gfx_source_owner = (uint64_t)gfx_source.owner;
++            memcpy(state.gfx_source_name, gfx_source.name, sizeof(state.gfx_source_name));
++        }

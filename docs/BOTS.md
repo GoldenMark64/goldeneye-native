@@ -242,12 +242,30 @@ have disagreed if both had been measured.
 Found by reading rather than by running, but the first half is structural: `canTurnTank` has four
 assignments and three are tank-gated, so the 1.x conclusion does not depend on runtime state.
 
+## Runtime attachment status
+
+The earlier version of this document said compiled archetype lists still needed a way to reach a
+running character. That is no longer current. `ge_bot_ai.c` selects a generated list and calls the
+game's existing `chrSpawnAtPad()` path with the compiled bytecode; `port_render.c` drives
+`gePortBotAiFrame()` during a running stage.
+
+The developer-facing gate is:
+
+```text
+GETV_BOT_AI=<archetype>[:count][@pad]
+```
+
+For example, `GETV_BOT_AI=dark:3@12` asks for three characters using the `dark` archetype,
+starting at pad 12. `GETV_BOT_AI_BODY` selects the body model and `GETV_BOT_AI_DELAY` controls
+the spawn delay. The path is off unless explicitly enabled.
+
 ## What this does not yet do
 
-1. Attaching a compiled list to a multiplayer character slot. The campaign path spawns
-   characters from setup records; the arena path needs an equivalent.
-2. Wiring target selection (`weakest`, `leader`, `last_attacker`, `fixed_rival`) to scoreboard
-   and damage state, which the opcode table does not expose on its own.
+1. Provide polished launcher/UI configuration or automatic arena population for NPC bots. The
+   current runtime interface still expects explicit archetype/count/pad choices and reports spawn
+   failures when a requested pad or character budget is unsuitable.
+2. Wire target-selection policies (`weakest`, `leader`, `last_attacker`, `fixed_rival`) to
+   scoreboard and damage state, which the opcode table does not expose on its own.
 
-Item 2 is the only part that needs genuinely new engine code. Item 1 is plumbing over machinery
-that already runs.
+So the compiled-list attachment itself is implemented; the remaining work is player-facing match
+integration and the higher-level target-selection data those personalities need.

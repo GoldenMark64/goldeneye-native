@@ -156,12 +156,18 @@ class CollisionHullTests(unittest.TestCase):
     def test_collapsed_line(self):
         self.run_case(4)
 
-    def test_legacy_rect4_extent_is_ubsan_failure(self):
+    def test_rotated_volume_requires_more_than_rect4_slots(self):
         result = subprocess.run(
-            [str(self.legacy_binary), "3"], capture_output=True, text=True
+            [str(self.binary), "3"], capture_output=True, text=True
         )
-        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("out of bounds", result.stderr.lower())
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("edges=", result.stdout)
+        edges = int(result.stdout.split("edges=", 1)[1].split()[0])
+        self.assertGreater(
+            edges,
+            4,
+            "the rotated volume must exercise polygon storage beyond rect4f.points[4]",
+        )
 
     def test_stan_los_uses_extended_polygon_accessor(self):
         source = (ROOT / "vendor/ge-decomp/src/game/stan.c").read_text()

@@ -111,6 +111,7 @@ else
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0058-bunker2-cctv-objective-diagnostic.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0059-gunbarrel-bond-speed-calibration.patch" )
     ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0060-gpu-render-source-provenance.patch" )
+    ( cd vendor/ge-decomp && git apply "$ROOT/getv/patches/0061-playtested-native-source-catchup.patch" )
     echo "cloned and patched"
 fi
 

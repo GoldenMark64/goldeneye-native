@@ -187,7 +187,8 @@ for p in 0001-source 0006-fov-live-setter 0007-load-trace \
          0057-native-reverse-animation-interpolation \
          0058-bunker2-cctv-objective-diagnostic \
          0059-gunbarrel-bond-speed-calibration \
-         0060-gpu-render-source-provenance; do
+         0060-gpu-render-source-provenance \
+         0061-playtested-native-source-catchup; do
   if ( cd "$DECOMP" && git apply --reverse --check "$HERE/getv/patches/$p.patch" ) 2>/dev/null; then
     echo "$p.patch: already applied"
   else

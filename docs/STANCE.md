@@ -6,9 +6,13 @@ Retail crouch is gated behind aim mode. `bondview2.c:5484` requires `insightaimm
 stick-down before Bond will lower, so crouching means holding aim, pushing down, then
 releasing aim while staying low. Faithful, and genuinely unintuitive.
 
-**C** or **LSHIFT** now crouches, **V** stands up. The keys are ORed alongside the retail
-condition rather than replacing it, so the original gesture still works exactly as it did and
-nothing that depended on it changes. `GETV_CROUCH_KEY=0` for faithful-only.
+Crouch is now a normal bindable action (`GE_ACT_CROUCH`). In the modern keyboard preset it
+defaults to **C** or **Left Ctrl**; the N64-style preset retains **C** or **Left Shift**.
+`crouch_mode = toggle` is the default, so pressing crouch again stands Bond up; in `hold` mode,
+releasing crouch stands him up. There is deliberately **no separate stand binding**. An earlier
+version used **V** to stand, but that interaction was removed because it made crouch look broken.
+`GETV_CROUCH_KEY=0` still disables the dedicated port-side crouch action for faithful-only
+behavior.
 
 All four sites were patched, not one: the condition appears twice per control-style branch and
 there are two branches. Patching the first pair and stopping would have left crouch working in
@@ -18,10 +22,11 @@ Measured with `GETV_CROUCH_SELFTEST=1`: eye height 339.719 -> 239.719, a drop of
 100.0, which is `FULL_CROUCH_OFFSET`. The weapon flag `WEAPONSTATBITFLAG_DISABLE_CROUCH` is
 still honoured, so weapons that forbid crouching still forbid it.
 
-These hooks deliberately do **not** go through `port_os.c`'s action table. That table belongs to
-the per-player binding work, which is still in flux -- editing it mid-flight is how the last
-collision happened. When the binding work lands, these become `GE_ACT_CROUCH` and
-`GE_ACT_STAND` and pick up gamepad support for free.
+The binding work has since landed. `ge_actions.h` and `ge_bindings.c` expose crouch alongside
+the other player actions, including keyboard/gamepad presets and hold/toggle policy. Standing is
+implemented as a short port-generated pulse when a crouch ends rather than as a second bindable
+action, so the original game's retail crouch gesture can continue to coexist with the dedicated
+modern action.
 
 ## Jump: expensive, and probably not wanted
 
@@ -57,14 +62,15 @@ What makes it real work rather than a one-liner:
   second-order path the interpolation work hit, and it is the part most likely to produce
   "the AI is behaving oddly" reports with no obvious cause.
 
-Verdict: worth doing, as a gated GoldenEye+ feature, after the player API lands -- the aim-ray
-work overlaps with what an external AI needs to read anyway.
+Verdict: worth considering as a gated GoldenEye+ feature. The player API now exists, so any future
+lean implementation should reuse its explicit-player/state seams rather than creating another
+implicit-current-player path.
 
 ## Order
 
-1. Crouch key
-2. Lean, once the player API exists and the aim ray is already being handled
-3. Jump, only if the project decides it wants a movement mod
+1. Crouch action -- implemented
+2. Lean -- optional future GoldenEye+ work
+3. Jump -- only if the project deliberately chooses to add a movement mod
 
 ---
 

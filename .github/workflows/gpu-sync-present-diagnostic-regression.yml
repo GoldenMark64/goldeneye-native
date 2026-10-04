@@ -31,5 +31,9 @@ jobs:
             [[ "$(basename "$patch")" == 0002-* ]] && continue
             git -C vendor/ge-decomp apply "$patch"
           done
+      - name: Reconstruct pinned Fast3D sources
+        run: bash tools/fetch-thirdparty.sh
+      - name: Verify third-party reconstruction
+        run: bash tools/fetch-thirdparty.sh verify
       - name: Run GPU sync present diagnostic regression
         run: python3 tools/tests/test_gpu_sync_present_diag.py

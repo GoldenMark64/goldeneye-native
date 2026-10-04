@@ -1,7 +1,7 @@
 # Advanced renderer and GPU troubleshooting
 
 GoldenEye Native 1.0 contains an opt-in renderer-forensics subsystem built during investigation of
-an intermittent Intel Iris Xe whole-desktop GPU hang. Normal play does not enable it. The tools are
+an intermittent Intel/i915 whole-desktop GPU hang. Normal play does not enable it. The tools are
 kept in the release so a future renderer failure can be correlated from the game's Fast3D command
 stream all the way down to the hardware batch without rebuilding a one-off diagnostic port.
 

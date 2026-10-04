@@ -128,20 +128,17 @@ has the complete path-to-subsystem map.
 
 ## 3. Say what you measured
 
-The build prints four counts, and they are the cheapest evidence that a change did what you think:
+The build prints a built/failed summary for each compilation group. The exact number of built
+translation units is **not** a stable contract: it changes as the game patch set and native port
+layer gain or remove source files.
 
-```
-mac game: 167 built, 0 failed
-mac assets: 746 built, 0 failed
-mac audio: 40 built, 0 failed
-mac port layer: 64 built, 0 failed
-```
+The invariant is **zero failures in every required build group**. Any name in a `FAILED:` line is
+a real regression unless the current build documentation explicitly says otherwise. Do not compare
+a modern checkout to an old hard-coded source count and call the difference a failure.
 
-**Every count reads `0 failed`.** Any name in a `FAILED:` line is a real regression. Older notes
-said `167 built, 1 failed` was correct because `src/tlb_manage.c` programs a memory-management
-unit that does not exist here; it and nine other N64-hardware and SGI-dev-host files are now
-excluded by name instead, so nothing is expected to fail. See `docs/SETUP.md` for why that
-changed.
+Older notes also recorded `tlb_manage.c` as one expected failure. That is historical: N64-only
+hardware/dev-host files are excluded by name now, so current builds are not supposed to carry a
+standing compile failure. See `docs/SETUP.md` for the detailed account.
 
 For anything that changes rendering or gameplay, measure it rather than describing it. Boot
 straight into a level with `GETV_STAGE=<n>` (the numbers are the `LEVELID_*` enum in

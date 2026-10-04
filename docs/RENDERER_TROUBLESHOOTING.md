@@ -56,7 +56,7 @@ Raw `.bin` flight files are local engineering evidence. They may be large (hundr
 and can contain exact transient rendering buffers. Do not attach them to public issues or pull
 requests. Decode them locally and publish only bounded, reviewed text that contains no game data.
 
-## 1.0 Intel Iris Xe investigation
+## 1.0 Intel/i915 investigation
 
 The release blocker presented as a complete desktop stall lasting about ten seconds. Kernel
 evidence consistently identified the Intel render engine (`rcs0`) and the same hang family rather
@@ -131,18 +131,18 @@ cause.
 
 ### 7. A/B the Intel submission mechanism
 
-With the game held constant, the affected Dell Latitude 5530 was booted on the same Ubuntu HWE
-kernel and the same `i915` driver with one controlled change:
+With the game held constant, the affected Ubuntu HWE x86-64 Intel/i915 test system was booted
+with the same kernel/driver combination and one controlled change:
 
 ```text
 i915.enable_guc=0
 ```
 
-Boot verification confirmed Alder Lake-P Iris Xe was bound to `i915`, the kernel command line
+Boot verification confirmed the Intel GPU was bound to `i915`, the kernel command line
 contained the option, and the driver accepted it. A clean GoldenEye build was then played across
 several levels without reproducing the previously recurring stalls.
 
-For this tested Latitude/Linux environment, the whole-system GPU-stall issue is therefore marked
+For this tested Linux/Intel environment, the whole-system GPU-stall issue is therefore marked
 **fixed by the i915 GuC-disable workaround**. This is intentionally not described as a GoldenEye
 source-code root-cause fix. A future kernel/driver may be retested with the default GuC policy.
 

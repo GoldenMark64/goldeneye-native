@@ -1140,16 +1140,16 @@ you get four zero lines rather than one clear error.
 
 **Fix** - sections 2.4 and 3.
 
-**Related symptom** - the decomp is present but `mac assets: 0 built, 0 failed` while `mac game`
-reports 167. The decompilation was cloned but the ROM extraction and asset generation in 3.5 were
-never run, so `assets/**/*.c` does not exist yet.
+**Related symptom** - the decomp is present but `mac assets: 0 built, 0 failed` while the game
+source group reports a normal nonzero build count. The decompilation was cloned but the ROM
+extraction and asset generation in 3.5 were never run, so `assets/**/*.c` does not exist yet.
 
-**Related symptom** - `mac assets:` reports a large number of failures rather than
-`746 built, 0 failed`, and the named files are under `assets/obseg/{chr,prop,gun}/`. That is
-`tools/fix_asset_switchnodes.py` not having been run: the script's own header records **156 asset
-translation units** (68 chr, 61 prop, 27 gun) dying on `(u32)&ModelNode_...` initialisers, which are
-not compile-time constant expressions on a 64-bit target. See 3.5. (The exact failing count was
-not reproduced here - the tree used to write this guide was already converted.)
+**Related symptom** - `mac assets:` reports a large number of failures, with the named files
+under `assets/obseg/{chr,prop,gun}/`. That is `tools/fix_asset_switchnodes.py` not having been
+run: the script's own header records **156 asset translation units** (68 chr, 61 prop, 27 gun)
+affected by `(u32)&ModelNode_...` initialisers, which are not compile-time constant expressions
+on a 64-bit target. See 3.5. The current total asset-source count is intentionally not used as an
+integrity check.
 
 **Related symptom** - every compile stage succeeds, the counters look healthy, and the build dies
 only at the link with around 25 undefined symbols, all of them background blobs:
@@ -1199,8 +1199,9 @@ rm -f src/ge_port_decls.h
 git apply --include='src/ge_port_decls.h' ../../getv/patches/0001-source.patch
 ```
 
-**Related symptom** - `mac assets: 744 built, 0 failed` instead of 746, with undefined
-`gePortObsegSize` or `ge_images_segment`. Two generated sources are missing:
+**Related symptom** - the asset group builds without compile failures but its built count is two
+lower than the same-checkout baseline, followed by undefined `gePortObsegSize` or
+`ge_images_segment`. Two generated sources are missing:
 `assets/obseg/ge_obseg_sizes.c`, written by `gen_obseg_blobs.py`, and
 `assets/images/ge_images_segment.c`, written by `gen_images_segment.py`. Both are in the
 section 3.5 sequence; re-run whichever was skipped.

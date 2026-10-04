@@ -1,0 +1,1118 @@
+--- a/src/aicommands.def
++++ b/src/aicommands.def
+@@ -5305,6 +5305,12 @@
+             {
+                 pass = (ai->val[1] & DOOR_STATE_CLOSING) != 0;
+             }
++#ifdef GE_PORT_NATIVE
++            if (ai->val[0] >= GE_TRAIN_DOOR_TAG_FIRST && ai->val[0] <= GE_TRAIN_DOOR_TAG_LAST)
++            {
++                ge_train_door_debug_watch(AiListp, door, ai->val[0], pass);
++            }
++#endif
+         }
+         if (pass)
+         {
+@@ -5500,7 +5506,16 @@
+         {
+             DoorRecord *door = (DoorRecord *)obj;
+             u8          bits = ai->val[1];
++#ifdef GE_PORT_NATIVE
++            u8          before = door->keyflags;
++#endif
+             door->keyflags &= ~bits;
++#ifdef GE_PORT_NATIVE
++            if (ai->val[0] >= GE_TRAIN_DOOR_TAG_FIRST && ai->val[0] <= GE_TRAIN_DOOR_TAG_LAST)
++            {
++                ge_train_door_debug_unlock(AiListp, door, ai->val[0], bits, before);
++            }
++#endif
+         }
+         Offset += CAT(CAT(AI_, CMDNAME), _LENGTH);
+         break;
+--- a/src/aicommands2.h
++++ b/src/aicommands2.h
+@@ -4919,7 +4919,8 @@
+   @return: May have originally printed to stderr on host 1  devkit.
+ *******************************************************************************/
+ #define PRINT(STRING)  \
+-            AI_PRINT  ,
++            AI_PRINT  , \
++            0         ,
+ 
+ 
+ 
+--- a/src/game/chraction.c
++++ b/src/game/chraction.c
+@@ -46,6 +46,65 @@
+ extern s32 gePortGibsMarkCharacter(const void *character);
+ extern s32 gePortGibsIsCharacter(const void *character);
+ extern void gePortGibsForgetCharacter(const void *character);
++
++/* GETV_TRAIN_DOOR_DEBUG=1 -- read-only guard-travel side of the Train locked
++ * door probe. Global AI list 0x100a watches tags 0x1e..0x28. */
++#define GE_TRAIN_DOOR_TAG_FIRST 0x1e
++#define GE_TRAIN_DOOR_TAG_LAST  0x28
++
++static s32 ge_train_door_debug_on(void)
++{
++    static s32 cached = -1;
++    if (cached < 0) {
++        const char *e = getenv("GETV_TRAIN_DOOR_DEBUG");
++        cached = (e && *e && *e != '0');
++    }
++    return cached;
++}
++
++static u8 ge_train_door_travel_seen[256];
++
++static s32 ge_train_door_debug_tag_for_obj(ObjectRecord *obj)
++{
++    s32 tag;
++
++    if (obj == NULL) return -1;
++
++    for (tag = GE_TRAIN_DOOR_TAG_FIRST; tag <= GE_TRAIN_DOOR_TAG_LAST; tag++)
++    {
++        if (objFindByTagId(tag) == obj) return tag;
++    }
++
++    return -1;
++}
++
++static void ge_train_door_debug_dump_family_once(void)
++{
++    static s32 done = FALSE;
++    s32 tag;
++
++    if (done || !ge_train_door_debug_on()) return;
++    done = TRUE;
++
++    for (tag = GE_TRAIN_DOOR_TAG_FIRST; tag <= GE_TRAIN_DOOR_TAG_LAST; tag++)
++    {
++        ObjectRecord *obj = objFindByTagId(tag);
++
++        if (obj != NULL && obj->prop != NULL && obj->type == PROPDEF_DOOR)
++        {
++            DoorRecord *door = (DoorRecord *)obj;
++            printf("[getv][train-door] family tag=0x%02x door=%p pad=%d pos=(%.1f,%.1f,%.1f) state=%d key=0x%x open=%.3f\n",
++                   tag, (void *)door, door->pad,
++                   obj->prop->pos.f[0], obj->prop->pos.f[1], obj->prop->pos.f[2],
++                   door->openstate, door->keyflags, door->openPosition);
++        }
++        else
++        {
++            printf("[getv][train-door] family tag=0x%02x unresolved obj=%p\n", tag, (void *)obj);
++        }
++    }
++    fflush(stdout);
++}
+ #endif
+ 
+ 
+@@ -363,9 +422,23 @@
+ {
+     if (arg0 != NULL)
+     {
++#ifdef GE_PORT_NATIVE
++        WeaponObjRecord *weapon = arg0->weapon;
++
++        /*
++         * The original expression reaches WeaponObjRecord.weaponnum through a
++         * ChrRecord action-union byte offset.  That alias only lines up on the
++         * 32-bit N64 layout; native pointer widening moves weaponnum elsewhere.
++         */
++        if (weapon != NULL)
++        {
++            return bondwalkItemCheckBitflags(weapon->weaponnum, WEAPONSTATBITFLAG_ONLY_1_HANDED);
++        }
++#else
+         ChrRecord *v = (ChrRecord*)arg0->voidp;
+ 
+         return bondwalkItemCheckBitflags(v->act_bytes.padding[84], WEAPONSTATBITFLAG_ONLY_1_HANDED);
++#endif
+     }
+ 
+     return 0U;
+@@ -3715,7 +3788,15 @@
+ */
+ void play_hit_soundeffect_and_proper_volume( ChrRecord *self)
+ {
++#ifdef GE_PORT_NATIVE
++    /*
++     * padding[45] aliases act_gopos.unk59 only on the original 32-bit
++     * ChrRecord layout.  Use the named speed field on native hosts.
++     */
++    get_sound_at_range(self, self->act_gopos.unk59, c_item_entries[self->bodynum].isMale);
++#else
+     get_sound_at_range(self, self->act_ubytes.padding[45], c_item_entries[self->bodynum].isMale);
++#endif
+ }
+ 
+ 
+@@ -9032,6 +9113,48 @@
+         cdtypes = CDTYPE_OBJS | CDTYPE_DOORS | CDTYPE_PLAYERS | CDTYPE_CHRS | CDTYPE_PATHBLOCKER;
+     }
+ 
++#ifdef GE_PORT_NATIVE
++    if (ge_train_door_debug_on() && self_prop != NULL)
++    {
++        s32 chrnum = self->chrnum;
++        s32 nearest_tag = -1;
++        f32 nearest_dist2 = -1.0f;
++        s32 tag;
++
++        ge_train_door_debug_dump_family_once();
++
++        if (chrnum >= 0 && chrnum < (s32) ARRAYCOUNT(ge_train_door_travel_seen)
++            && ge_train_door_travel_seen[chrnum] == 0)
++        {
++            ge_train_door_travel_seen[chrnum] = 1;
++
++            for (tag = GE_TRAIN_DOOR_TAG_FIRST; tag <= GE_TRAIN_DOOR_TAG_LAST; tag++)
++            {
++                ObjectRecord *train_obj = objFindByTagId(tag);
++                if (train_obj != NULL && train_obj->prop != NULL)
++                {
++                    f32 tdx = train_obj->prop->pos.f[0] - self_prop->pos.f[0];
++                    f32 tdy = train_obj->prop->pos.f[1] - self_prop->pos.f[1];
++                    f32 tdz = train_obj->prop->pos.f[2] - self_prop->pos.f[2];
++                    f32 dist2 = tdx * tdx + tdy * tdy + tdz * tdz;
++                    if (nearest_tag < 0 || dist2 < nearest_dist2)
++                    {
++                        nearest_tag = tag;
++                        nearest_dist2 = dist2;
++                    }
++                }
++            }
++
++            printf("[getv][train-door] travel self=%p chr=%d action=%d pos=(%.1f,%.1f,%.1f) target=(%.1f,%.1f,%.1f) nearest_tag=0x%02x dist2=%.1f\n",
++                   (void *)self,
++                   chrnum, self->actiontype,
++                   self_prop->pos.f[0], self_prop->pos.f[1], self_prop->pos.f[2],
++                   arg1->f[0], arg1->f[1], arg1->f[2], nearest_tag, nearest_dist2);
++            fflush(stdout);
++        }
++    }
++#endif
++
+     max=1;
+     for (i=0; i<1; i++)
+     {
+@@ -9281,6 +9404,22 @@
+         if (phi_s3 != NULL)
+         {
+             obj = phi_s3->obj;
++#ifdef GE_PORT_NATIVE
++            s32 train_tag = ge_train_door_debug_tag_for_obj(obj);
++            if (ge_train_door_debug_on() && train_tag >= 0)
++            {
++                dx = phi_s3->pos.f[0] - self_prop->pos.f[0];
++                dy = phi_s3->pos.f[1] - self_prop->pos.f[1];
++                dz = phi_s3->pos.f[2] - self_prop->pos.f[2];
++                printf("[getv][train-door] contact tag=0x%02x self=%p chr=%d action=%d guardpos=(%.1f,%.1f,%.1f) door=%p state=%d key=0x%x open=%.3f dist2=%.1f\n",
++                       train_tag, (void *)self, self->chrnum, self->actiontype,
++                       self_prop->pos.f[0], self_prop->pos.f[1], self_prop->pos.f[2],
++                       (void *)phi_s3->door, phi_s3->door->openstate,
++                       phi_s3->door->keyflags, phi_s3->door->openPosition,
++                       dx * dx + dy * dy + dz * dz);
++                fflush(stdout);
++            }
++#endif
+             if (!(obj->flags2 & PROPFLAG_DOOR_OPENTOFRONT))
+             {
+                 dx = phi_s3->pos.f[0] - self_prop->pos.f[0];
+@@ -9291,7 +9430,25 @@
+                 {
+                     sub_GAME_7F0281F4(self);
+                     doorsChooseSwingDirection(self_prop, phi_s3->door);
++#ifdef GE_PORT_NATIVE
++                    if (ge_train_door_debug_on() && train_tag >= 0)
++                    {
++                        printf("[getv][train-door] activate-before tag=0x%02x self=%p chr=%d state=%d key=0x%x open=%.3f\n",
++                               train_tag, (void *)self, self->chrnum, phi_s3->door->openstate,
++                               phi_s3->door->keyflags, phi_s3->door->openPosition);
++                        fflush(stdout);
++                    }
++#endif
+                     doorActivate(phi_s3->door, 1);
++#ifdef GE_PORT_NATIVE
++                    if (ge_train_door_debug_on() && train_tag >= 0)
++                    {
++                        printf("[getv][train-door] activate-after tag=0x%02x self=%p chr=%d state=%d key=0x%x open=%.3f\n",
++                               train_tag, (void *)self, self->chrnum, phi_s3->door->openstate,
++                               phi_s3->door->keyflags, phi_s3->door->openPosition);
++                        fflush(stdout);
++                    }
++#endif
+ 
+                     if (((self->hidden & CHRHIDDEN_OFFSCREEN_PATROL) == 0)
+                         && (objecthandlerGetModelAnim(self->model) != (struct ModelAnimation *)GE_ANIM_AT(GE_ANIMOFF_ANIM_DATA_idle_unarmed))
+--- a/src/game/chrai.c
++++ b/src/game/chrai.c
+@@ -38,6 +38,208 @@
+ 
+ 
+ #ifdef GE_PORT_NATIVE
++/* GETV_TRAIN_DOOR_DEBUG=1 -- read-only Train locked-door progression probe.
++ * Global list 0x100a watches tags 0x1e..0x28. Each starts with lock bit 0x02
++ * and is unlocked after a guard makes that tagged door leave CLOSED state.
++ * Keep this state-change driven so a long human repro stays readable. */
++#define GE_TRAIN_DOOR_TAG_FIRST 0x1e
++#define GE_TRAIN_DOOR_TAG_LAST  0x28
++#define GE_TRAIN_DOOR_TAG_COUNT (GE_TRAIN_DOOR_TAG_LAST - GE_TRAIN_DOOR_TAG_FIRST + 1)
++#define GE_TRAIN_TRIGGER_GUARD_A 66
++#define GE_TRAIN_TRIGGER_GUARD_B 68
++
++static s32 ge_train_door_debug_on(void)
++{
++    static s32 cached = -1;
++    if (cached < 0) {
++        const char *e = getenv("GETV_TRAIN_DOOR_DEBUG");
++        cached = (e && *e && *e != '0');
++    }
++    return cached;
++}
++
++static s32 ge_train_trigger_guard_slot(ChrRecord *chr)
++{
++    if (chr == NULL) return -1;
++    if (chr->chrnum == GE_TRAIN_TRIGGER_GUARD_A) return 0;
++    if (chr->chrnum == GE_TRAIN_TRIGGER_GUARD_B) return 1;
++    return -1;
++}
++
++static void ge_train_trigger_debug_objective(AIRecord *list, ChrRecord *chr, s32 status, s32 complete)
++{
++    static u8 seen[2];
++    static s32 last_status[2];
++    static s32 last_complete[2];
++    bool isglobal = FALSE;
++    s32 id;
++    s32 slot;
++
++    if (!ge_train_door_debug_on()) return;
++    slot = ge_train_trigger_guard_slot(chr);
++    if (slot < 0) return;
++    if (seen[slot] && last_status[slot] == status && last_complete[slot] == complete) return;
++
++    id = chraiGetAIListID(list, &isglobal);
++    printf("[getv][train-door] trigger-objective chr=%d list=0x%x %s obj0_status=%d complete=%d offset=%d action=%d\n",
++           chr->chrnum, id, isglobal ? "global" : "local", status, complete,
++           chr->aioffset, chr->actiontype);
++    fflush(stdout);
++
++    seen[slot] = 1;
++    last_status[slot] = status;
++    last_complete[slot] = complete;
++}
++
++static void ge_train_trigger_debug_jump(AIRecord *list, ChrRecord *chr, s32 next_id)
++{
++    bool isglobal = FALSE;
++    s32 id;
++
++    if (!ge_train_door_debug_on() || ge_train_trigger_guard_slot(chr) < 0) return;
++    id = chraiGetAIListID(list, &isglobal);
++    printf("[getv][train-door] trigger-jump chr=%d list=0x%x %s ->0x%x offset=%d action=%d\n",
++           chr->chrnum, id, isglobal ? "global" : "local", next_id,
++           chr->aioffset, chr->actiontype);
++    fflush(stdout);
++}
++
++static void ge_train_trigger_debug_run(AIRecord *list, ChrRecord *chr, s32 started)
++{
++    static u8 seen[2];
++    static s32 last_started[2];
++    bool isglobal = FALSE;
++    s32 id;
++    s32 slot;
++
++    if (!ge_train_door_debug_on()) return;
++    slot = ge_train_trigger_guard_slot(chr);
++    if (slot < 0) return;
++    if (seen[slot] && last_started[slot] == started) return;
++
++    id = chraiGetAIListID(list, &isglobal);
++    printf("[getv][train-door] trigger-run chr=%d list=0x%x %s started=%d action=%d pos=(%.1f,%.1f,%.1f)\n",
++           chr->chrnum, id, isglobal ? "global" : "local", started, chr->actiontype,
++           chr->prop ? chr->prop->pos.f[0] : 0.0f,
++           chr->prop ? chr->prop->pos.f[1] : 0.0f,
++           chr->prop ? chr->prop->pos.f[2] : 0.0f);
++    fflush(stdout);
++
++    seen[slot] = 1;
++    last_started[slot] = started;
++}
++
++static s32 ge_train_explosion_debug_on(void)
++{
++    static s32 cached = -1;
++    if (cached < 0)
++    {
++        const char *e = getenv("GETV_TRAIN_EXPLOSION_DEBUG");
++        cached = (e && *e == '1') ? 1 : 0;
++    }
++    return cached;
++}
++
++static s32 ge_train_explosion_tag(s32 tag)
++{
++    return (tag >= 0x0f && tag <= 0x15) || (tag >= 0x2b && tag <= 0x2d);
++}
++
++static void ge_train_explosion_debug_object(const char *phase, s32 tag, ObjectRecord *obj)
++{
++    WeaponObjRecord *weapon = NULL;
++
++    if (!ge_train_explosion_debug_on() || !ge_train_explosion_tag(tag))
++    {
++        return;
++    }
++
++    if (obj && obj->type == PROPDEF_COLLECTABLE)
++    {
++        weapon = (WeaponObjRecord *) obj;
++    }
++
++    printf("[getv][train-explosion] %s tag=0x%02x obj=%p prop=%p type=%d model=%d pad=%d "
++           "state=0x%x destroyed=%d damage=%.1f maxdamage=%.1f weapon=%d timer=%d "
++           "pos=(%.1f,%.1f,%.1f)\n",
++           phase, tag, (void *) obj, obj ? (void *) obj->prop : NULL,
++           obj ? obj->type : -1, obj ? obj->obj : -1, obj ? obj->pad : -1,
++           obj ? obj->state : 0, obj ? objGetDestroyedLevel(obj) : -1,
++           obj ? (double) obj->damage : 0.0, obj ? (double) obj->maxdamage : 0.0,
++           weapon ? weapon->weaponnum : -1, weapon ? weapon->timer : -1,
++           obj ? (double) obj->runtime_pos.x : 0.0,
++           obj ? (double) obj->runtime_pos.y : 0.0,
++           obj ? (double) obj->runtime_pos.z : 0.0);
++    fflush(stdout);
++}
++
++static void ge_train_door_debug_watch(AIRecord *list, DoorRecord *door, s32 tag, s32 pass)
++{
++    static u8 seen[GE_TRAIN_DOOR_TAG_COUNT];
++    static DoorRecord *last_door[GE_TRAIN_DOOR_TAG_COUNT];
++    static s32 last_state[GE_TRAIN_DOOR_TAG_COUNT];
++    static s32 last_keyflags[GE_TRAIN_DOOR_TAG_COUNT];
++    static s32 last_closed[GE_TRAIN_DOOR_TAG_COUNT];
++    static s32 last_pass[GE_TRAIN_DOOR_TAG_COUNT];
++    bool isglobal = FALSE;
++    s32 id;
++    s32 closed;
++    s32 slot;
++
++    if (!ge_train_door_debug_on() || door == NULL) return;
++    if (tag < GE_TRAIN_DOOR_TAG_FIRST || tag > GE_TRAIN_DOOR_TAG_LAST) return;
++
++    slot = tag - GE_TRAIN_DOOR_TAG_FIRST;
++
++    closed = door->openPosition <= 0.0f;
++    if (seen[slot]
++        && door == last_door[slot]
++        && door->openstate == last_state[slot]
++        && door->keyflags == last_keyflags[slot]
++        && closed == last_closed[slot]
++        && pass == last_pass[slot]) {
++        return;
++    }
++
++    id = chraiGetAIListID(list, &isglobal);
++    printf("[getv][train-door] ai-watch tag=0x%02x list=0x%x %s door=%p pad=%d state=%d open=%.3f key=0x%x closed=%d pass=%d\n",
++           tag, id, isglobal ? "global" : "local", (void *)door, door->pad, door->openstate,
++           door->openPosition, door->keyflags, closed, pass);
++    fflush(stdout);
++
++    seen[slot] = 1;
++    last_door[slot] = door;
++    last_state[slot] = door->openstate;
++    last_keyflags[slot] = door->keyflags;
++    last_closed[slot] = closed;
++    last_pass[slot] = pass;
++}
++
++static void ge_train_door_debug_unlock(AIRecord *list, DoorRecord *door, s32 tag, u8 bits, u8 before)
++{
++    static u8 seen[GE_TRAIN_DOOR_TAG_COUNT];
++    static u8 last_before[GE_TRAIN_DOOR_TAG_COUNT];
++    static u8 last_after[GE_TRAIN_DOOR_TAG_COUNT];
++    bool isglobal = FALSE;
++    s32 id;
++    s32 slot;
++
++    if (!ge_train_door_debug_on() || door == NULL) return;
++    if (tag < GE_TRAIN_DOOR_TAG_FIRST || tag > GE_TRAIN_DOOR_TAG_LAST) return;
++
++    slot = tag - GE_TRAIN_DOOR_TAG_FIRST;
++    if (seen[slot] && last_before[slot] == before && last_after[slot] == door->keyflags) return;
++
++    id = chraiGetAIListID(list, &isglobal);
++    printf("[getv][train-door] unlock tag=0x%02x list=0x%x %s door=%p pad=%d bits=0x%x key=0x%x->0x%x state=%d open=%.3f\n",
++           tag, id, isglobal ? "global" : "local", (void *)door, door->pad, bits, before, door->keyflags,
++           door->openstate, door->openPosition);
++    fflush(stdout);
++    seen[slot] = 1;
++    last_before[slot] = before;
++    last_after[slot] = door->keyflags;
++}
++
+ /* ==================== GETV_CLOCK -- HUD countdown-timer probe ====================
+  * Separates "the clock never starts" from "the clock runs but is not drawn".
+  *   clock_time        f32, ticks down in if_enabled_reset_clock() (propobj.c)
+@@ -1055,6 +1257,9 @@
+ 
+                     if (CHR_NUM == ((u8)CHR_SELF))
+                     {
++#ifdef GE_PORT_NATIVE
++                        ge_train_trigger_debug_jump(AiListp, ChrEntityp, AI_LIST_ID);
++#endif
+                         AiListp = ailistFindById(AI_LIST_ID);
+                         Offset  = 0;
+                     }
+@@ -1555,7 +1760,11 @@
+                 case AI_TRYRunToBond:
+                 {
+                     AiTRYRunToBondRecord *ai = AiListp + Offset;
+-                    if (chrGoToBond(ChrEntityp, SPEED_RUN))
++                    s32 started = chrGoToBond(ChrEntityp, SPEED_RUN);
++#ifdef GE_PORT_NATIVE
++                    ge_train_trigger_debug_run(AiListp, ChrEntityp, started);
++#endif
++                    if (started)
+                     {
+                         Offset = chraiGoToLabel(AiListp, Offset, ai->GOTOLABEL);
+                     }
+@@ -2349,6 +2558,9 @@
+                 {
+                     AiDestroyObjectRecord *ai  = AiListp + Offset;
+                     ObjectRecord          *obj = objFindByTagId(ai->OBJECT_TAG);
++#ifdef GE_PORT_NATIVE
++                    ge_train_explosion_debug_object("destroy-before", ai->OBJECT_TAG, obj);
++#endif
+     #ifdef ENABLE_LOG
+                     osSyncPrintf("ai_destroyobj 1 : \n");
+     #endif
+@@ -2368,6 +2580,9 @@
+                             objApplyDamage(obj, damage, &obj->runtime_pos, 0x1D, -1);
+                         }
+                     }
++#ifdef GE_PORT_NATIVE
++                    ge_train_explosion_debug_object("destroy-after", ai->OBJECT_TAG, obj);
++#endif
+                     Offset += sizeof(AiDestroyObjectRecord);
+                     break;
+                 }
+@@ -2536,6 +2751,12 @@
+                         {
+                             pass = (ai->DOOR_STATE & AI_DOOR_STATE_CLOSING) != 0;
+                         }
++#ifdef GE_PORT_NATIVE
++                        if (ai->OBJECT_TAG >= GE_TRAIN_DOOR_TAG_FIRST && ai->OBJECT_TAG <= GE_TRAIN_DOOR_TAG_LAST)
++                        {
++                            ge_train_door_debug_watch(AiListp, door, ai->OBJECT_TAG, pass);
++                        }
++#endif
+                     }
+                     if (pass)
+                     {
+@@ -2582,7 +2803,16 @@
+                     {
+                         DoorRecord *door = (DoorRecord *)obj;
+                         u8          bits = ai->LOCK_FLAG;
++#ifdef GE_PORT_NATIVE
++                        u8          before = door->keyflags;
++#endif
+                         door->keyflags &= ~bits;
++#ifdef GE_PORT_NATIVE
++                        if (ai->OBJECT_TAG >= GE_TRAIN_DOOR_TAG_FIRST && ai->OBJECT_TAG <= GE_TRAIN_DOOR_TAG_LAST)
++                        {
++                            ge_train_door_debug_unlock(AiListp, door, ai->OBJECT_TAG, bits, before);
++                        }
++#endif
+                     }
+                     Offset += sizeof(AiDoorUnsetLockRecord);
+                     break;
+@@ -2614,10 +2844,33 @@
+                 case AI_IFObjectiveNumComplete:
+                 {
+                     AiIFObjectiveNumCompleteRecord *ai = AiListp + Offset;
++                    s32 objective_status = -1;
++                    s32 objective_complete = FALSE;
+                     /*  additional PD code for dificulty filtering
+                      == OBJECTIVE_COMPLETE && objectivelvlGetSelectedDifficultyBits(ai->val[0]) & (1 << lvlGetSelectedDifficulty()))  *
+                     */
+-                    if (objectiveGetCount() > ai->OBJ_NUM && OBJECTIVESTATUS_COMPLETE == objectiveGetStatus_WEAK(ai->OBJ_NUM * 1, ai->OBJ_NUM))
++                    if (objectiveGetCount() > ai->OBJ_NUM)
++                    {
++#ifdef GE_PORT_NATIVE
++                        /* The native port cannot rely on the ELF weak alias for
++                         * objectiveGetStatus_WEAK. ge_link_stubs.c supplies a
++                         * zero-returning placeholder for that unresolved symbol,
++                         * which makes every AI objective-complete test read
++                         * OBJECTIVESTATUS_INCOMPLETE forever. Call the real
++                         * evaluator directly on native builds. */
++                        objective_status = get_status_of_objective(ai->OBJ_NUM);
++#else
++                        objective_status = objectiveGetStatus_WEAK(ai->OBJ_NUM * 1, ai->OBJ_NUM);
++#endif
++                        objective_complete = (OBJECTIVESTATUS_COMPLETE == objective_status);
++                    }
++#ifdef GE_PORT_NATIVE
++                    if (ai->OBJ_NUM == 0)
++                    {
++                        ge_train_trigger_debug_objective(AiListp, ChrEntityp, objective_status, objective_complete);
++                    }
++#endif
++                    if (objective_complete)
+                     {
+                         Offset = chraiGoToLabel(AiListp, Offset, ai->GOTOLABEL);
+                     }
+@@ -3401,7 +3654,7 @@
+                 }
+                 case AI_PRINT:
+                 {
+-    #ifdef ENABLE_LOG
++	    #ifdef ENABLE_LOG
+                     AIRecord *ai = AiListp + Offset;
+                     osSyncPrintf("AI_PRINT: %s\n", ai->val);
+         #ifdef IS_PD
+@@ -3414,7 +3667,7 @@
+                         osSyncPrintf("AI_PRINT(void) [hover vehicle] %s\n", ai->val);
+                     }
+         #endif
+-    #endif
++	    #endif
+                     Offset += chraiitemsize(AiListp, Offset);
+                     break;
+                 }
+--- a/src/game/gun.c
++++ b/src/game/gun.c
+@@ -1748,8 +1748,27 @@
+     f32 stanheight;
+     u8 rooms[2];
+     s32 pad_rooms;
++#ifdef GE_PORT_NATIVE
++    /* GETV-PROJECTILE-ROOMS-STACK-SAFETY
++     *
++     * bgFindRoomsAlongSegment() writes up to maxTraversedRooms s32 room numbers
++     * through its `traversedRooms` argument.  The original matching stack layout
++     * represented that scratch area as padding plus a single scalar (`sp54`) and
++     * passed &sp54 with max=0x14.  That depended on the N64 stack layout.
++     *
++     * A live Linux crash proved this is unsafe on the native ABI: clang placed
++     * sp54 at rsp+0x34 and saved RBX at rsp+0x38, so the second traversed-room
++     * write overwrote the low 32 bits of saved RBX.  On return the caller's live
++     * grenade pointer became 0x5a5500000004 and the next access faulted at
++     * 0x5a5500000070 (= bad_rbx + 0x6c).
++     *
++     * Give the native port the semantic object the callee actually requires.
++     * Keep the matching/N64-shaped locals below unchanged for non-native builds. */
++    s32 traversedRooms[0x14];
++#else
+     u8 pad_a[0x4c];
+     s32 sp54;
++#endif
+     s32 sp50;
+     s32 pad_sp;
+ 
+@@ -1809,7 +1828,12 @@
+         rooms[0] = bondviewGetCurrentPlayersRoom();
+         rooms[1] = 0xff;
+ 
++#ifdef GE_PORT_NATIVE
++        bgFindRoomsAlongSegment(bondviewGetCurrentPlayersPosition3(), &pos, rooms,
++                                obj->projectile->unkCC, traversedRooms, &sp50, 0x14);
++#else
+         bgFindRoomsAlongSegment(bondviewGetCurrentPlayersPosition3(), &pos, rooms, obj->projectile->unkCC, &sp54, &sp50, 0x14);
++#endif
+     }
+ }
+ 
+--- a/src/game/gunfire.c
++++ b/src/game/gunfire.c
+@@ -225,6 +225,7 @@
+     if (tick < 20) return 0;
+     return ((tick / 6) & 1) == 0;
+ }
++
+ #else
+ #define GE_GUN_DBG_BUMP(c) do { } while (0)
+ #endif
+--- a/src/game/initunk_005520.c
++++ b/src/game/initunk_005520.c
+@@ -64,11 +64,11 @@
+ 
+         if (i < numobjs)
+         {
+-            g_ModelSlots[i].unk10 = NULL;
++            GE_SLOT_RWDATA(g_ModelSlots[i]) = NULL;
+         }
+         else
+         {
+-            g_ModelSlots[i].unk10 = mempAllocBytesInBank(MODEL_SPARE_RWDATALEN * sizeof(u32), MEMPOOL_STAGE);
++            GE_SLOT_RWDATA(g_ModelSlots[i]) = mempAllocBytesInBank(MODEL_SPARE_RWDATALEN * sizeof(u32), MEMPOOL_STAGE);
+             g_ModelSlots[i].unk02 = MODEL_SPARE_RWDATALEN;
+         }
+     }
+@@ -98,11 +98,11 @@
+ 
+         if (i < numanimated)
+         {
+-            g_AnimModelSlots[i].unk10 = NULL;
++            GE_SLOT_RWDATA(g_AnimModelSlots[i]) = NULL;
+         }
+         else
+         {
+-            g_AnimModelSlots[i].unk10 = mempAllocBytesInBank(ANIM_MODEL_SPARE_RWDATALEN * sizeof(u32), MEMPOOL_STAGE);
++            GE_SLOT_RWDATA(g_AnimModelSlots[i]) = mempAllocBytesInBank(ANIM_MODEL_SPARE_RWDATALEN * sizeof(u32), MEMPOOL_STAGE);
+             g_AnimModelSlots[i].unk02 = ANIM_MODEL_SPARE_RWDATALEN;
+         }
+     }
+--- a/src/game/model.c
++++ b/src/game/model.c
+@@ -75,18 +75,10 @@
+ bool modelmgrCanSlotFitRwdata(Model *modelslot, ModelFileHeader *modeldef)
+ {
+ #ifdef GE_PORT_NATIVE
+-    /* tvOS port: fourth aliasing collision in ModelSlot/Model.
+-     *
+-     * The slot's rwdata pool pointer is `ModelSlot.unk10` (offset 16) and its length is
+-     * `unk02` (offset 2). On the N64 those aliased `Model.datas` (0x10) and
+-     * `Model.rwdatalen` (0x02) exactly, which is why this reads them through a Model*.
+-     * At 64-bit `Model.datas` moved to offset 32 -- into the padding -- so it always read
+-     * NULL and every model with numRecords > 0 was refused a slot.
+-     * `rwdatalen` still aliases correctly; only `datas` had to move to unk10. */
++    /* unk10 aliases mutable Model.obj on native. */
+     struct ModelSlot *slot = (struct ModelSlot *)modelslot;
+ 
+-    return modeldef->numRecords <= 0
+-        || (slot->unk10 != NULL && slot->unk02 >= modeldef->numRecords);
++    return GE_SLOT_CAN_FIT(*slot, modeldef->numRecords);
+ #else
+     return modeldef->numRecords <= 0
+         || (modelslot->datas != NULL && modelslot->rwdatalen >= modeldef->numRecords);
+@@ -106,11 +98,18 @@
+  * slot read as free and every model was handed the same slot (the second then found
+  * datas == NULL and crashed in modelInitRwData). Test the real field instead. */
+ #ifdef GE_PORT_NATIVE
+-#define GE_SLOT_FREE(slot) ((slot).ge_inuse == 0)
+-#define GE_ANIMSLOT_FREE(slot) ((slot).ge_inuse == 0)
+-#else
+-#define GE_SLOT_FREE(slot) ((slot).unk08 == 0)
+-#define GE_ANIMSLOT_FREE(slot) ((slot).unk08 == 0)
++/* Exact element equality also rejects fallback allocations and interior pointers. */
++static s32 ge_model_pool_index(Model *model)
++{
++    return geModelSlotPoolIndex(model, g_ModelSlots,
++        sizeof(struct ModelSlot), g_MaxModelSlots);
++}
++
++static s32 ge_anim_pool_index(Model *model)
++{
++    return geModelSlotPoolIndex(model, g_AnimModelSlots,
++        sizeof(struct AnimModelSlot), g_MaxAnimModelSlots);
++}
+ #endif
+ 
+ Model *modelmgrInstantiateModel(ModelFileHeader *header)
+@@ -158,7 +157,7 @@
+         {
+             if (GE_SLOT_FREE(g_ModelSlots[i]) && modelmgrCanSlotFitRwdata((Model *)&g_ModelSlots[i], header)) 
+             {
+-                rwdata = g_ModelSlots[i].unk10;
++                rwdata = GE_SLOT_RWDATA(g_ModelSlots[i]);
+                 rwdatalen = g_ModelSlots[i].unk02;
+                 model = (Model *)&g_ModelSlots[i];
+                 break;
+@@ -171,8 +170,10 @@
+         modelInit(model, header, rwdata);
+         ((struct ModelSlot *)model)->unk02 = rwdatalen;
+ #ifdef GE_PORT_NATIVE
+-        /* Claim the slot explicitly -- see ge_inuse in objecthandler.h. */
+-        ((struct ModelSlot *)model)->ge_inuse = 1;
++        s32 ge_slot = ge_model_pool_index(model);
++        if (ge_slot >= 0) {
++            GE_SLOT_CLAIM(g_ModelSlots[ge_slot], rwdata);
++        }
+ #endif
+     }
+ 
+@@ -182,6 +183,12 @@
+ 
+ void clear_model_obj(Model* model)
+ {
++#ifdef GE_PORT_NATIVE
++    s32 ge_slot = ge_model_pool_index(model);
++    if (ge_slot >= 0) {
++        GE_SLOT_RELEASE(g_ModelSlots[ge_slot]);
++    }
++#endif
+     model->obj = NULL;
+ }
+ 
+@@ -206,7 +213,7 @@
+     {
+         for (i = 0; i < (g_MaxAnimModelSlots - 10); i++) 
+         {
+-            if (GE_ANIMSLOT_FREE(g_AnimModelSlots[i]))
++            if (GE_SLOT_FREE(g_AnimModelSlots[i]))
+             {
+                 newModel = (Model *)&g_AnimModelSlots[i];
+                 break;
+@@ -239,10 +246,10 @@
+ 
+         for (i2 = 0; i2 < g_MaxAnimModelSlots; i2++) 
+         {
+-            if (GE_ANIMSLOT_FREE(g_AnimModelSlots[i2]) && ((requiredRwdatalen <= 0) || ((g_AnimModelSlots[i2].unk10 != NULL) &&(g_AnimModelSlots[i2].unk02 >= requiredRwdatalen)))) 
++            if (GE_SLOT_FREE(g_AnimModelSlots[i2]) && GE_SLOT_CAN_FIT(g_AnimModelSlots[i2], requiredRwdatalen)) 
+             {
+                 newModel = (Model *)&g_AnimModelSlots[i2];
+-                rwdatas = g_AnimModelSlots[i2].unk10;
++                rwdatas = GE_SLOT_RWDATA(g_AnimModelSlots[i2]);
+                 rwdatalen = g_AnimModelSlots[i2].unk02;
+                 break;
+             }
+@@ -252,7 +259,10 @@
+     if (newModel != NULL) 
+     {
+ #ifdef GE_PORT_NATIVE
+-        ((struct AnimModelSlot *)newModel)->ge_inuse = 1;   /* see objecthandler.h */
++        s32 ge_slot = ge_anim_pool_index(newModel);
++        if (ge_slot >= 0) {
++            GE_SLOT_CLAIM(g_AnimModelSlots[ge_slot], rwdatas);
++        }
+ #endif
+         animInit(newModel, modelFileHeader, rwdatas);
+         newModel->rwdatalen = rwdatalen;
+@@ -275,7 +285,18 @@
+ 
+ void clear_aircraft_model_obj(Model *objinstance)
+ {
++#ifdef GE_PORT_NATIVE
++    s32 ge_slot = ge_anim_pool_index(objinstance);
++#endif
++
+     objinstance->obj = NULL;
++
++#ifdef GE_PORT_NATIVE
++    if (ge_slot >= 0) {
++        GE_SLOT_RELEASE(g_AnimModelSlots[ge_slot]);
++    }
++#endif
++
+     return;
+ }
+ 
+--- a/src/game/ob.c
++++ b/src/game/ob.c
+@@ -311,6 +311,33 @@
+ 
+     if (loadMethod == FILELOADMETHOD_EXTRAMEM || loadMethod == FILELOADMETHOD_DEFAULT || loadMethod == 2)
+     {
++#ifdef GE_PORT_NATIVE
++        /* GETV-EXTRAMEM-RELOAD-SCRATCH
++         *
++         * FILELOADMETHOD_EXTRAMEM is the model-loader scratch path.  It inflates the
++         * resource in place: compressed bytes live at the tail of the allocation while
++         * the decompressed model grows from the front.  The allocation therefore must be
++         * the current free bank tail, not merely the resource's final decompressed size.
++         *
++         * After a successful model load, fileSetSize() records that final size in
++         * info->poolRemaining.  Reusing that cached value on a later load is unsafe.  A
++         * live Control/Boris capture proved the failure with PchrwppkZ: 1360 raw bytes
++         * were allocated (0x550), its 574-byte packed blob was placed at the tail, and
++         * inflate's output genuinely overtook unread input by two bytes before entering
++         * the decompressor's deliberate overlap trap.
++         *
++         * The original first-load behavior already borrowed the whole remaining bank
++         * whenever poolRemaining was zero.  Make that invariant explicit for every native
++         * EXTRAMEM load.  load_object_fill_header() subsequently shrinks the allocation
++         * back to the final model size via fileSetSize(), exactly as before.
++         *
++         * Keep non-native/matching behavior unchanged. */
++        if (loadMethod == FILELOADMETHOD_EXTRAMEM)
++        {
++            info->poolRemaining = mempGetBankSizeLeft(bank);
++        }
++        else
++#endif
+         // bytes = info->poolRemaining;
+         if (info->poolRemaining == 0)
+         { // verify pool remaining is 0
+--- a/src/game/objecthandler.h
++++ b/src/game/objecthandler.h
+@@ -72,10 +72,13 @@
+     /* Same story as ModelSlot: an anim slot IS a Model via the cast in
+      * modelmgrInstantiateModelWithAnim(), and the N64 layout made unk08 alias Model.obj
+      * (the in-use marker) and unk10 the rwdata pointer. Neither holds at 64-bit, and
+-     * sizeof(Model) is 256. Pad to a full Model and keep the marker past the padding
+-     * where nothing can alias it. */
++     * sizeof(Model) is 264 on this native layout. The 256-byte pad follows the
++     * legacy fields, leaving ample room for Model writes; metadata after it cannot
++     * alias the mutable Model overlay. */
+     u8 ge_anim_pad[256];
+     u8 ge_inuse;
++    /* Native rwdata backing must not alias any field written through Model. */
++    void *ge_rwdata;
+ #endif
+ };
+ 
+@@ -122,9 +125,54 @@
+      * pointer at allocation time, which would make every slot look permanently taken.
+      * Past the padding nothing overlaps, so this byte is safe. */
+     u8 ge_inuse;
++    /* Native rwdata backing must not alias any field written through Model. */
++    void *ge_rwdata;
+ #endif
+ };
+ 
++/* Legacy storage remains unchanged on N64. */
++#ifdef GE_PORT_NATIVE
++#define GE_NATIVE_SLOT_METADATA 1
++#define GE_SLOT_RWDATA(slot) ((slot).ge_rwdata)
++#define GE_SLOT_FREE(slot) ((slot).ge_inuse == 0)
++#define GE_SLOT_CLAIM(slot, rwdata) \
++    do { \
++        (slot).ge_inuse = 1; \
++        (slot).ge_rwdata = (rwdata); \
++    } while (0)
++#define GE_SLOT_RELEASE(slot) ((slot).ge_inuse = 0)
++
++static inline s32 geModelSlotPoolIndex(const void *model, const void *slots,
++        u32 slotsize, s32 count)
++{
++    s32 i;
++
++    for (i = 0; i < count; i++) {
++        if (model == (const void *)((const u8 *)slots + i * slotsize)) {
++            return i;
++        }
++    }
++
++    return -1;
++}
++
++_Static_assert(__builtin_offsetof(struct ModelSlot, ge_inuse) >= sizeof(Model),
++               "ModelSlot ownership overlaps Model");
++_Static_assert(__builtin_offsetof(struct AnimModelSlot, ge_inuse) >= sizeof(Model),
++               "AnimModelSlot ownership overlaps Model");
++_Static_assert(__builtin_offsetof(struct ModelSlot, ge_rwdata) >= sizeof(Model),
++               "ModelSlot backing overlaps Model");
++_Static_assert(__builtin_offsetof(struct AnimModelSlot, ge_rwdata) >= sizeof(Model),
++               "AnimModelSlot backing overlaps Model");
++#else
++#define GE_SLOT_RWDATA(slot) ((slot).unk10)
++#define GE_SLOT_FREE(slot) ((slot).unk08 == 0)
++#endif
++
++#define GE_SLOT_CAN_FIT(slot, required) \
++    ((required) <= 0 || (GE_SLOT_RWDATA(slot) != NULL \
++        && (slot).unk02 >= (required)))
++
+ extern struct AnimModelSlot *g_AnimModelSlots;
+ extern struct ModelSlot *g_ModelSlots;
+ 
+--- a/src/game/prop.c
++++ b/src/game/prop.c
+@@ -824,17 +824,17 @@
+     }
+ #endif
+ 
+-    if (arg1->pad >= 0)
++    if (arg1->lookpad >= 0)
+     {
+         temp_a2 = (struct coord3d*)arg1->model->obj->Switches[0]->Data;
+ 
+-        if (isNotBoundPad(arg1->pad))
++        if (isNotBoundPad(arg1->lookpad))
+         {
+-            sp50 = &g_CurrentSetup.pads[arg1->pad];
++            sp50 = &g_CurrentSetup.pads[arg1->lookpad];
+         }
+         else
+         {
+-            sp50 = (struct PadRecord *)&g_CurrentSetup.boundpads[getBoundPadNum(arg1->pad)];
++            sp50 = (struct PadRecord *)&g_CurrentSetup.boundpads[getBoundPadNum(arg1->lookpad)];
+         }
+ 
+         sp44.f[0] = temp_a2->f[0];
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -131,6 +131,47 @@
+     return cached;
+ }
+ 
++static s32 ge_train_explosion_debug_on(void)
++{
++    static s32 cached = -1;
++    if (cached < 0)
++    {
++        const char *e = getenv("GETV_TRAIN_EXPLOSION_DEBUG");
++        cached = (e && *e == '1') ? 1 : 0;
++    }
++    return cached;
++}
++
++static void ge_train_explosion_debug_tick(const char *phase, PropRecord *prop,
++                                          ObjectRecord *obj, WeaponObjRecord *weapon)
++{
++    if (!ge_train_explosion_debug_on() || !obj || !weapon)
++    {
++        return;
++    }
++
++    if (weapon->weaponnum != ITEM_GRENADE
++            && weapon->weaponnum != ITEM_GRENADEROUND
++            && weapon->weaponnum != ITEM_TIMEDMINE
++            && weapon->weaponnum != ITEM_REMOTEMINE
++            && weapon->weaponnum != ITEM_PROXIMITYMINE
++            && weapon->weaponnum != ITEM_BOMBCASE
++            && weapon->weaponnum != ITEM_PLASTIQUE)
++    {
++        return;
++    }
++
++    printf("[getv][train-explosion] %s obj=%p prop=%p type=%d model=%d pad=%d "
++           "weapon=%d timer=%d stan=%p flags=0x%x flags2=0x%x runtime=0x%x "
++           "pos=(%.1f,%.1f,%.1f)\n",
++           phase, (void *) obj, (void *) prop, obj->type, obj->obj, obj->pad,
++           weapon->weaponnum, weapon->timer, prop ? (void *) prop->stan : NULL,
++           obj->flags, obj->flags2, obj->runtime_bitflags,
++           (double) obj->runtime_pos.x, (double) obj->runtime_pos.y,
++           (double) obj->runtime_pos.z);
++    fflush(stdout);
++}
++
+ typedef struct GeTimedMineDebugState
+ {
+     WeaponObjRecord *weapon;
+@@ -3687,7 +3728,13 @@
+ 
+             if (weapon->timer < 0)
+             {
++#ifdef GE_PORT_NATIVE
++                ge_train_explosion_debug_tick("grenade-explode-before", prop, obj, weapon);
++#endif
+                 propExplode(prop, (obj->flags2 & PROPFLAG2_DOOR_ALTCOORDSYSTEM) ? EXPLOSION_DEF_MASSIVE : EXPLOSION_DEF_STANDARD);
++#ifdef GE_PORT_NATIVE
++                ge_train_explosion_debug_tick("grenade-explode-after", prop, obj, weapon);
++#endif
+                 obj->runtime_bitflags |= RUNTIMEBITFLAG_REMOVE;
+             }
+         }
+@@ -7966,7 +8013,9 @@
+         return;
+     }
+     
+-    vtxslot = (Vertex **) (&model->datas[rodata->RwDataIndex]);
++    /* RwDataIndex counts 4-byte words, even when a native pointer occupies two.
++     * modelGetNodeRwData applies that stride and follows attached head pools. */
++    vtxslot = &modelGetNodeRwData(model, nodeCopy)->DisplayListCollisions.Vertices;
+     
+ #ifdef VERSION_EU
+     if (obj->obj < PROP_WINDOW)
+@@ -14880,6 +14929,46 @@
+     }
+     else if ((door->openstate == DOORSTATE_STATIONARY) && (door->openPosition < 0.5f))
+     {
++#ifdef GE_PORT_NATIVE
++        {
++            const char *train_debug = getenv("GETV_TRAIN_DOOR_DEBUG");
++            if (train_debug && *train_debug && *train_debug != '0')
++            {
++                s32 tag = -1;
++                s32 candidate;
++                s32 havekeys = door->keyflags ? bondinvCheckHasKeyFlags(door->keyflags) : 1;
++                DoorRecord *linked = door->linkedDoor;
++
++                for (candidate = 0x1e; candidate <= 0x28; candidate++)
++                {
++                    if (objFindByTagId(candidate) == (ObjectRecord *)door)
++                    {
++                        tag = candidate;
++                        break;
++                    }
++                }
++
++                printf("[getv][train-door] player-locked tag=%s0x%02x door=%p pad=%d pos=(%.1f,%.1f,%.1f) key=0x%x havekeys=%d flags=0x%x flags2=0x%x state=%d open=%.3f padlockfree=%d player=(%.1f,%.1f,%.1f)",
++                       tag < 0 ? "none/" : "", tag < 0 ? 0 : tag,
++                       (void *)door, door->pad,
++                       doorprop->pos.f[0], doorprop->pos.f[1], doorprop->pos.f[2],
++                       door->keyflags, havekeys, door->flags, door->flags2,
++                       door->openstate, door->openPosition, doorIsPadlockFree(door),
++                       playerprop ? playerprop->pos.f[0] : 0.0f,
++                       playerprop ? playerprop->pos.f[1] : 0.0f,
++                       playerprop ? playerprop->pos.f[2] : 0.0f);
++
++                if (linked != NULL)
++                {
++                    printf(" linked=%p linked_pad=%d linked_key=0x%x linked_state=%d linked_open=%.3f",
++                           (void *)linked, linked->pad, linked->keyflags,
++                           linked->openstate, linked->openPosition);
++                }
++                printf("\n");
++                fflush(stdout);
++            }
++        }
++#endif
+         if (!(door->flags2 & PROPFLAG2_00000004))
+         {
+             txt = bondinvGetTextbyObj((ObjectRecord*)door);
+--- a/src/game/rle.c
++++ b/src/game/rle.c
+@@ -13,8 +13,9 @@
+     u16 w, h;
+     u8 value;
+ 
+-    w = *(u16 *)&src[0];
+-    h = *(u16 *)&src[2];
++    /* RLE image headers are stored big-endian in the asset stream. */
++    w = ((u16)src[0] << 8) | src[1];
++    h = ((u16)src[2] << 8) | src[3];
+     remaining = w * h;
+     in = &src[10];
+ 
+--- a/src/game/title.c
++++ b/src/game/title.c
+@@ -564,8 +564,20 @@
+     createGunbarrelRenderHole((struct s_display_list_something *)barrelDisplayListPtr, 0x1E);
+     
+     gunbarrelgfxListPointer = (Gfx*)gfxBuffer;
++#ifdef GE_PORT_NATIVE
++    /*
++     * This is capacity for 32 Gfx commands, not intrinsically 0x100 bytes.
++     * N64 Gfx is 8 bytes, while native Gfx widens both command words to
++     * uintptr_t and is 16 bytes on 64-bit hosts.  sub_GAME_7F01BFF8(...,
++     * 0x1E) emits 31 commands including G_ENDDL, so preserve the original
++     * 32-command capacity in host Gfx units.
++     */
++    bufferSize -= (s32)(sizeof(Gfx) * 0x20);
++    gfxBuffer += sizeof(Gfx) * 0x20;
++#else
+     bufferSize -= 0x100;
+     gfxBuffer += 0x100;
++#endif
+     
+ #ifdef GE_PORT_NATIVE
+     /* The `+ 0x80000000` is the N64's KSEG0 window: it turns a physical address into
+--- a/src/game/vtxstore.c
++++ b/src/game/vtxstore.c
+@@ -169,7 +169,17 @@
+ 
+     var_s1 = chrpropGetActiveTail();
+     while (var_s1 != NULL) {
+-        if (var_s1->type == 1) {
++        /*
++         * This traversal is character-specific: below we interpret the prop
++         * union as ChrRecord * and walk chr->model->obj.
++         *
++         * PROP_TYPE_OBJ is 1; PROP_TYPE_CHR is 3.  The raw literal 1 made
++         * native builds reinterpret ordinary ObjectRecord pointers as
++         * ChrRecord pointers.  Once vtxstore_tick() tried to merge duplicate
++         * batches, that could produce a garbage chr->model pointer and crash
++         * while fixing model-node references.
++         */
++        if (var_s1->type == PROP_TYPE_CHR) {
+             var_v0 = var_s1->chr;
+             /* NOT chrflags. In ChrRecord, chrflags is a real flags field at 0x0014
+              * (|= CHRFLAG_INIT elsewhere) while model, a Model*, is at 0x001C -- the

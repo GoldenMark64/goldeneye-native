@@ -61,6 +61,29 @@ The 1.0 repair cycle included focused work around:
 Focused source tests, patch-stack reconstruction checks and diagnostic captures supplement the human
 campaign pass. They do not replace it.
 
+## Release reconstruction equivalence
+
+The final source-only release review found that several fixes present in the human-playtested
+`vendor/ge-decomp` working tree had never been exported back into the public `getv/patches/` queue.
+The most visible symptom was guards being forced to use walking animation in a fresh GitHub build
+even though the campaign-tested build had already fixed that defect.
+
+`0061-playtested-native-source-catchup.patch` closes that publication gap. Starting from the pinned
+decomp source and applying the published source queue through `0060`, then `0061`, reproduces the
+playtested `vendor/ge-decomp/src` tree byte-for-byte. The only remaining differences are
+`ge_asset_fileview.h` and `ge_asset_fileview_check.c`, which are generated locally during asset
+preparation and are intentionally not published.
+
+The catch-up carries the already validated native fixes and dormant diagnostics that were present in
+the campaign-tested source, including model-slot lifecycle metadata, CCTV `lookpad`, objDeform
+RW-data indexing, AI_PRINT sizing, Train objective interpretation and diagnostics, VTXSTORE character
+typing, EXTRAMEM reload scratch sizing, projectile room-stack safety, gunbarrel RLE/Gfx corrections,
+and NPC run/rifle animation selection.
+
+Focused regression rerun after the catch-up: AI_PRINT 4/4, Train door/objective 5/5, Train post-hack
+2/2, VTXSTORE 2/2, EXTRAMEM 3/3, projectile rooms 2/2, guard-gun 4/4, NPC animation 4/4,
+reverse-animation 3/3, and gunbarrel timing PASS.
+
 ## Intel GPU blocker closure
 
 The final recurring blocker was a whole-desktop Intel Iris Xe GPU stall. The investigation created

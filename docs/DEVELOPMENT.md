@@ -113,6 +113,38 @@ GETV_RENDERER=metal ./getv/build_mac.sh all
 .\getv\build_windows.ps1 -Target all
 ```
 
+### tvOS / iOS device bring-up
+
+Physical Apple device identifiers are deliberately **not** stored in the repository.
+
+For a tvOS device app build, pair/select the Apple TV in Xcode and provide the Xcode destination
+identifier:
+
+```bash
+export DEV_XCODEBUILD=<xcode-destination-id>
+./getv/build.sh app
+```
+
+For deployment, also provide the identifier reported by `xcrun devicectl list devices`:
+
+```bash
+export DEV_DEVICECTL=<devicectl-device-id>
+./getv/build.sh deploy
+```
+
+The Xcode destination id and `devicectl` id may differ for the same physical device.
+
+For iOS, `lib` and `app` do not require a paired device. Deployment requires an explicitly
+selected paired device:
+
+```bash
+export DEV_DEVICECTL_IOS=<devicectl-device-id>
+./getv/build_ios.sh deploy
+```
+
+Use `./getv/build_ios_sim.sh` when no physical iPhone/iPad is paired. Never commit a real device
+UDID, Xcode destination id, room/device name, or other local hardware identifier.
+
 Every build phase must report `0 failed`. A changed built-object count can also indicate that a
 source stopped participating, so compare counts with the baseline instead of checking only the
 link result.

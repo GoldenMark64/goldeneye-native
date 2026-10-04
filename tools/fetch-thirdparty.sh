@@ -53,6 +53,7 @@ UPSTREAM_SHA="d7ca2c04364a6dd0dac58b47151e04e26887e6f0"
 MANIFEST="$ROOT/getv/patches/thirdparty/MANIFEST"
 PATCHDIR="$ROOT/getv/patches/thirdparty"
 PATCHFILE="$PATCHDIR/0001-getv-port-layer.patch"
+RELEASE_OVERLAY="$PATCHDIR/0002-release-1.0-renderer-stack.patch"
 CACHE="${GETV_SM64EX_CACHE:-$ROOT/vendor/sm64ex-cache.git}"
 REUSE="$ROOT/vendor/sm64ex"
 
@@ -111,7 +112,11 @@ export_pristine() {
 }
 
 patches() {
-  printf '%s\n' "$PATCHDIR"/[0-9][0-9][0-9][0-9]-*.patch | sort
+  # The 1.0 installer applies one exact renderer overlay after the historical baseline.
+  # The older focused 0002-0007 files remain in the repository as review/provenance artifacts,
+  # but replaying those zero-context patches against a newer 0001 can place hunks at the wrong
+  # matching line. The consolidated release overlay is generated against this exact 0001.
+  printf '%s\n' "$PATCHFILE" "$RELEASE_OVERLAY"
 }
 
 overlay_patches() {

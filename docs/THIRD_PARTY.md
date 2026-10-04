@@ -10,7 +10,7 @@ than vendored.
 `getv/port/PROVENANCE.md` is the file-level record for the port layer. This document covers only
 the fetched files.
 
-Last verified 2026-08-22 against the working tree and against upstream over the network.
+Last verified 2026-10-03 against the 1.0 clean-install reconstruction and the pinned upstream.
 
 ---
 
@@ -152,17 +152,20 @@ lines** (`diff -u0`). Zero context is safe here because the patch is only ever a
 exact commit, so there is nothing for context to disambiguate, and it keeps unmodified upstream
 lines out of a file the repository does distribute.
 
-Later focused fixes may live as numerically ordered overlay patches in the same directory.
-Keeping those changes separate prevents a tiny renderer repair from marking the entire historical
-baseline patch as changed for safety review. `0002-dynamic-texture-refresh.patch`, for example,
-contains only the cache-hit rule needed to re-upload mutable textures sourced from the game's
-transient graphics buffers.
+The individual focused renderer changes remain under this directory as review/provenance artifacts:
+dynamic texture refresh, state-boundary diagnostics, GPU-flight recording and provenance, the
+Perfect Dark backend A/B, and function-flight recording. Those small patches were invaluable while
+the investigation was evolving, but several are zero-context diffs generated against an earlier
+form of the historical baseline. Replaying them mechanically after `0001` was later refreshed can
+make GNU `patch` place a hunk at an unintended matching line or reject an otherwise valid change.
 
-For 1.0, `0002-baseline-catchup-1.0.patch` also preserves a small set of pre-overlay renderer
-diagnostic/state seams without rewriting the already-published historical `0001`. The public
-baseline plus that catch-up and overlays `0002-dynamic-texture-refresh` through
-`0007-function-submission-flight-recorder` was reconstructed in a clean scratch tree and matched
-all fifteen working Fast3D/mixer files byte-for-byte.
+For the 1.0 clean installer, those focused changes are therefore rebased into one exact applied
+overlay: `0002-release-1.0-renderer-stack.patch`. It was generated against the exact published
+`0001-getv-port-layer.patch` and pinned sm64ex commit used by the release. Reconstructing pristine
+upstream + `0001` + the release overlay reproduces the four modified Fast3D files byte-for-byte,
+without fuzzy replay of the historical diagnostic sequence. The older `0002`-`0007` files remain
+in the tree so the investigation and Perfect Dark-derived work stay reviewable and attributable;
+`tools/fetch-thirdparty.sh` does not apply them during a clean install.
 
 `0006-perfect-dark-renderer-ab.patch` is a deliberately opt-in compatibility/backend experiment
 adapted from `perfect-dark-pc-port/perfect_dark` commit
@@ -194,11 +197,10 @@ that matter most for output correctness are:
 - `GETV_PROBE_AFTER` and the surrounding probe family - the instrumentation used to measure all
   of the above.
 
-The remainder are listed in the patch files themselves. `tools/fetch-thirdparty.sh regen`
-rewrites only the `0001` historical baseline: it first reverse-applies the focused overlays in a
-temporary comparison tree, regenerates `0001`, then `verify` reapplies the complete stack. Add a
-new focused overlay instead when the intent is to keep a small new renderer fix independently
-reviewable.
+The remainder are listed in the patch files themselves. For the 1.0 release line,
+`tools/fetch-thirdparty.sh regen` treats the consolidated release renderer patch as the applied
+overlay when reconstructing the historical baseline. The individual focused overlays remain the
+human-review/provenance record rather than the clean-install replay mechanism.
 
 ## 7. Terms
 

@@ -10,12 +10,9 @@ This is the human campaign-certification record for the GoldenEye Native 1.0 rel
 |---|---|
 | Release line | GoldenEye Native 1.0 |
 | Certification date | 2026-10-03 |
-| Primary Linux test system | Dell Latitude 5530 |
-| OS / kernel at final GPU validation | Ubuntu 24.04 HWE / `7.0.0-38-generic` |
-| CPU | Intel Core i7-1270P |
-| GPU | Intel Alder Lake-P GT2 / Iris Xe, PCI `8086:46a6` |
+| Primary Linux test environment | Ubuntu 24.04 HWE, x86-64, Intel integrated graphics |
 | Kernel graphics driver | `i915` |
-| Intel stability setting | `i915.enable_guc=0` on the affected Latitude |
+| Intel stability setting | `i915.enable_guc=0` on the affected test system |
 | Renderer | Normal GoldenEye OpenGL path for final clean stability playtest |
 | Game revision | Supported US retail build inputs, supplied locally by the tester |
 | Tester | Human campaign playtest |
@@ -108,7 +105,7 @@ recorder 4/4, PD-renderer A/B 3/3, and the normal port suite 39/39 PASS.
 
 ## Intel GPU blocker closure
 
-The final recurring blocker was a whole-desktop Intel Iris Xe GPU stall. The investigation created
+The final recurring blocker was a whole-desktop Intel/i915 GPU stall. The investigation created
 GPU submission and function-flight rings, Fast3D producer provenance, an unattended hard-hang
 capture path, and hardware-batch correlation tooling. The decisive capture showed application GL
 submission calls returning normally while i915 remained wedged asynchronously; the hardware-mapped
@@ -117,8 +114,8 @@ before the hang.
 
 A controlled platform A/B then held GoldenEye and the kernel version constant while booting the
 same `i915` driver with `i915.enable_guc=0`. After that change, several levels were played without
-reproducing the previously recurring stalls. The Latitude environment is therefore certified with
-GuC disabled. The investigation is documented in `RENDERER_TROUBLESHOOTING.md`.
+reproducing the previously recurring stalls. The tested Linux/Intel environment is therefore
+certified with GuC disabled. The investigation is documented in `RENDERER_TROUBLESHOOTING.md`.
 
 ## Optional features are not part of the default certification
 

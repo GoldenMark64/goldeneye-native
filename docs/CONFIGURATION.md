@@ -229,6 +229,11 @@ Elapsed time already gates the simulation there. Fixed in `0009-freerun-divider.
 **The cost of `off` is reproducibility.** Elapsed fields become load-dependent, so no two runs
 are frame-for-frame comparable and measurement harnesses should stay on 60.
 
+**Scope of the improvement.** The real-clock path fixes the direct relationship between rendered
+frames and the main field clock; it is not a claim that every update-counted gameplay or animation
+system is fully retail-equivalent at arbitrary render rates. High-refresh timing is improved, with
+remaining frame-counted behavior documented in [`FRAME_TIMING.md`](FRAME_TIMING.md).
+
 `framerate=30` additionally sets `GETV_TICKFIELDS=2`, so each update reports two elapsed fields.
 Game time stays real, thirty updates a second times two fields being sixty, while the
 frame-counted systems drop to 30 Hz.

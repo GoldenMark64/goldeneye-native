@@ -85,10 +85,11 @@ ruleset settings are changed by adding this check.
 There are currently no local composite/reusable actions, PR artifact handoffs to a privileged
 job, shared PR/deployment caches, or `pull_request_target` workflows.
 
-`.github/CODEOWNERS` names `@seb-patron` as default owner and explicitly covers CI, tools, patches,
-tests, port source/headers, site content and policy documents. Port source/header and third-party
-patch coverage is conservative maintenance coverage, not a claim that these jobs execute all of
-those paths. CODEOWNERS routes review; enforcement requires the proposed review rule. See
+`.github/CODEOWNERS` names `@GoldenMark64` as the current default owner and explicitly covers CI,
+tools, patches, tests, port source/headers, site content and policy documents. Port source/header
+and third-party patch coverage is conservative maintenance coverage, not a claim that these jobs
+execute all of those paths. CODEOWNERS routes review; enforcement still requires the proposed
+review rule. See
 [GitHub code owners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
 
 ## Proposed settings — not active

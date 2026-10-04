@@ -46,7 +46,7 @@ focused tests and subsystem documentation.
   first-error capture, GDB stacks and automatic termination after evidence is safe.
 - Added decoders and hardware-batch mapping/analyzer tools capable of correlating an i915 active
   `3DPRIMITIVE` back to GoldenEye draw/function provenance.
-- Closed the tested Dell Latitude 5530 whole-system stall by disabling i915 GuC submission with
+- Closed the tested Linux/Intel whole-system stall by disabling i915 GuC submission with
   `i915.enable_guc=0`. This is classified as a tested platform workaround/fix, not a proven
   GoldenEye source-code root cause.
 

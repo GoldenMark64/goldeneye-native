@@ -579,9 +579,11 @@ it unset. That detail matters only if you are setting the raw gate by hand.
 
 ### `save_dir`
 
-A path. Overrides the save directory. Case is preserved. Default is
-`~/Library/Application Support/Goldeneye-Native`; the EEPROM image is written as `eeprom.bin` inside
-it. If the directory cannot be created, persistence is disabled and the game says so.
+A path. Overrides the save directory. Case is preserved. By default the game uses the platform
+user-data directory selected by SDL and writes `eeprom.bin` there. On macOS that directory is
+`~/Library/Application Support/Goldeneye-Native`; Windows and Linux use their platform-specific
+SDL user-data path. The selected path is printed at startup. If the directory cannot be created,
+persistence is disabled and the game says so.
 
 ### `realclock`
 

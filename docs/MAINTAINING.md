@@ -104,7 +104,7 @@ combining anything.
 
 ## Bug reports and community patches
 
-Use the repository's [issue forms](https://github.com/seb-patron/goldeneye-native/issues/new/choose)
+Use the repository's [issue forms](https://github.com/GoldenMark64/goldeneye-native/issues/new/choose)
 for reproducible build, gameplay and rendering problems. Search existing issues first and file one
 problem per report. Include:
 

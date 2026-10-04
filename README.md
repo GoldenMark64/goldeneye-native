@@ -544,13 +544,16 @@ or a pull request.
 
 ## Licensing and credits
 
-The port layer here is ours. Everything vendored is listed with its licence in
-[`docs/LICENSING.md`](docs/LICENSING.md), including the Fast3D renderer and audio mixer inherited
-from sm64ex, stb_image and stb_truetype, and the Roboto Condensed font under the SIL Open Font
-License.
+The native port layer has mixed provenance: it includes work from the original
+SegfaultEvan project, GoldenMark64 continuation work, and specifically identified third-party
+components. [`docs/LICENSING.md`](docs/LICENSING.md) and
+[`getv/port/PROVENANCE.md`](getv/port/PROVENANCE.md) record those boundaries, including the
+Fast3D renderer and audio mixer reconstructed from pinned sm64ex material, stb_image,
+stb_truetype, and the Roboto Condensed font under the SIL Open Font License.
 
 The decompilation is the work of the [`n64decomp/007`](https://github.com/n64decomp/007) project
 and everyone who contributed to it. Without that, none of this exists.
 
-GoldenEye 007 is the property of its rights holders. This project is unofficial, unaffiliated,
-and ships no part of the game.
+GoldenEye 007 is the property of its rights holders. This project is unofficial and unaffiliated.
+The tracked public tree is intended not to contain a ROM or extracted game assets; users provide
+their own supported cartridge dump locally for a build.

@@ -1,5 +1,16 @@
 # Netplay
 
+## Provenance of the current status
+
+The integrated netplay implementation and the measurements in this document come from
+**SegfaultEvan's pre-takeover August 2026 development history**. That work wired the network path
+into the boot/tick loop, ran real UDP peer trials, and documented persistent desynchronization.
+
+The GoldenMark64 1.0 campaign-certification pass did **not** independently re-run those LAN/netplay
+trials. Treat the results below as inherited project evidence until they are repeated on the current
+release line.
+
+
 The goal: four or more people, each on their own machine, each full-screen, playing each other
 over a WAN -- plus bots, in any mix, including nobody at all and two bots playing while you
 watch.

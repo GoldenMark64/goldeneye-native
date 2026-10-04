@@ -65,7 +65,8 @@ int main() {
     m.profile = 1;
     m.mouse_mode = 1;
     apply_profile(m);
-    check(m.msaa >= 4 && m.hd_textures && m.base_game && m.mouse_mode == 1, "GoldenEye+ enhances graphics without enabling Brutal effects");
+    check(m.msaa >= 4 && m.hd_textures && m.widescreen && m.base_game && m.mouse_mode == 1,
+          "GoldenEye+ restores widescreen and enhances graphics without enabling Brutal effects");
     m.pick_stage = true;
     m.ruleset = 2;
     m.horde = true;

@@ -7,23 +7,24 @@ this is a description of how the tree is arranged and where the seams are.
 
 ```
 vendor/ge-decomp/          the decompiled game, from n64decomp/007. Untracked.
-  src/                     game code. Compiled straight to arm64.
+  src/                     game code, compiled for the current host target
   src/game/                the bulk of it: front-end, AI, weapons, camera, levels
   src/libultra/            SGI's N64 OS. Mostly excluded from the build; gu/ and audio/ are used.
   assets/                  asset sources, generated from your ROM
   include/                 the game's own headers, including its libultra shims
 
-getv/port/                 the platform layer
-  fast3d/                  display-list renderer: gfx_pc.c, gfx_opengl.c, gfx_cc.c, gfx_sdl2.c,
-                           plus ge_sky_rdp.c for GoldenEye's hand-built RDP sky triangles
+getv/port/                 the native platform layer
+  fast3d/                  display-list frontend plus OpenGL/Metal rendering and SDL integration
   src/                     OS, input, audio bridge, asset bridge, save, render loop, config
   audio/                   the software mixer
-  mac/                     macOS entry point
+  mac/                     small desktop main wrapper; desktop builds share it despite the path
   include/                 port-side headers
 
-getv/build_mac.sh          the macOS build
-getv/patches/              this port's diff against the decompilation
-tools/                     Python generators (prototypes, link stubs, asset blobs, layout audit)
+getv/build_mac.sh          macOS build driver
+getv/build_linux.sh        Linux build driver
+getv/build_windows.ps1     Windows build driver
+getv/patches/              replayable changes against the ignored decompilation
+tools/                     generators, installers, diagnostics and validation tooling
 ```
 
 `vendor/` is gitignored, so every change the port makes to the decompilation lives in
@@ -55,13 +56,17 @@ Generated, ROM-derived data is deliberately excluded from the patch - the audio 
 object-segment blobs, animation blobs, the images segment, per-model `Model.c` files. Regenerate
 those with the commands in the README.
 
-The renderer and the platform layer rebuild in seconds:
+Build the smallest target relevant to your platform. From the repository root, for example:
 
 ```bash
-./build_mac.sh port && ./build_mac.sh app
+./getv/build_mac.sh port && ./getv/build_mac.sh app
+# or
+./getv/build_linux.sh port && ./getv/build_linux.sh app
 ```
 
-Game code needs `./build_mac.sh lib` instead, which is slower but still parallel.
+Game/decomp changes require the platform's `lib` or `all` target rather than only the port
+layer. Windows uses `getv\build_windows.ps1`. See [`BUILDING.md`](BUILDING.md) and
+[`DEVELOPMENT.md`](DEVELOPMENT.md) for current platform-specific commands.
 
 ## The `GETV_*` environment gates
 
@@ -105,7 +110,7 @@ GETV_STAGE = 34
 ```
 
 ```bash
-./build-mac/goldeneye --GETV_STAGE=34
+./getv/build-mac/goldeneye --GETV_STAGE=34
 ```
 
 ### The useful ones
@@ -123,9 +128,10 @@ GETV_STAGE = 34
 | `GETV_UNLOCKALL=1` | Show every mission on the file-select screen. |
 | `GETV_TICKFIELDS=<1..4>` | Video fields per simulation update. `1` is one update per field, which at 60 fps runs the game's 122 frame-counted files at 60 Hz. `2` gives a 30 Hz simulation with game time still real, because the delta the other 13 files scale by rises to match. Pair it with a render rate that matches or game time runs fast; `framerate=30` sets it to `2` for you. |
 
-Stage ids are not contiguous and not all of them are levels. Eleven have no data in the ROM;
-`docs/ROADMAP.md` and `docs/research/GE_GAME_FACTS.md` carry the full table, including which
-stages are multiplayer-only and which were cut. Check it before concluding a stage is broken.
+Stage ids are not contiguous and not every named id is a solo mission. Use
+[`tools/stage_census.sh`](../tools/stage_census.sh) against a local build to re-check which named
+stages load solo, which require multiplayer setup, and which carry no usable level data. Do not
+treat an arbitrary numeric stage id as evidence that the port is broken.
 
 **Ending a run, and capturing it.**
 
@@ -137,9 +143,9 @@ stages are multiplayer-only and which were cut. Check it before concluding a sta
 | `GETV_SHOTPATH=<path>` | Where that BMP goes. Defaults to `getv_shot.bmp` in the working directory. |
 
 Setting `GETV_EXIT_FRAME` also makes the keyboard pad idle by default - present, so the front-end
-does not decide there are no controllers, but reporting nothing held. The Mac window takes keyboard
-focus when it opens, so without this anything you type lands in the game, and a single stray edge
-aborts a level's opening cinema. `GETV_KEYBOARD_IDLE=0` overrides.
+does not decide there are no controllers, but reporting nothing held. A desktop game window can
+take keyboard focus as it opens, so without this a stray key edge can land in the game and abort a
+level's opening cinema. `GETV_KEYBOARD_IDLE=0` overrides.
 
 **Driving the game without hands.**
 
@@ -167,7 +173,7 @@ silences the per-entry log, which is otherwise on and is the only proof an entry
 Example - boot to file select and press A on frame 120:
 
 ```bash
-GETV_MENU=5 GETV_SCRIPT="120:A:6" GETV_EXIT_FRAME=181 ./build-mac/goldeneye
+GETV_MENU=5 GETV_SCRIPT="120:A:6" GETV_EXIT_FRAME=181 ./getv/build-mac/goldeneye
 ```
 
 Script letters `A`, `B`, `Z` and `START` name N64 buttons and press them directly, whatever
@@ -197,11 +203,12 @@ whether a fix is responsible for something you are seeing. A few worth knowing:
 One known harness defect: `GETV_GUN_SKIPINTRO` suppresses the sky. If you use it, the sky being
 absent is your own doing.
 
-**Build-time, not runtime.** `GETV_DEBUGMENU=1` is read by `build_mac.sh`, not by the game. It
-enables the leftover debug menu, which changes code generation and repurposes the Start button:
+**Build-time, not runtime.** `GETV_DEBUGMENU=1` is consumed by the macOS/Linux build drivers,
+not by an already-running game. It enables the leftover debug menu, which changes code generation
+and repurposes the Start button. For example on macOS, from the repository root:
 
 ```bash
-GETV_DEBUGMENU=1 ./build_mac.sh lib && ./build_mac.sh app
+GETV_DEBUGMENU=1 ./getv/build_mac.sh lib && ./getv/build_mac.sh app
 ```
 
 Its level select does not work - those entries are gutted no-ops. Use `GETV_STAGE`.
@@ -308,9 +315,11 @@ Everything here is generated from your ROM and is untracked.
   collision mesh, `brief/` for mission briefings, `text/` for strings. Each has its own
   `Makefile.*`. A stage needs both a background and a setup file; several stage ids have one and
   not the other, which is why they can never load.
-- **Models.** `assets/obseg/chr/` (characters), `gun/` (weapons), `prop/` (props). The port
-  consumes these as blobs converted by `tools/gen_obseg_blobs.py`; the decompiled per-model
-  `Model.c` representation exists but does not compile and is not needed.
+- **Models.** `assets/obseg/chr/` (characters), `gun/` (weapons), `prop/` (props). Setup
+  generates the per-model `Model.c` files from the user's ROM, repairs their native 64-bit
+  switch-node declarations, namespaces colliding asset symbols, and the platform build compiles
+  the generated asset C. `tools/gen_obseg_blobs.py` also produces the object-segment blob tables
+  used by the native asset bridge.
 - **Textures.** `assets/images/`, driven by `assets/images.def` and the generated
   `imagelist.csv`. `assets/oddtextures.c` holds the ones that do not fit that scheme.
 - **Fonts.** `assets/font/`, plus `font_chardata*.c` for the per-region character tables.
@@ -367,7 +376,7 @@ harmless only because those objects are never pulled in. Do not add `-force_load
 
 ## Reading further
 
-`docs/ROADMAP.md` is the working log - what is fixed, what is open, and the reasoning behind most
-of the gates. `docs/research/` holds background on the engine, the N64 RCP, and the toolchain.
-Both are internal working documents rather than user documentation, but they are where the detail
-is.
+For current architecture and edit/build ownership, read [`CODEBASE.md`](CODEBASE.md) and
+[`DEVELOPMENT.md`](DEVELOPMENT.md). [`ROADMAP.md`](ROADMAP.md) records current project status
+and planned work, while subsystem documents such as [`FRAME_TIMING.md`](FRAME_TIMING.md),
+[`BOTS.md`](BOTS.md), and [`NETPLAY.md`](NETPLAY.md) carry the deeper technical records.

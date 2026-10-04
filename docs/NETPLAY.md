@@ -11,9 +11,9 @@ trials. Treat the results below as inherited project evidence until they are rep
 release line.
 
 
-The goal: four or more people, each on their own machine, each full-screen, playing each other
-over a WAN -- plus bots, in any mix, including nobody at all and two bots playing while you
-watch.
+The goal: use GoldenEye's **up to four native player slots** across networked machines, with each
+human able to have a full-screen local view, while bot-controlled slots or NPC characters can fill
+out other roles where the corresponding bot path supports them.
 
 ## The seam already exists
 
@@ -35,8 +35,10 @@ Nothing about the game distinguishes them, and that is deliberate.
 
 ## Lockstep, not state replication
 
-Only inputs travel; every machine simulates the same thing from them. A tick of input is twelve
-bytes. The world state is not something we could ship at 60Hz over a domestic link.
+The current design sends only inputs; every machine simulates the same world from them. A tick of
+input is twelve bytes. Replicating authoritative entity/world state instead would be a different
+network architecture with its own serialization, bandwidth and correction requirements; lockstep
+avoids that state-replication surface but demands deterministic simulation.
 
 The cost is that lockstep is unforgiving: **every machine must simulate identically**, and one
 that does not diverges silently, with players gradually standing in different places on
@@ -48,7 +50,9 @@ you cannot.
 ## Input delay, not rollback
 
 Every machine acts on input captured a few ticks ago, which is what buys the network time to
-deliver it. Default is 3 ticks -- 50ms at 60Hz, which covers most domestic links.
+deliver it. The default is 3 ticks -- 50ms at 60Hz. Whether that is enough depends on the actual
+latency and jitter between peers; the `inputs_late` counter exists to measure that rather than
+assuming a particular network class.
 
 Rollback hides more latency and would need full save/restore of game state on every mispredict.
 That is a far larger change, and not worth reaching for before measuring. The `inputs_late`

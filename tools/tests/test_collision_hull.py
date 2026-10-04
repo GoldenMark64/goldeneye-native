@@ -28,15 +28,21 @@ typedef float f32;
 typedef double f64;
 typedef int s32;
 typedef struct { float m[4][4]; } Mtxf;
-struct rect4f { struct { float x, y; } points[8]; };
-struct collision_data { int edges; };
+typedef struct coord2d { union { struct { float x, y; }; float f[2]; }; } coord2d;
+struct rect4f { coord2d points[4]; };
+struct collision_data { int edges; coord2d polygon[8]; float top, bottom; };
+#ifdef LEGACY_RECT4_ACCESS
+#define GE_COLLISION_POLY_POINT(poly, index) ((poly)->points[index])
+#else
+#define GE_COLLISION_POLY_POINT(poly, index) (((coord2d *)(void *)(poly))[index])
+#endif
 #include "hull.inc"
 
 int main(int argc, char **argv)
 {
     Mtxf m = {0};
-    struct rect4f poly = {0};
     struct collision_data collision = {0};
+    struct rect4f *poly = (struct rect4f *)(void *)collision.polygon;
     float x = 1, y = 1, z = 1;
     double expected, area = 0;
     int which = atoi(argv[1]);
@@ -67,12 +73,12 @@ int main(int argc, char **argv)
         y = z = 0;
         expected = 0;
     }
-    sub_GAME_7F03ECC0(-x,x,-y,y,-z,z,&m,&poly,&collision);
+    sub_GAME_7F03ECC0(-x,x,-y,y,-z,z,&m,poly,&collision);
     if (collision.edges < 4 || collision.edges > 8) return 2;
     for (int i = 0; i < collision.edges; ++i) {
         int j = (i + 1) % collision.edges;
-        area += (double)poly.points[i].x * poly.points[j].y
-              - (double)poly.points[j].x * poly.points[i].y;
+        area += (double)collision.polygon[i].x * collision.polygon[j].y
+              - (double)collision.polygon[j].x * collision.polygon[i].y;
     }
     area = fabs(area) / 2;
     if (fabs(area - expected) > 0.0001) {
@@ -90,26 +96,46 @@ class CollisionHullTests(unittest.TestCase):
     def setUpClass(cls):
         if not SOURCE.exists():
             raise unittest.SkipTest("prepare the decomp source with tools/setup.sh (no ROM needed)")
-        compiler = shutil.which(os.environ.get("CC", "clang"))
+        compiler = shutil.which(os.environ.get("CC", "cc"))
         if not compiler:
             raise unittest.SkipTest("a C compiler with UBSan is required")
         source = SOURCE.read_text()
         start = source.index("void sub_GAME_7F03ECC0(")
         end = source.index("\nvoid sub_GAME_7F03F540(", start)
-        cls.directory = tempfile.TemporaryDirectory()
+        function = source[start:end]
+        if "GE_COLLISION_POLY_POINT(poly, cnt)" not in function:
+            raise AssertionError("production hull builder still indexes rect4f.points directly")
+        cls.directory = tempfile.TemporaryDirectory(prefix=".collision-hull-", dir=ROOT)
         cls.addClassCleanup(cls.directory.cleanup)
         directory = Path(cls.directory.name)
-        (directory / "hull.inc").write_text(source[start:end])
+        (directory / "hull.inc").write_text(function)
         (directory / "test.c").write_text(HARNESS)
         cls.binary = directory / "test"
+        cls.legacy_binary = directory / "test-legacy"
+        version = subprocess.run(
+            [compiler, "--version"], capture_output=True, text=True
+        ).stdout.lower()
+        sanitizer = (
+            "-fsanitize=undefined,bounds-strict"
+            if "gcc" in version or "free software foundation" in version
+            else "-fsanitize=undefined,array-bounds"
+        )
         result = subprocess.run(
             [compiler, "-std=c11", "-O1", "-g", "-DGE_PORT_NATIVE",
-             "-fsanitize=undefined", "-fno-sanitize-recover=all",
+             sanitizer, "-fno-sanitize-recover=all",
              str(directory / "test.c"), "-lm", "-o", str(cls.binary)],
             capture_output=True, text=True,
         )
         if result.returncode:
             raise AssertionError(result.stderr)
+        legacy = subprocess.run(
+            [compiler, "-std=c11", "-O1", "-g", "-DGE_PORT_NATIVE",
+             "-DLEGACY_RECT4_ACCESS", sanitizer, "-fno-sanitize-recover=all",
+             str(directory / "test.c"), "-lm", "-o", str(cls.legacy_binary)],
+            capture_output=True, text=True,
+        )
+        if legacy.returncode:
+            raise AssertionError(legacy.stderr)
 
     def run_case(self, case):
         result = subprocess.run([str(self.binary), str(case)], capture_output=True, text=True)
@@ -129,6 +155,27 @@ class CollisionHullTests(unittest.TestCase):
 
     def test_collapsed_line(self):
         self.run_case(4)
+
+    def test_rotated_volume_requires_more_than_rect4_slots(self):
+        result = subprocess.run(
+            [str(self.binary), "3"], capture_output=True, text=True
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("edges=", result.stdout)
+        edges = int(result.stdout.split("edges=", 1)[1].split()[0])
+        self.assertGreater(
+            edges,
+            4,
+            "the rotated volume must exercise polygon storage beyond rect4f.points[4]",
+        )
+
+    def test_stan_los_uses_extended_polygon_accessor(self):
+        source = (ROOT / "vendor/ge-decomp/src/game/stan.c").read_text()
+        start = source.index("s32 stanTestLineUnobstructed(")
+        end = source.index("\nPropRecord *sub_GAME_7F0B1410(", start)
+        function = source[start:end]
+        self.assertIn("GE_COLLISION_POLY_POINT(polygon, i)", function)
+        self.assertNotIn("polygon->points[i]", function)
 
 
 if __name__ == "__main__":

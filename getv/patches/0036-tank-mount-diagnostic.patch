@@ -1,0 +1,298 @@
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -63,6 +63,59 @@
+     if (ge_cinetrace_on < 0) { const char *e = getenv("GETV_CINETRACE"); ge_cinetrace_on = (e && *e == '1'); }
+     return ge_cinetrace_on;
+ }
++int ge_tankdebug_on = -1;
++int ge_tankdebug(void) {
++    if (ge_tankdebug_on < 0) {
++        const char *e = getenv("GETV_TANKDEBUG");
++        ge_tankdebug_on = (e && *e && *e != '0');
++    }
++    return ge_tankdebug_on;
++}
++
++static void ge_tankdebug_nearest_tank(void)
++{
++    PropRecord *prop;
++    PropRecord *best = NULL;
++    f32 best_dist2 = -1.0f;
++
++    for (prop = chrpropGetActiveTail(); prop != NULL; prop = prop->prev) {
++        if (prop->type == PROP_TYPE_OBJ && prop->obj != NULL && prop->obj->type == PROPDEF_TANK) {
++            f32 dx = prop->pos.f[0] - g_CurrentPlayer->field_488.collision_position.f[0];
++            f32 dz = prop->pos.f[2] - g_CurrentPlayer->field_488.collision_position.f[2];
++            f32 dist2 = dx * dx + dz * dz;
++
++            if (best == NULL || dist2 < best_dist2) {
++                best = prop;
++                best_dist2 = dist2;
++            }
++        }
++    }
++
++    if (best != NULL) {
++        struct rect4f *polygon = NULL;
++        s32 edges = 0;
++        f32 top = 0.0f;
++        f32 bottom = 0.0f;
++        s32 player_room = g_CurrentPlayer->field_488.current_tile_ptr != NULL
++            ? g_CurrentPlayer->field_488.current_tile_ptr->room : -1;
++
++        chraiGetCollisionBounds(best, &polygon, &edges, &top, &bottom);
++        osSyncPrintf("[getv][tank] nearest prop=%p obj=%p dist=%.2f proptype=%d objtype=%d "
++                     "flags=%08x state=%u colblk=%p edges=%d poly=%p y=(%.2f,%.2f) "
++                     "rooms=%u,%u,%u,%u playerroom=%d stan=%p pos=(%.2f,%.2f,%.2f)\n",
++                     (void *)best, (void *)best->obj, (double)sqrtf(best_dist2),
++                     (s32)best->type, (s32)best->obj->type,
++                     (u32)best->obj->flags, (u32)best->obj->state,
++                     (void *)best->obj->ptr_allocated_collisiondata_block,
++                     edges, (void *)polygon, (double)bottom, (double)top,
++                     (u32)best->rooms[0], (u32)best->rooms[1],
++                     (u32)best->rooms[2], (u32)best->rooms[3], player_room,
++                     (void *)best->stan,
++                     (double)best->pos.f[0], (double)best->pos.f[1], (double)best->pos.f[2]);
++    } else {
++        osSyncPrintf("[getv][tank] nearest none active\n");
++    }
++}
+ /* bondconstants.h's CAMERAMODE_ToString is inside `#ifdef AIPARSE`, so it is not
+  * available to the game build. Local copy, kept in enum order. */
+ const char *ge_cinemode_name(int m) {
+@@ -2523,6 +2576,38 @@
+         {
+ block_20:
+             /* I'm sorry, this is the only way I could make it match. */
++#ifdef GE_PORT_NATIVE
++            if (ge_tankdebug()) {
++                static PropRecord *tankdbg_last_candidate = NULL;
++                static s32 tankdbg_last_candidate_type = -2;
++                static s32 tankdbg_last_candidate_objtype = -2;
++                static s32 tankdbg_candidate_initialized = 0;
++                PropRecord *candidate = stanSavedColl_posData;
++                s32 candidate_type = candidate != NULL ? candidate->type : -1;
++                s32 candidate_objtype = candidate != NULL && candidate->type == PROP_TYPE_OBJ
++                    && candidate->obj != NULL ? candidate->obj->type : -1;
++
++                if (!tankdbg_candidate_initialized
++                    || tankdbg_last_candidate != candidate
++                    || tankdbg_last_candidate_type != candidate_type
++                    || tankdbg_last_candidate_objtype != candidate_objtype) {
++                    osSyncPrintf("[getv][tank] candidate prop=%p proptype=%d obj=%p objtype=%d "
++                                 "objcoll=%d col=(%.2f,%.2f,%.2f) dest=(%.2f,%.2f,%.2f)\n",
++                                 (void *)candidate, candidate_type,
++                                 (void *)(candidate != NULL && candidate->type == PROP_TYPE_OBJ
++                                     ? candidate->obj : NULL),
++                                 candidate_objtype, obj_collision_flag,
++                                 (double)g_CurrentPlayer->field_488.collision_position.f[0],
++                                 (double)g_CurrentPlayer->field_488.collision_position.f[1],
++                                 (double)g_CurrentPlayer->field_488.collision_position.f[2],
++                                 (double)arg0->f[0], (double)arg0->f[1], (double)arg0->f[2]);
++                    tankdbg_last_candidate = candidate;
++                    tankdbg_last_candidate_type = candidate_type;
++                    tankdbg_last_candidate_objtype = candidate_objtype;
++                    tankdbg_candidate_initialized = 1;
++                }
++            }
++#endif
+             if (g_PlayerTankProp == NULL
+                 && (stanSavedColl_posData != NULL)
+                 && (stanSavedColl_posData->type == PROP_TYPE_OBJ))
+@@ -2531,6 +2616,15 @@
+                 if (tank->type == PROPDEF_TANK)
+                 {
+                     g_WorldTankProp = stanSavedColl_posData;
++#ifdef GE_PORT_NATIVE
++                    if (ge_tankdebug()) {
++                        osSyncPrintf("[getv][tank] discover prop=%p obj=%p col=(%.2f,%.2f,%.2f)\n",
++                                     (void *)g_WorldTankProp, (void *)g_WorldTankProp->obj,
++                                     (double)g_CurrentPlayer->field_488.collision_position.f[0],
++                                     (double)g_CurrentPlayer->field_488.collision_position.f[1],
++                                     (double)g_CurrentPlayer->field_488.collision_position.f[2]);
++                    }
++#endif
+                 }
+             }
+         }
+@@ -2919,11 +3013,76 @@
+ 
+     if (g_WorldTankProp != NULL)
+     {
++        s32 tank_outer_hit;
++        s32 tank_point_hit;
++        s32 tank_radius_hit;
++        s32 tank_inner_hit = 0;
++#ifdef GE_PORT_NATIVE
++        static struct PropRecord *tankdbg_last_world = NULL;
++        static struct PropRecord *tankdbg_last_outer_world = NULL;
++        static s32 tankdbg_last_outer_result = -1;
++        static s32 tankdbg_last_outer = -1;
++        static s32 tankdbg_last_inner = -1;
++        static s32 tankdbg_last_canenter = -1;
++        static s32 tankdbg_last_ybucket = -0x7fffffff;
++#endif
+         chraiGetCollisionBoundsWithoutY(g_WorldTankProp, &polygon, &edges);
+ 
+-        if ((g_PlayerIsInTank == 1)
+-            || (chrpropTestPointInPolygon(&g_CurrentPlayer->field_488.collision_position, polygon, edges) != 0)
+-            || ((chrobjTestPointPolygonCollision(&g_CurrentPlayer->field_488.collision_position, g_CurrentPlayer->field_488.collision_radius, polygon, edges) != 0)))
++        tank_point_hit = chrpropTestPointInPolygon(
++            &g_CurrentPlayer->field_488.collision_position, polygon, edges) != 0;
++        tank_radius_hit = chrobjTestPointPolygonCollision(
++            &g_CurrentPlayer->field_488.collision_position,
++            g_CurrentPlayer->field_488.collision_radius,
++            polygon, edges) != 0;
++        tank_outer_hit = (g_PlayerIsInTank == 1) || tank_point_hit || tank_radius_hit;
++
++#ifdef GE_PORT_NATIVE
++        if (ge_tankdebug()
++            && (tankdbg_last_outer_world != g_WorldTankProp
++                || tankdbg_last_outer_result != tank_outer_hit)) {
++            f32 min_edge_dist = -1.0f;
++            s32 edge;
++
++            for (edge = 0; edge < edges; edge++) {
++                s32 next = (edge + 1) % edges;
++                f32 edge_dist = stanGetSignedPointLineDistance(
++                    polygon->points[edge].f[0], polygon->points[edge].f[1],
++                    polygon->points[next].f[0], polygon->points[next].f[1],
++                    g_CurrentPlayer->field_488.collision_position.f[0],
++                    g_CurrentPlayer->field_488.collision_position.f[2]);
++                if (edge_dist < 0.0f) {
++                    edge_dist = -edge_dist;
++                }
++                if (min_edge_dist < 0.0f || edge_dist < min_edge_dist) {
++                    min_edge_dist = edge_dist;
++                }
++            }
++
++            osSyncPrintf("[getv][tank] outer world=%p edges=%d point=%d radius_hit=%d outer=%d "
++                         "radius=%.6f minedge=%.6f col=(%.6f,%.6f,%.6f)\n",
++                         (void *)g_WorldTankProp, edges, tank_point_hit, tank_radius_hit,
++                         tank_outer_hit, (double)g_CurrentPlayer->field_488.collision_radius,
++                         (double)min_edge_dist,
++                         (double)g_CurrentPlayer->field_488.collision_position.f[0],
++                         (double)g_CurrentPlayer->field_488.collision_position.f[1],
++                         (double)g_CurrentPlayer->field_488.collision_position.f[2]);
++
++            if (polygon != NULL && edges == 4) {
++                osSyncPrintf("[getv][tank] outerpoly "
++                             "p0=(%.6f,%.6f) p1=(%.6f,%.6f) "
++                             "p2=(%.6f,%.6f) p3=(%.6f,%.6f)\n",
++                             (double)polygon->points[0].f[0], (double)polygon->points[0].f[1],
++                             (double)polygon->points[1].f[0], (double)polygon->points[1].f[1],
++                             (double)polygon->points[2].f[0], (double)polygon->points[2].f[1],
++                             (double)polygon->points[3].f[0], (double)polygon->points[3].f[1]);
++            }
++
++            tankdbg_last_outer_world = g_WorldTankProp;
++            tankdbg_last_outer_result = tank_outer_hit;
++        }
++#endif
++
++        if (tank_outer_hit)
+         {
+ 
+             obj = g_WorldTankProp->obj;
+@@ -2936,13 +3095,49 @@
+ 
+             temp_f2 = (farr5[4] - farr5[3]) * obj->model->scale;
+ 
+-            if (g_PlayerIsInTank == 1
+-                || (chrpropTestPointInPolygon(&g_CurrentPlayer->field_488.collision_position, &tank_objrecord->rect, (s32)tank_objrecord->collision) != 0))
++            tank_inner_hit = (g_PlayerIsInTank == 1)
++                || (chrpropTestPointInPolygon(&g_CurrentPlayer->field_488.collision_position,
++                                              &tank_objrecord->rect,
++                                              (s32)tank_objrecord->collision) != 0);
++            if (tank_inner_hit)
+             {
+                 temp_f2 += (farr6[4] - farr6[3]) * obj->model->scale;
+                 g_BondCanEnterTank = 1;
+             }
+ 
++#ifdef GE_PORT_NATIVE
++            if (ge_tankdebug()) {
++                s32 ybucket = (s32)(g_PlayerTankYOffset * 4.0f);
++                if (tankdbg_last_world != g_WorldTankProp
++                    || tankdbg_last_outer != tank_outer_hit
++                    || tankdbg_last_inner != tank_inner_hit
++                    || tankdbg_last_canenter != g_BondCanEnterTank
++                    || tankdbg_last_ybucket != ybucket) {
++                    osSyncPrintf("[getv][tank] state world=%p player=%p outer=%d inner=%d "
++                                 "can=%d in=%d yoff=%.2f target=%.2f dt=%.3f "
++                                 "bbox5=(%.2f,%.2f) bbox6=(%.2f,%.2f) scale=%.4f "
++                                 "sw5=%p data5=%p sw6=%p data6=%p\n",
++                                 (void *)g_WorldTankProp, (void *)g_PlayerTankProp,
++                                 tank_outer_hit, tank_inner_hit, g_BondCanEnterTank,
++                                 g_PlayerIsInTank,
++                                 (double)g_PlayerTankYOffset, (double)temp_f2,
++                                 (double)g_GlobalTimerDelta,
++                                 (double)farr5[3], (double)farr5[4],
++                                 (double)farr6[3], (double)farr6[4],
++                                 (double)obj->model->scale,
++                                 (void *)obj->model->obj->Switches[5],
++                                 (void *)obj->model->obj->Switches[5]->Data,
++                                 (void *)obj->model->obj->Switches[6],
++                                 (void *)obj->model->obj->Switches[6]->Data);
++                    tankdbg_last_world = g_WorldTankProp;
++                    tankdbg_last_outer = tank_outer_hit;
++                    tankdbg_last_inner = tank_inner_hit;
++                    tankdbg_last_canenter = g_BondCanEnterTank;
++                    tankdbg_last_ybucket = ybucket;
++                }
++            }
++#endif
++
+             if ((g_PlayerIsInTank == 0) && (g_PlayerTankYOffset < temp_f2))
+             {
+                 g_PlayerTankYOffset += (20.0f * g_GlobalTimerDelta);
+@@ -2978,6 +3173,15 @@
+         {
+             if (g_PlayerTankProp != NULL)
+             {
++#ifdef GE_PORT_NATIVE
++                if (ge_tankdebug()) {
++                    osSyncPrintf("[getv][tank] lost world=%p player=%p outer=0 col=(%.2f,%.2f,%.2f)\n",
++                                 (void *)g_WorldTankProp, (void *)g_PlayerTankProp,
++                                 (double)g_CurrentPlayer->field_488.collision_position.f[0],
++                                 (double)g_CurrentPlayer->field_488.collision_position.f[1],
++                                 (double)g_CurrentPlayer->field_488.collision_position.f[2]);
++                }
++#endif
+                 g_WorldTankProp = NULL;
+                 g_PlayerTankProp = NULL;
+                 g_PlayerTankYOffset = 0.0f;
+@@ -5898,6 +6102,18 @@
+ 
+     if (moveData.btap)
+     {
++#ifdef GE_PORT_NATIVE
++        if (ge_tankdebug()) {
++            osSyncPrintf("[getv][tank] btap world=%p player=%p can=%d in=%d yoff=%.2f col=(%.2f,%.2f,%.2f)\n",
++                         (void *)g_WorldTankProp, (void *)g_PlayerTankProp,
++                         g_BondCanEnterTank, g_PlayerIsInTank,
++                         (double)g_PlayerTankYOffset,
++                         (double)g_CurrentPlayer->field_488.collision_position.f[0],
++                         (double)g_CurrentPlayer->field_488.collision_position.f[1],
++                         (double)g_CurrentPlayer->field_488.collision_position.f[2]);
++            ge_tankdebug_nearest_tank();
++        }
++#endif
+         /* If Bond is in the tank and pressed B, then exit. */
+         if (g_PlayerIsInTank == 1)
+         {
+@@ -5961,6 +6177,13 @@
+             g_TankDamagePenaltyTicks = 0;
+ 
+             bondviewTankModelRotationRelated();
++#ifdef GE_PORT_NATIVE
++            if (ge_tankdebug()) {
++                osSyncPrintf("[getv][tank] entered prop=%p can=%d yoff=%.2f\n",
++                             (void *)g_PlayerTankProp, g_BondCanEnterTank,
++                             (double)g_PlayerTankYOffset);
++            }
++#endif
+         }
+         else
+         {

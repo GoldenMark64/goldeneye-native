@@ -441,6 +441,7 @@ formality - it is what makes the table in section 3 verifiable by someone who wa
 | stb_image v2.19 | `nothings/stb`, Sean Barrett | `getv/port/include/stb/stb_image.h`, licence notice intact in-file. |
 | stb_truetype | `nothings/stb`, Sean Barrett | `getv/port/include/stb_truetype.h`, licence notice intact in-file. Added with the real-font text overlay. |
 | Typed byteswap with fail-loud default (`GE_SWAP`) | `perfect-dark-pc-port/perfect_dark` @ `514bf7a`, `port/include/preprocess/common.h` (`PD_SWAPPED_VAL`/`PD_SWAP_VAL`). MIT, (c) 2022 Ryan Dwyer. | `getv/port/include/ge_typed_swap.h`, own implementation of the `_Generic`-dispatch technique, notice and cite in the file header. |
+| Cylinder-aware ground support selection | `n64decomp/perfect_dark` @ `169ed48bdcbfb3b568b028bd5bebb27680073514`, `src/lib/collision.c` (`cd_find_ground_finalise`, `cd_find_ground_at_cyl_*`). MIT, © 2022 Ryan Dwyer. | `vendor/ge-decomp/src/game/stan_ground_native.h` and the native resolver in `stan.c`; GoldenEye STAN/room implementation with PD's center-first then cylinder-edge support semantics. Full MIT notice: `LICENSES/perfect-dark-port-MIT.txt`. |
 
 ### Exact upstream revisions
 

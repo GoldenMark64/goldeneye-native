@@ -85,6 +85,10 @@ extern void *gePortMetalWindow;
  * after the ImGui overlay (if any) has drawn -- see the frame-lifecycle note in gfx_metal.mm. */
 void gePortMetalFinishFrame(void);
 
+/* F3 diagnostics arrive through ge_imgui.cpp's SDL-event bridge, before this frame's drawable is
+ * acquired. Arm one frame of drawable readback so the game-only image can be copied before ImGui. */
+void gePortMetalArmDiagnosticCapture(void);
+
 #ifdef GE_WITH_IMGUI
 /* ImGui-on-Metal glue, called from ge_imgui.cpp and ge_launcher.cpp. Every Metal/ObjC type
  * (id<MTLDevice>, the render pass descriptor, the command encoder) stays inside gfx_metal.mm

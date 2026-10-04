@@ -1,0 +1,132 @@
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -2977,6 +2977,11 @@
+     s32 temp_a3; // no stack
+     s32 phi_a0_3; // sp3c
+     s32 temp_v0_7; // no stack
++#ifdef GE_PORT_NATIVE
++    s32 tankdbg_top_probe = 0;
++    f32 tankdbg_top_pre_x = 0.0f;
++    f32 tankdbg_top_pre_z = 0.0f;
++#endif
+ 
+ 
+     g_CurrentPlayer->bondprevpos.f[0] = g_CurrentPlayer->field_488.collision_position.f[0];
+@@ -3029,6 +3034,7 @@
+         static s32 tankdbg_last_inner = -1;
+         static s32 tankdbg_last_canenter = -1;
+         static s32 tankdbg_last_ybucket = -0x7fffffff;
++        static struct PropRecord *tankdbg_last_innergeom_world = NULL;
+ #endif
+         chraiGetCollisionBoundsWithoutY(g_WorldTankProp, &polygon, &edges);
+ 
+@@ -3111,6 +3117,64 @@
+                 || (chrpropTestPointInPolygon(&g_CurrentPlayer->field_488.collision_position,
+                                               &tank_objrecord->rect,
+                                               (s32)tank_objrecord->collision) != 0);
++#ifdef GE_PORT_NATIVE
++            if (ge_tankdebug() && tankdbg_last_innergeom_world != g_WorldTankProp) {
++                s32 inner_edges = (s32)(uintptr_t)tank_objrecord->collision;
++
++                osSyncPrintf("[getv][tank] innergeom world=%p edges=%d raw=%p "
++                             "p0=(%.6f,%.6f) p1=(%.6f,%.6f) "
++                             "p2=(%.6f,%.6f) p3=(%.6f,%.6f) "
++                             "col=(%.6f,%.6f,%.6f)\n",
++                             (void *)g_WorldTankProp, inner_edges,
++                             (void *)tank_objrecord->collision,
++                             (double)tank_objrecord->rect.points[0].f[0],
++                             (double)tank_objrecord->rect.points[0].f[1],
++                             (double)tank_objrecord->rect.points[1].f[0],
++                             (double)tank_objrecord->rect.points[1].f[1],
++                             (double)tank_objrecord->rect.points[2].f[0],
++                             (double)tank_objrecord->rect.points[2].f[1],
++                             (double)tank_objrecord->rect.points[3].f[0],
++                             (double)tank_objrecord->rect.points[3].f[1],
++                             (double)g_CurrentPlayer->field_488.collision_position.f[0],
++                             (double)g_CurrentPlayer->field_488.collision_position.f[1],
++                             (double)g_CurrentPlayer->field_488.collision_position.f[2]);
++
++                if (inner_edges == 4) {
++                    osSyncPrintf("[getv][tank] innerdist "
++                                 "d0=%.6f d1=%.6f d2=%.6f d3=%.6f\n",
++                                 (double)stanGetSignedPointLineDistance(
++                                     tank_objrecord->rect.points[0].f[0],
++                                     tank_objrecord->rect.points[0].f[1],
++                                     tank_objrecord->rect.points[1].f[0],
++                                     tank_objrecord->rect.points[1].f[1],
++                                     g_CurrentPlayer->field_488.collision_position.f[0],
++                                     g_CurrentPlayer->field_488.collision_position.f[2]),
++                                 (double)stanGetSignedPointLineDistance(
++                                     tank_objrecord->rect.points[1].f[0],
++                                     tank_objrecord->rect.points[1].f[1],
++                                     tank_objrecord->rect.points[2].f[0],
++                                     tank_objrecord->rect.points[2].f[1],
++                                     g_CurrentPlayer->field_488.collision_position.f[0],
++                                     g_CurrentPlayer->field_488.collision_position.f[2]),
++                                 (double)stanGetSignedPointLineDistance(
++                                     tank_objrecord->rect.points[2].f[0],
++                                     tank_objrecord->rect.points[2].f[1],
++                                     tank_objrecord->rect.points[3].f[0],
++                                     tank_objrecord->rect.points[3].f[1],
++                                     g_CurrentPlayer->field_488.collision_position.f[0],
++                                     g_CurrentPlayer->field_488.collision_position.f[2]),
++                                 (double)stanGetSignedPointLineDistance(
++                                     tank_objrecord->rect.points[3].f[0],
++                                     tank_objrecord->rect.points[3].f[1],
++                                     tank_objrecord->rect.points[0].f[0],
++                                     tank_objrecord->rect.points[0].f[1],
++                                     g_CurrentPlayer->field_488.collision_position.f[0],
++                                     g_CurrentPlayer->field_488.collision_position.f[2]));
++                }
++
++                tankdbg_last_innergeom_world = g_WorldTankProp;
++            }
++#endif
+             if (tank_inner_hit)
+             {
+                 temp_f2 += (farr6[4] - farr6[3]) * obj->model->scale;
+@@ -3169,6 +3233,25 @@
+                 g_PlayerTankYOffset = temp_f2;
+             }
+ 
++#ifdef GE_PORT_NATIVE
++            if (ge_tankdebug()
++                && g_PlayerIsInTank == 0
++                && tank_inner_hit == 0
++                && g_PlayerTankYOffset >= temp_f2
++                && (offset->f[0] != 0.0f || offset->f[2] != 0.0f)) {
++                tankdbg_top_probe = 1;
++                tankdbg_top_pre_x = g_CurrentPlayer->field_488.collision_position.f[0];
++                tankdbg_top_pre_z = g_CurrentPlayer->field_488.collision_position.f[2];
++                osSyncPrintf("[getv][tank] topmove-pre "
++                             "col=(%.6f,%.6f) off=(%.6f,%.6f) next=(%.6f,%.6f) "
++                             "inner=0 edges=%d\n",
++                             (double)tankdbg_top_pre_x, (double)tankdbg_top_pre_z,
++                             (double)offset->f[0], (double)offset->f[2],
++                             (double)next_pos.f[0], (double)next_pos.f[2],
++                             (s32)(uintptr_t)tank_objrecord->collision);
++            }
++#endif
++
+             if (g_PlayerIsInTank == 1)
+             {
+                 if (g_EnterTankAudioState == TANK_RUN_STATE_NOT_RUNNING)
+@@ -3233,6 +3316,18 @@
+         }
+     }
+ 
++#ifdef GE_PORT_NATIVE
++    if (ge_tankdebug() && tankdbg_top_probe) {
++        osSyncPrintf("[getv][tank] topmove-post "
++                     "col=(%.6f,%.6f) moved=(%.6f,%.6f) blocker=%p\n",
++                     (double)g_CurrentPlayer->field_488.collision_position.f[0],
++                     (double)g_CurrentPlayer->field_488.collision_position.f[2],
++                     (double)(g_CurrentPlayer->field_488.collision_position.f[0] - tankdbg_top_pre_x),
++                     (double)(g_CurrentPlayer->field_488.collision_position.f[2] - tankdbg_top_pre_z),
++                     (void *)stanSavedColl_posData);
++    }
++#endif
++
+     /**
+      * This block seems to be some error checking code, this will only occur when Bond
+      * goes out of bounds.

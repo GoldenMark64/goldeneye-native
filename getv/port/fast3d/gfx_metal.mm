@@ -49,6 +49,7 @@
 #include "gfx_rendering_api.h"
 #include "gfx_pc.h"
 #include "gfx_metal.h"
+#include "../src/ge_diagnostic_capture.h"
 
 #ifdef GE_WITH_IMGUI
 #include "imgui.h"
@@ -127,6 +128,8 @@ static id<MTLRenderCommandEncoder> mtl_encoder;
 static id<MTLRenderCommandEncoder> mtl_overlay_encoder;
 #endif
 static id<CAMetalDrawable> mtl_drawable;
+static id<MTLTexture> mtl_diag_capture_tex;
+static int mtl_diag_readback_armed;
 static id<MTLTexture> mtl_depth_tex;
 static uint32_t mtl_depth_w, mtl_depth_h;
 
@@ -1189,6 +1192,16 @@ static void gfx_metal_init(void) {
 #endif
 }
 
+void gePortMetalArmDiagnosticCapture(void)
+{
+    if (!mtl_layer) { return; }
+    mtl_diag_readback_armed = 1;
+    mtl_diag_capture_tex = nil;
+    /* The SDL-event bridge handles F3 before gfx_metal_start_frame(), so the nextDrawable obtained
+     * for this same frame observes framebufferOnly=NO. Restore the optimization in FinishFrame. */
+    mtl_layer.framebufferOnly = NO;
+}
+
 static void gfx_metal_on_resize(void) {
 }
 
@@ -1322,11 +1335,86 @@ static void gfx_metal_start_frame(void) {
  * texture to the compositor for display, it does not invalidate CPU access to it, and
  * nothing else in this file mutates mtl_drawable.texture's contents between commit and the
  * mtl_drawable = nil a few lines below in gePortMetalFinishFrame(). */
+static int ge_shot_write_bmp_metal(const char *path, const unsigned char *px, int w, int h)
+{
+    const int pad = (4 - (w * 3) % 4) % 4;
+    const unsigned long imgsz = (unsigned long)(w * 3 + pad) * h;
+    FILE *f = fopen(path, "wb");
+    unsigned char hdr[54] = {0};
+    unsigned long fsz;
+    static const unsigned char zero[3] = {0, 0, 0};
+    int y;
+
+    if (!f) {
+        fprintf(stderr, "[getv][shot] fopen failed for '%s': %s\n", path, strerror(errno));
+        fflush(stderr);
+        return 0;
+    }
+
+    fsz = 54 + imgsz;
+    hdr[0] = 'B'; hdr[1] = 'M';
+    hdr[2] = (unsigned char)(fsz); hdr[3] = (unsigned char)(fsz >> 8);
+    hdr[4] = (unsigned char)(fsz >> 16); hdr[5] = (unsigned char)(fsz >> 24);
+    hdr[10] = 54; hdr[14] = 40;
+    hdr[18] = (unsigned char)(w); hdr[19] = (unsigned char)(w >> 8);
+    hdr[20] = (unsigned char)(w >> 16); hdr[21] = (unsigned char)(w >> 24);
+    hdr[22] = (unsigned char)(h); hdr[23] = (unsigned char)(h >> 8);
+    hdr[24] = (unsigned char)(h >> 16); hdr[25] = (unsigned char)(h >> 24);
+    hdr[26] = 1; hdr[28] = 24;
+    hdr[34] = (unsigned char)(imgsz); hdr[35] = (unsigned char)(imgsz >> 8);
+    hdr[36] = (unsigned char)(imgsz >> 16); hdr[37] = (unsigned char)(imgsz >> 24);
+    fwrite(hdr, 1, 54, f);
+    for (y = h - 1; y >= 0; y--) {
+        const unsigned char *row = px + (size_t)y * w * 4;
+        int x;
+        for (x = 0; x < w; x++) {
+            fwrite(row + x * 4, 1, 3, f);
+        }
+        if (pad) fwrite(zero, 1, (size_t)pad, f);
+    }
+    if (fclose(f) != 0) {
+        fprintf(stderr, "[getv][shot] fclose failed for '%s': %s\n", path, strerror(errno));
+        fflush(stderr);
+        return 0;
+    }
+    return 1;
+}
+
+static int ge_shot_capture_texture_metal(const char *path, id<MTLTexture> tex,
+                                         int *out_w, int *out_h)
+{
+    int w;
+    int h;
+    unsigned char *px;
+    int ok;
+
+    if (!tex || path == NULL) { return 0; }
+    w = (int)tex.width;
+    h = (int)tex.height;
+    if (w <= 0 || h <= 0) { return 0; }
+
+    px = (unsigned char *)malloc((size_t)w * h * 4);
+    if (!px) { return 0; }
+    [tex getBytes:px
+      bytesPerRow:(NSUInteger)(w * 4)
+       fromRegion:MTLRegionMake2D(0, 0, (NSUInteger)w, (NSUInteger)h)
+      mipmapLevel:0];
+    ok = ge_shot_write_bmp_metal(path, px, w, h);
+    free(px);
+    if (ok) {
+        if (out_w) *out_w = w;
+        if (out_h) *out_h = h;
+    }
+    return ok;
+}
+
 static void ge_shot_maybe_metal(id<MTLCommandBuffer> cmdbuf, id<MTLTexture> tex) {
     static int shot_frame = -2;
     static unsigned long fno;
     static const char *shot_path;
     static char shot_path_buf[1024];
+    const char *diag_path;
+    int scheduled;
     if (shot_frame == -2) {
         const char *e = getenv("GETV_SHOTFRAME");
         shot_frame = (e && *e) ? atoi(e) : -1;
@@ -1352,8 +1440,10 @@ static void ge_shot_maybe_metal(id<MTLCommandBuffer> cmdbuf, id<MTLTexture> tex)
     /* Cheap on every other frame: the counter above has to run unconditionally to know
      * which frame this is, but the GPU stall below is the one thing GETV_SHOTFRAME is
      * supposed to cost only on the single frame actually being captured. */
-    if (shot_frame <= 0 || (long)fno != (long)shot_frame) return;
-    if (!tex) return;
+    scheduled = shot_frame > 0 && (long)fno == (long)shot_frame;
+    diag_path = gePortDiagnosticScreenshotPath();
+    if (!scheduled && diag_path == NULL) return;
+    if (!tex && scheduled) return;
 
     /* mtl_cmdbuf was already committed by the caller (presentDrawable: schedules
      * presentation for when the GPU finishes, it does not itself block) -- wait for that
@@ -1361,64 +1451,23 @@ static void ge_shot_maybe_metal(id<MTLCommandBuffer> cmdbuf, id<MTLTexture> tex)
      * this frame's draws, not this frame. */
     [cmdbuf waitUntilCompleted];
 
-    const int w = (int)tex.width;
-    const int h = (int)tex.height;
-    if (w <= 0 || h <= 0) return;
-
-    /* BGRA8Unorm (mtl_layer.pixelFormat above), 4 bytes/px, tight rows -- getBytes wants
-     * the real per-row stride, not a padded one, unlike the BMP output rows below. */
-    unsigned char *px = (unsigned char *)malloc((size_t)w * h * 4);
-    if (!px) return;
-    [tex getBytes:px
-      bytesPerRow:(NSUInteger)(w * 4)
-       fromRegion:MTLRegionMake2D(0, 0, (NSUInteger)w, (NSUInteger)h)
-      mipmapLevel:0];
-
-    /* BMP rows are bottom-up and 4-byte aligned; getBytes hands back top-down BGRA, so both
-     * the row order and the dropped alpha byte are handled in the write loop below (mirrors
-     * gfx_opengl.c's ge_shot_maybe() exactly, source channel order and origin aside). */
-    const int pad = (4 - (w * 3) % 4) % 4;
-    const unsigned long imgsz = (unsigned long)(w * 3 + pad) * h;
-    FILE *f = fopen(shot_path, "wb");
-    if (!f) {
-        /* Silent otherwise: a bad GETV_SHOTPATH (a sandboxed tvOS/iOS container's real
-         * writable path is a per-install UUID, not something to hand-guess) previously
-         * failed with no output at all, which reads identically to the capture never
-         * having run in the first place. */
-        fprintf(stderr, "[getv][shot] fopen failed for '%s': %s\n", shot_path, strerror(errno));
-        fflush(stderr);
-        free(px);
-        return;
-    }
-    unsigned char hdr[54] = {0};
-    unsigned long fsz = 54 + imgsz;
-    hdr[0] = 'B'; hdr[1] = 'M';
-    hdr[2] = (unsigned char)(fsz); hdr[3] = (unsigned char)(fsz >> 8);
-    hdr[4] = (unsigned char)(fsz >> 16); hdr[5] = (unsigned char)(fsz >> 24);
-    hdr[10] = 54; hdr[14] = 40;
-    hdr[18] = (unsigned char)(w); hdr[19] = (unsigned char)(w >> 8);
-    hdr[20] = (unsigned char)(w >> 16); hdr[21] = (unsigned char)(w >> 24);
-    hdr[22] = (unsigned char)(h); hdr[23] = (unsigned char)(h >> 8);
-    hdr[24] = (unsigned char)(h >> 16); hdr[25] = (unsigned char)(h >> 24);
-    hdr[26] = 1; hdr[28] = 24;
-    hdr[34] = (unsigned char)(imgsz); hdr[35] = (unsigned char)(imgsz >> 8);
-    hdr[36] = (unsigned char)(imgsz >> 16); hdr[37] = (unsigned char)(imgsz >> 24);
-    fwrite(hdr, 1, 54, f);
-    static const unsigned char zero[3] = {0, 0, 0};
-    /* getBytes is top-down; BMP wants bottom-up, so walk source rows in reverse. */
-    for (int y = h - 1; y >= 0; y--) {
-        const unsigned char *row = px + (size_t)y * w * 4;
-        for (int x = 0; x < w; x++) {
-            /* BGRA8Unorm in memory is already B,G,R,A -- the BMP's own pixel order is
-             * B,G,R, so this is a straight copy of the first three bytes, alpha dropped. */
-            fwrite(row + x * 4, 1, 3, f);
+    if (scheduled) {
+        int w = 0, h = 0;
+        if (ge_shot_capture_texture_metal(shot_path, tex, &w, &h)) {
+            fprintf(stderr, "[getv][shot] frame %lu -> %s (%dx%d)\n", fno, shot_path, w, h);
+            fflush(stderr);
         }
-        if (pad) fwrite(zero, 1, (size_t)pad, f);
     }
-    fclose(f);
-    free(px);
-    fprintf(stderr, "[getv][shot] frame %lu -> %s (%dx%d)\n", fno, shot_path, w, h);
-    fflush(stderr);
+    if (diag_path != NULL) {
+        int w = 0, h = 0;
+        int ok = ge_shot_capture_texture_metal(diag_path, mtl_diag_capture_tex, &w, &h);
+        gePortDiagnosticScreenshotComplete(ok, w, h);
+        if (ok) {
+            fprintf(stderr, "[getv][diag] screenshot frame %lu -> %s (%dx%d)\n",
+                    fno, diag_path, w, h);
+            fflush(stderr);
+        }
+    }
 }
 
 /* Ends the GAME's render encoder only -- does NOT present or commit. That split (and this
@@ -1480,13 +1529,63 @@ static void gfx_metal_end_frame(void) {
         mtl_render_target_w = (uint32_t)mtl_layer.drawableSize.width;
         mtl_render_target_h = (uint32_t)mtl_layer.drawableSize.height;
     }
+
+    /* Preserve the game-only drawable before gfx_sdl2.c gives ImGui its load-preserving pass.
+     * The blit is ordered in the same command buffer after the game/postfx work and before the
+     * overlay, so the private texture is the exact frame F3 was pressed on without debug UI. */
+    if (mtl_diag_readback_armed && gePortDiagnosticScreenshotPath() != NULL) {
+        if (mtl_drawable != nil && mtl_cmdbuf != nil) {
+            NSUInteger w = mtl_drawable.texture.width;
+            NSUInteger h = mtl_drawable.texture.height;
+            MTLTextureDescriptor *desc =
+                [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
+                                                                    width:w
+                                                                   height:h
+                                                                mipmapped:NO];
+            desc.storageMode = MTLStorageModeShared;
+            mtl_diag_capture_tex = [mtl_device newTextureWithDescriptor:desc];
+            if (mtl_diag_capture_tex != nil) {
+                id<MTLBlitCommandEncoder> blit = [mtl_cmdbuf blitCommandEncoder];
+                [blit copyFromTexture:mtl_drawable.texture
+                          sourceSlice:0
+                          sourceLevel:0
+                         sourceOrigin:MTLOriginMake(0, 0, 0)
+                           sourceSize:MTLSizeMake(w, h, 1)
+                            toTexture:mtl_diag_capture_tex
+                     destinationSlice:0
+                     destinationLevel:0
+                    destinationOrigin:MTLOriginMake(0, 0, 0)];
+                [blit endEncoding];
+            } else {
+                gePortDiagnosticScreenshotComplete(0, 0, 0);
+            }
+        } else {
+            gePortDiagnosticScreenshotComplete(0, 0, 0);
+        }
+    }
 }
 
 void gePortMetalFinishFrame(void) {
-    if (!mtl_cmdbuf) return;
+    int restore_framebuffer_only = mtl_diag_readback_armed;
+    if (!mtl_cmdbuf) {
+        if (restore_framebuffer_only) {
+            gePortDiagnosticScreenshotComplete(0, 0, 0);
+            mtl_diag_capture_tex = nil;
+            mtl_diag_readback_armed = 0;
+            { const char *e = getenv("GETV_SHOTFRAME");
+              if (!(e && *e)) mtl_layer.framebufferOnly = YES; }
+        }
+        return;
+    }
     if (mtl_drawable) [mtl_cmdbuf presentDrawable:mtl_drawable];
     [mtl_cmdbuf commit];
     ge_shot_maybe_metal(mtl_cmdbuf, mtl_drawable.texture);
+    mtl_diag_capture_tex = nil;
+    mtl_diag_readback_armed = 0;
+    if (restore_framebuffer_only) {
+        const char *e = getenv("GETV_SHOTFRAME");
+        if (!(e && *e)) mtl_layer.framebufferOnly = YES;
+    }
     mtl_cmdbuf = nil;
     mtl_drawable = nil;
     mtl_vbo_index = (mtl_vbo_index + 1) % VBO_POOL_COUNT;

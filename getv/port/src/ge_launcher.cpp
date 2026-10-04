@@ -365,6 +365,7 @@ struct Model {
     bool mipmaps;                 /* trilinear filtering on minification (GETV_MIPMAPS) */
     bool hd_textures;             /* check texpack for overrides before each N64 texture (configHDTextures) */
     bool parallax;                /* let a pack's height maps displace the diffuse UVs (GETV_PARALLAX) */
+    bool pd_renderer;             /* opt-in Perfect Dark-derived GL3 backend profile (GETV_PD_RENDERER) */
     /* Held as a percentage rather than the float the gate wants, because the slider needs an
      * int and one representation is better than two that can drift. 100 is retail. */
     int   crosshair_scale_pct;
@@ -669,6 +670,7 @@ void model_load(Model &m)
      * it against, so it stays opt-in rather than presenting itself as a finished feature. */
     m.hd_textures = env_bool("GETV_HD_TEXTURES", false);
     m.parallax    = env_bool("GETV_PARALLAX", true);
+    m.pd_renderer = env_bool("GETV_PD_RENDERER", false);
     {
         char sc[32];
         env_str("GETV_CROSSHAIR_SCALE", sc, sizeof sc, "1.0");
@@ -893,6 +895,7 @@ void model_store(const Model &chosen)
     setenv("GETV_MIPMAPS", m.mipmaps ? "1" : "0", 1);
     setenv("GETV_HD_TEXTURES", m.hd_textures ? "1" : "0", 1);
     setenv("GETV_PARALLAX",    m.parallax    ? "1" : "0", 1);
+    setenv("GETV_PD_RENDERER", m.pd_renderer ? "1" : "0", 1);
     {
         char sc[32];
         snprintf(sc, sizeof sc, "%.2f", (double) m.crosshair_scale_pct / 100.0);
@@ -3150,6 +3153,15 @@ extern "C" int gePortLauncherRun(int argc, char **argv)
                      "what you are aiming at. GoldenEye+ asks for 60%.");
 
                 ImGui::EndDisabled();
+
+                Section("RENDERER COMPATIBILITY");
+                ImGui::Checkbox("Perfect Dark renderer compatibility path", &m.pd_renderer);
+                Hint("Experimental desktop OpenGL backend profile adapted from the MIT-licensed "
+                     "Perfect Dark PC port: GL 3.3 compatibility context, GLSL 1.30, a dedicated "
+                     "VAO, RGBA8 texture storage and end-of-frame glFlush. GoldenEye's Fast3D "
+                     "frontend and game display lists are unchanged. Off by default; enable only "
+                     "for compatibility testing or renderer troubleshooting.");
+
                 Section("TIMING");
                 ImGui::Checkbox("Uncapped (high refresh)", &m.uncapped);
                 Hint("Removes the frame cap and switches to the real timebase together, "

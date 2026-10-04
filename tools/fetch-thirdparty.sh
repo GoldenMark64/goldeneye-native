@@ -23,8 +23,9 @@
 #      otherwise making a bare depth-1 clone in vendor/sm64ex-cache.git).
 #   2. Copies the files listed in getv/patches/thirdparty/MANIFEST into place, reading
 #      them out of git rather than a working tree so a dirty checkout cannot leak in.
-#   3. Applies getv/patches/thirdparty/0001-getv-port-layer.patch, which carries every
-#      Goldeneye-Native change to those files.
+#   3. Applies the ordered patch stack under getv/patches/thirdparty/. The large
+#      0001 baseline carries the historical port; later focused overlays stay small
+#      and reviewable instead of forcing unrelated changes back into that monolith.
 #
 # After it finishes, ./getv/build_mac.sh all builds exactly as it did before the files
 # were removed. Nothing here is optional and nothing here is stubbed: the patch is a
@@ -36,8 +37,9 @@
 #   fetch   (default) fetch, copy and patch. Refuses to clobber locally modified files
 #           unless --force is given.
 #   verify  check that the files currently on disk are exactly pristine + patch.
-#   regen   regenerate the patch from the current working tree. Run this after editing
-#           any file listed in the MANIFEST, or the change is not recorded anywhere.
+#   regen   regenerate the 0001 baseline from the current working tree after first
+#           reversing any focused overlay patches. Run this after editing historical
+#           baseline content in a MANIFEST file.
 #   clean   remove the fetched files again (returns the tree to its published state).
 #   status  print the pin, the manifest and which files are present.
 set -uo pipefail
@@ -49,7 +51,11 @@ UPSTREAM_URL="https://github.com/sm64pc/sm64ex.git"
 UPSTREAM_SHA="d7ca2c04364a6dd0dac58b47151e04e26887e6f0"
 
 MANIFEST="$ROOT/getv/patches/thirdparty/MANIFEST"
-PATCHFILE="$ROOT/getv/patches/thirdparty/0001-getv-port-layer.patch"
+PATCHDIR="$ROOT/getv/patches/thirdparty"
+PATCHFILE="$PATCHDIR/0001-getv-port-layer.patch"
+RELEASE_OVERLAY="$PATCHDIR/0002-release-1.0-renderer-stack.patch"
+MIXER_TEMPLATE="$PATCHDIR/ge_mixer-0064.template.c"
+MIXER_RECONSTRUCT="$ROOT/tools/reconstruct-ge-mixer.py"
 CACHE="${GETV_SM64EX_CACHE:-$ROOT/vendor/sm64ex-cache.git}"
 REUSE="$ROOT/vendor/sm64ex"
 
@@ -107,10 +113,39 @@ export_pristine() {
   done
 }
 
-apply_patch() {
+patches() {
+  # The 1.0 installer applies one exact renderer overlay after the historical baseline.
+  # The older focused 0002-0007 files remain in the repository as review/provenance artifacts,
+  # but replaying those zero-context patches against a newer 0001 can place hunks at the wrong
+  # matching line. The consolidated release overlay is generated against this exact 0001.
+  printf '%s\n' "$PATCHFILE" "$RELEASE_OVERLAY"
+}
+
+overlay_patches() {
+  local p
+  patches | while read -r p; do
+    [ "$p" = "$PATCHFILE" ] || echo "$p"
+  done
+}
+
+apply_patches() {
   local dir="$1"
-  [ -f "$PATCHFILE" ] || die "missing $PATCHFILE"
-  ( cd "$dir" && patch -p1 -s -i "$PATCHFILE" ) || return 1
+  local p
+  patches | while read -r p; do
+    [ -f "$p" ] || die "missing $p"
+    ( cd "$dir" && patch -p1 -s -i "$p" ) || return 1
+  done
+
+  # Frozen 0064 uses the same stock 64x4 libultra resampler coefficients already
+  # present in the historical fetched mixer, but a newer scalar mixer implementation
+  # surrounds them. Keep the dense coefficient table out of the public patch/template:
+  # validate and reuse the already-fetched values, then render the exact 0064 source.
+  [ -f "$MIXER_TEMPLATE" ] || die "missing $MIXER_TEMPLATE"
+  [ -f "$MIXER_RECONSTRUCT" ] || die "missing $MIXER_RECONSTRUCT"
+  local mixer="$dir/getv/port/audio/ge_mixer.c"
+  local mixer_new="$mixer.0064-new"
+  python3 "$MIXER_RECONSTRUCT" "$mixer" "$MIXER_TEMPLATE" "$mixer_new" || return 1
+  mv -f "$mixer_new" "$mixer"
 }
 
 # ------------------------------------------------------------------------------ fetch
@@ -128,7 +163,7 @@ cmd_fetch() {
   tmp="$(mktemp -d)" || die "mktemp"
   trap 'rm -rf "$tmp"' RETURN
   export_pristine "$repo" "$tmp/work" || return 1
-  apply_patch "$tmp/work" || die "patch did not apply -- upstream pin and patch disagree"
+  apply_patches "$tmp/work" || die "patch stack did not apply -- upstream pin and patches disagree"
 
   manifest | while read -r _ dst; do
     mkdir -p "$ROOT/$(dirname "$dst")"
@@ -148,7 +183,7 @@ cmd_verify() {
   tmp="$(mktemp -d)" || die "mktemp"
   trap 'rm -rf "$tmp"' RETURN
   export_pristine "$repo" "$tmp/work" || return 1
-  apply_patch "$tmp/work" || die "patch did not apply against $UPSTREAM_SHA"
+  apply_patches "$tmp/work" || die "patch stack did not apply against $UPSTREAM_SHA"
   while read -r _ dst; do
     n=$((n+1))
     if [ ! -e "$ROOT/$dst" ]; then echo "MISSING  $dst"; rc=1
@@ -161,7 +196,7 @@ cmd_verify() {
 
 # ------------------------------------------------------------------------------ regen
 cmd_regen() {
-  local repo tmp dst
+  local repo tmp dst baseline
   repo="$(resolve_repo)" || die "could not obtain sm64ex at $UPSTREAM_SHA (network?)"
   tmp="$(mktemp -d)" || die "mktemp"
   trap 'rm -rf "$tmp"' RETURN
@@ -171,6 +206,25 @@ cmd_regen() {
     mkdir -p "$tmp/b/$(dirname "$dst")"
     cp "$ROOT/$dst" "$tmp/b/$dst"
   done < <(manifest)
+
+  # ge_mixer.c is a post-baseline deterministic reconstruction rather than an
+  # ordinary overlay patch. Put the historical baseline mixer back into the
+  # comparison copy before regenerating 0001, otherwise regen would absorb the
+  # 0064 mixer into the historical baseline and defeat the publication split.
+  baseline="$tmp/baseline-existing"
+  export_pristine "$repo" "$baseline" || return 1
+  ( cd "$baseline" && patch -p1 -s -i "$PATCHFILE" ) \
+    || die "could not reconstruct current historical baseline for regen"
+  cp "$baseline/getv/port/audio/ge_mixer.c" "$tmp/b/getv/port/audio/ge_mixer.c"
+
+  # Keep focused post-baseline renderer fixes as their own reviewable patches. The working tree
+  # already contains them, so reverse them in the comparison copy before regenerating 0001.
+  # verify() then reapplies the complete ordered patch stack and checks the final bytes.
+  while read -r p; do
+    if ! ( cd "$tmp/b" && patch -R -p1 -s -i "$p" ); then
+      die "could not reverse overlay $(basename "$p"); $PATCHFILE left untouched"
+    fi
+  done < <(overlay_patches | sort -r)
   # -u0: zero context. The patch is applied to an exact pinned commit, so no context is
   # needed to place the hunks, and omitting it keeps unmodified upstream lines out of a
   # file this repository does distribute.

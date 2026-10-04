@@ -1,0 +1,148 @@
+--- a/getv/port/fast3d/gfx_pc.c
++++ b/getv/port/fast3d/gfx_pc.c
+@@ -459,0 +460,7 @@
++static int ge_dl_depth;
++static int ge_stall_gfx_cmd_progress;
++
++/* 0053 diagnostic: tags the exact state-transition reason that flushes the current
++ * triangle batch. The implementation lives below the command-trace helpers so the
++ * opt-in dump can include the same bounded history used by crash diagnostics. */
++static void gfx_flush_reason(const char *reason);
+@@ -3000 +3007 @@
+-        gfx_flush();
++        gfx_flush_reason("depth_test");
+@@ -3007 +3014 @@
+-        gfx_flush();
++        gfx_flush_reason("depth_write");
+@@ -3014 +3021 @@
+-        gfx_flush();
++        gfx_flush_reason("decal");
+@@ -3026 +3033 @@
+-        gfx_flush();
++        gfx_flush_reason("cloud");
+@@ -3033 +3040 @@
+-            gfx_flush();
++            gfx_flush_reason("viewport");
+@@ -3038 +3045 @@
+-            gfx_flush();
++            gfx_flush_reason("scissor");
+@@ -3196 +3203 @@
+-        gfx_flush();
++        gfx_flush_reason("shader");
+@@ -3203 +3210 @@
+-        gfx_flush();
++        gfx_flush_reason("alpha_blend");
+@@ -3221 +3228 @@
+-                gfx_flush();
++                gfx_flush_reason(i == 0 ? "texture_import0" : "texture_import1");
+@@ -3310 +3317 @@
+-                gfx_flush();
++                gfx_flush_reason(i == 0 ? "sampler0" : "sampler1");
+@@ -3790 +3797 @@
+-        gfx_flush();
++        gfx_flush_reason("batch_full");
+@@ -5345,0 +5353,101 @@
++/* GETV_GFXBOUNDARY_CMD=N -- 0053 renderer state-boundary diagnostic.
++ *
++ * 0052 repeatedly found the Control GPU hang while the frontend was still inside the
++ * same G_TRI4 command. A glFinish() only tells us where the CPU discovers the wedged
++ * GPU, not which state transition submitted the batch. Tag the individual flush sites
++ * in gfx_sp_tri1(), and only print when the current per-task command ordinal is the one
++ * requested by the investigator. Normal rendering does not execute any extra GL calls.
++ *
++ * Output is intentionally bounded to the current flush event: raw RDP state, active
++ * renderer state, both live texture-cache entries, the two base tile descriptors, and
++ * compact command/control-flow rings. The caller's reason string is the semantic cause
++ * of the flush (shader switch, texture import, sampler change, batch full, etc.). */
++static int ge_gfxboundary_target(void)
++{
++    static int init;
++    static int target;
++    if (!init) {
++        const char *e = getenv("GETV_GFXBOUNDARY_CMD");
++        target = (e && *e) ? atoi(e) : 0;
++        init = 1;
++    }
++    return target;
++}
++
++static void ge_gfxboundary_dump(const char *reason)
++{
++    int target = ge_gfxboundary_target();
++    unsigned int cur;
++    const struct gfx_trace_entry *ce;
++    uint64_t active_cc = 0;
++    int have_cc = 0;
++
++    if (target <= 0 || ge_stall_gfx_cmd_progress != target || buf_vbo_len == 0) return;
++
++    cur = (gfx_trace_pos + GFX_TRACE_N - 1) % GFX_TRACE_N;
++    ce = &gfx_trace[cur];
++    for (uint16_t i = 0; i < color_combiner_pool_size; i++) {
++        if (color_combiner_pool[i].prg == rendering_state.shader_program) {
++            active_cc = color_combiner_pool[i].cc_id;
++            have_cc = 1;
++            break;
++        }
++    }
++
++    printf("[getv][gfxboundary] frame=%lu cmd=%d reason=%s depth=%d op=0x%02x "
++           "buffered_tris=%zu floats=%zu w0=%016lx w1=%016lx\n",
++           ge_bt_frame, ge_stall_gfx_cmd_progress, reason, ge_dl_depth,
++           (unsigned)((ce->w0 >> 24) & 0xff), buf_vbo_num_tris, buf_vbo_len,
++           (unsigned long)ce->w0, (unsigned long)ce->w1);
++    printf("[getv][gfxboundary] rdp omh=%08x oml=%08x combine=%016llx c2=%d geom=%08x "
++           "firsttile=%u maxlod=%u curtt=%u changed=%d,%d\n",
++           rdp.other_mode_h, rdp.other_mode_l, (unsigned long long)rdp.combine_mode,
++           (int)rdp.combine_has_c2, rsp.geometry_mode, rsp.first_tile_index,
++           rsp.tex_max_lod, rdp.cur_tt, (int)rdp.textures_changed[0],
++           (int)rdp.textures_changed[1]);
++    printf("[getv][gfxboundary] render depth=%d zwrite=%d decal=%d cloud=%d alpha=%d "
++           "cc=%s%016llx viewport=%.1f,%.1f %.1fx%.1f scissor=%.1f,%.1f %.1fx%.1f\n",
++           (int)rendering_state.depth_test, (int)rendering_state.depth_mask,
++           (int)rendering_state.decal_mode, (int)rendering_state.cloud_mode,
++           (int)rendering_state.alpha_blend, have_cc ? "" : "?",
++           (unsigned long long)active_cc,
++           rendering_state.viewport.x, rendering_state.viewport.y,
++           rendering_state.viewport.width, rendering_state.viewport.height,
++           rendering_state.scissor.x, rendering_state.scissor.y,
++           rendering_state.scissor.width, rendering_state.scissor.height);
++
++    for (int i = 0; i < 2; i++) {
++        const struct TextureTile *t = &rdp.texture_tile[i];
++        const struct TextureHashmapNode *n = rendering_state.textures[i];
++        printf("[getv][gfxboundary] tex%d loaded=%p/%u tile%d fmt=%u siz=%u tmem=%u line=%u "
++               "mask=%u,%u cm=%u,%u size=%u:%u-%u:%u valid=%d cache=%p id=%u lin=%d cm=%u,%u\n",
++               i, (const void *)rdp.loaded_texture[i].addr, rdp.loaded_texture[i].size_bytes,
++               i, t->fmt, t->siz, t->tmem, t->line_size_bytes, t->masks, t->maskt,
++               t->cms, t->cmt, t->uls, t->ult, t->lrs, t->lrt, (int)t->size_valid,
++               (const void *)n, n ? n->texture_id : 0, n ? (int)n->linear_filter : -1,
++               n ? n->cms : 0, n ? n->cmt : 0);
++    }
++
++    printf("[getv][gfxboundary] ops:");
++    for (unsigned int i = 0; i < GFX_TRACE_N; i++) {
++        unsigned int k = (gfx_trace_pos + i) % GFX_TRACE_N;
++        if (gfx_trace[k].cmd != NULL)
++            printf(" %02x", (unsigned)((gfx_trace[k].w0 >> 24) & 0xff));
++    }
++    printf("\n[getv][gfxboundary] dl:");
++    for (unsigned int i = 0; i < 6 && i < GFX_DLTRACE_N; i++) {
++        unsigned int k = (gfx_dltrace_pos + GFX_DLTRACE_N - 6 + i) % GFX_DLTRACE_N;
++        if (gfx_dltrace[k].from != NULL || gfx_dltrace[k].target != NULL)
++            printf(" %c%d:%02x", "CBR"[gfx_dltrace[k].kind % 3], gfx_dltrace[k].depth,
++                   (unsigned)((gfx_dltrace[k].w0 >> 24) & 0xff));
++    }
++    printf("\n");
++    fflush(stdout);
++}
++
++static void gfx_flush_reason(const char *reason)
++{
++    ge_gfxboundary_dump(reason);
++    gfx_flush();
++}
++
+@@ -5348,2 +5455,0 @@
+-static int ge_dl_depth;
+-static int ge_stall_gfx_cmd_progress;

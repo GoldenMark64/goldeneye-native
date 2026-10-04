@@ -1,0 +1,25 @@
+name: Gfx state boundary diagnostic regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gfx-state-boundary-diagnostic:
+    name: gfx-state-boundary-diagnostic-linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Reconstruct pinned Fast3D sources
+        run: bash tools/fetch-thirdparty.sh
+      - name: Verify third-party reconstruction
+        run: bash tools/fetch-thirdparty.sh verify
+      - name: Run state-boundary regression
+        run: python3 tools/tests/test_gfx_state_boundary_diag.py

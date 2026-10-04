@@ -1,0 +1,44 @@
+--- a/src/game/front.c
++++ b/src/game/front.c
+@@ -2438,18 +2438,41 @@
+     {
+         for (foldernum = FOLDER1; foldernum < MAX_FOLDER_COUNT; foldernum++)
+         {
++#ifdef GE_PORT_NATIVE
++            struct coord2d folder_x_extents;
++            struct coord2d folder_y_extents;
++            struct coord2d folder_projected_a;
++            struct coord2d folder_projected_b;
++#else
+             f32 xmax;
+             f32 xmin;
+             f32 ymax;
+             f32 ymin;
++#endif
+ 
+             struct rectbbox folderbbox;
+ 
+             LEVEL_SOLO_SEQUENCE higheststage;
+             DIFFICULTY highestdifficulty;
+ 
++#ifdef GE_PORT_NATIVE
++            /* Retail relied on four adjacent stack floats being reinterpreted as two
++             * coord2d values by projectRectCornersTo2D. Native compilers do not promise
++             * that scalar locals are adjacent or ordered, so make the two pairs real. */
++            modelGetXYExtents(walletinst[foldernum],
++                              &folder_x_extents.f[1], &folder_x_extents.f[0],
++                              &folder_y_extents.f[1], &folder_y_extents.f[0]);
++            projectRectCornersTo2D(&folderpositions_camspace[foldernum],
++                                   &folder_x_extents, &folder_y_extents,
++                                   &folder_projected_a, &folder_projected_b);
++            folderbbox.right = folder_projected_a.f[0];
++            folderbbox.down = folder_projected_a.f[1];
++            folderbbox.left = folder_projected_b.f[0];
++            folderbbox.up = folder_projected_b.f[1];
++#else
+             modelGetXYExtents(walletinst[foldernum], &xmax, &xmin, &ymax, &ymin);
+             projectRectCornersTo2D(&folderpositions_camspace[foldernum], &xmin, &ymin, &folderbbox.right, &folderbbox.left);
++#endif
+ 
+             if ((folderbbox.right <= cursor_h_pos)
+                 && (cursor_h_pos <= folderbbox.left)

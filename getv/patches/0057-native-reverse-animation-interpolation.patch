@@ -1,0 +1,45 @@
+diff --git a/src/game/model.c b/src/game/model.c
+--- a/src/game/model.c
++++ b/src/game/model.c
+@@ -3359,9 +3359,26 @@
+     s32 frameb;
+     bool forwards;
+ 
++#ifdef GE_PORT_NATIVE
++    /*
++     * Reverse interpolation must bracket the logical frame from above.
++     *
++     * Retail always floors here. For frame 10.25 at negative speed that makes
++     * framea=10 and frameb=9, then the reverse fraction below becomes
++     * 1-(10.25-9) = -0.25. Besides lying outside [0,1], those are the wrong
++     * neighbouring samples for a logical position between frames 10 and 11.
++     *
++     * Use ceil only for reverse playback: framea=11, frameb=10 and the same
++     * reverse expression yields 0.75 while animframe1 remains 10.25.
++     * Forward playback and the original non-native path are unchanged.
++     */
++    forwards = (model->speed >= 0);
++    framea = forwards ? floorFloatToInt(frame) : ceilFloatToInt(frame);
++#else
+     framea = floorFloatToInt(frame);
+ 
+     forwards = (model->speed >= 0);
++#endif
+     frameb = (forwards ? framea + 1 : framea - 1);
+ 
+     model->framea = modelConstrainOrWrapAnimFrame(framea, model->anim, model->endframe);
+@@ -3397,9 +3414,14 @@
+ 
+     if (model->anim2 != NULL)
+     {
++#ifdef GE_PORT_NATIVE
++        forwards = (model->speed2 >= 0.0f);
++        framea = forwards ? floorFloatToInt(frame2) : ceilFloatToInt(frame2);
++#else
+         framea = floorFloatToInt(frame2);
+ 
+         forwards = (model->speed2 >= 0.0f);
++#endif
+         frameb = forwards ? (framea + 1) : (framea - 1);
+ 
+         model->frame2a = modelConstrainOrWrapAnimFrame(framea, model->anim2, model->unk6c);

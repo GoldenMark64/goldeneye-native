@@ -10,7 +10,7 @@ than vendored.
 `getv/port/PROVENANCE.md` is the file-level record for the port layer. This document covers only
 the fetched files.
 
-Last verified 2026-08-22 against the working tree and against upstream over the network.
+Last verified 2026-10-03 against the 1.0 clean-install reconstruction and the pinned upstream.
 
 ---
 
@@ -24,7 +24,7 @@ Last verified 2026-08-22 against the working tree and against upstream over the 
 | Files fetched | 15 |
 | Fetch script | `tools/fetch-thirdparty.sh` |
 | File list | `getv/patches/thirdparty/MANIFEST` |
-| Local changes | `getv/patches/thirdparty/0001-getv-port-layer.patch` |
+| Local changes | ordered patch stack under `getv/patches/thirdparty/` |
 
 To build, run this once from the repository root:
 
@@ -33,9 +33,9 @@ tools/fetch-thirdparty.sh
 ```
 
 It clones sm64ex at the pinned commit, copies the fifteen files into place, and applies the
-patch that carries every change this project made to them. `tools/fetch-thirdparty.sh verify`
-re-derives all fifteen files from the pin and the patch and compares them byte for byte against
-what is on disk.
+ordered patch stack that carries this project's changes. `tools/fetch-thirdparty.sh verify`
+re-derives all fifteen files from the pin plus that patch stack and compares them byte for byte
+against what is on disk.
 
 ---
 
@@ -71,9 +71,11 @@ way and explicitly retracts an earlier MIT claim about the Emill engine, reading
 BSD-2-Clause with a binary-redistribution restriction. This project takes no position on which
 reading is correct, because it does not have to: it does not redistribute the code.
 
-The same reasoning covers the audio mixer. `getv/port/audio/ge_mixer.c` is sm64ex's
-`src/pc/mixer.c` - Emill's software implementation of the N64 audio microcode - with four
-changes. It shares the licence question with the renderer, so it is handled the same way.
+The same provenance caution covers the historical audio-mixer baseline. The frozen-0064 release
+mixer is a newer scalar implementation adapted from the MIT-licensed Perfect Dark port, but it
+retains the same stock libultra 64x4 resampler coefficient table already present in the fetched
+historical mixer. The public release therefore keeps a table-free 0064 mixer template and
+deterministically reuses those already-fetched coefficients instead of republishing the dense table.
 
 `getv/port/configfile.h` and `getv/port/fs/fs.h` are unmodified sm64ex files, still carrying
 `CONFIGFILE_DEFAULT "sm64config.txt"` and the include guard `_SM64_FS_H_`. They are trivial
@@ -133,7 +135,7 @@ version; "of ours" is the share of this project's file that those lines account 
 | `gfx_sdl.h` | 8 | 8 | 8 | 100% | 100% |
 | `gfx_sdl2.c` | 432 | 346 | 340 | 98.3% | 78.7% |
 | `gfx_window_manager_api.h` | 25 | 25 | 25 | 100% | 100% |
-| `ge_mixer.c` | 1,244 | 871 | 852 | 97.8% | 68.5% |
+| `ge_mixer.c` | reconstructed at build time | 871 | - | - | - |
 | `ge_mixer.h` | 103 | 53 | 35 | 66.0% | 34.0% |
 | `configfile.h` | 67 | 67 | 67 | 100% | 100% |
 | `fs.h` | 138 | 138 | 138 | 100% | 100% |
@@ -146,11 +148,44 @@ is why it is fetched rather than kept.
 
 ## 6. The patch
 
-`getv/patches/thirdparty/0001-getv-port-layer.patch` is a single unified diff, roughly 298 KB,
-from the pinned upstream files to this project's versions. It is generated with **zero context
-lines** (`diff -U0`). Zero context is safe here because the patch is only ever applied to one
+`getv/patches/thirdparty/0001-getv-port-layer.patch` is the historical baseline diff from the
+pinned upstream files to the established GoldenEye port. It is generated with **zero context
+lines** (`diff -u0`). Zero context is safe here because the patch is only ever applied to one
 exact commit, so there is nothing for context to disambiguate, and it keeps unmodified upstream
 lines out of a file the repository does distribute.
+
+The individual focused renderer changes remain under this directory as review/provenance artifacts:
+dynamic texture refresh, state-boundary diagnostics, GPU-flight recording and provenance, the
+Perfect Dark backend A/B, and function-flight recording. Those small patches were invaluable while
+the investigation was evolving, but several are zero-context diffs generated against an earlier
+form of the historical baseline. Replaying them mechanically after `0001` was later refreshed can
+make GNU `patch` place a hunk at an unintended matching line or reject an otherwise valid change.
+
+For the 1.0 clean installer, those focused renderer changes are therefore rebased into one exact
+applied overlay: `0002-release-1.0-renderer-stack.patch`. It was generated against the exact
+published `0001-getv-port-layer.patch` and pinned sm64ex commit used by the release. Separately,
+`tools/reconstruct-ge-mixer.py` validates the already-fetched stock resampler coefficients and
+inserts them into `ge_mixer-0064.template.c`. Reconstructing pristine upstream + public `0001` +
+the release renderer overlay + deterministic mixer step reproduces all 15 fetched files
+byte-for-byte against the frozen-0064 input tree, without fuzzy replay or publishing the dense
+coefficient table. The older `0002`-`0007` files remain in the tree so the investigation and
+Perfect Dark-derived work stay reviewable and attributable; `tools/fetch-thirdparty.sh` does not
+apply them during a clean install.
+
+`0006-perfect-dark-renderer-ab.patch` is a deliberately opt-in compatibility/backend experiment
+adapted from `perfect-dark-pc-port/perfect_dark` commit
+`514bf7affd3259b7919165201342ff81a026d92c`, specifically `port/fast3d/gfx_opengl.cpp`. That
+project is MIT-licensed; the retained notice is in `LICENSES/perfect-dark-port-MIT.txt`.
+
+The overlay takes only backend-generation ideas that can sit behind GoldenEye's existing Fast3D
+frontend: a desktop GL 3.3 compatibility context, GLSL 1.30 `in`/`out`/`texture` vocabulary, a
+dedicated VAO, `GL_RGBA8` texture storage and an explicit end-of-frame `glFlush()`. It does **not**
+import Perfect Dark's vertex format, display lists, game renderer frontend or game code. It is
+enabled only with `GETV_PD_RENDERER=1` / `pd_renderer = 1`; the 1.0 default is off.
+
+This overlay was useful as a controlled A/B during the 1.0 Intel GPU-hang investigation, but it
+did not cure that hang. It remains available for compatibility testing and renderer diagnosis,
+not as the stability fix.
 
 The patch is the substance of the port's rendering work, not a thin adaptation layer. Across the
 fifteen files it introduces 70 distinct `GETV_*` switches and diagnostic probes. The corrections
@@ -167,9 +202,10 @@ that matter most for output correctness are:
 - `GETV_PROBE_AFTER` and the surrounding probe family - the instrumentation used to measure all
   of the above.
 
-The remainder are listed in the patch itself. `tools/fetch-thirdparty.sh regen` rewrites the
-patch from the current working tree; run it after editing any manifest file, because the patch
-is the only place such an edit is recorded.
+The remainder are listed in the patch files themselves. For the 1.0 release line,
+`tools/fetch-thirdparty.sh regen` treats the consolidated release renderer patch as the applied
+overlay when reconstructing the historical baseline. The individual focused overlays remain the
+human-review/provenance record rather than the clean-install replay mechanism.
 
 ## 7. Terms
 

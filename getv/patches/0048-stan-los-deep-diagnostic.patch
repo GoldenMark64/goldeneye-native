@@ -1,0 +1,197 @@
+--- a/src/game/stan.c
++++ b/src/game/stan.c
+@@ -1688,6 +1688,9 @@
+ #ifdef GE_PORT_NATIVE
+     extern void gePortStallStanCall(void);
+     extern void gePortStallStanPhase(int phase, int detail);
++    extern void gePortStallStanRoomPropsBegin(int roomcount);
++    extern void gePortStallStanRoomPropsEnd(void);
++    extern void gePortStallStanPropIter(int slot, int propindex);
+     gePortStallStanCall();
+     gePortStallStanPhase(1, cdtypes);
+ #endif
+@@ -1804,15 +1807,25 @@
+     {
+         spD0[sp124] = -1;
+ #ifdef GE_PORT_NATIVE
+-        gePortStallStanPhase(4, sp124);
++        gePortStallStanRoomPropsBegin(sp124);
+ #endif
+         roomGetProps((s32 *)&spD0);
+ #ifdef GE_PORT_NATIVE
++        gePortStallStanRoomPropsEnd();
+         gePortStallStanPhase(5, 0);
+ #endif
+ 
+         for (spB8 = ptr_list_object_lookup_indices; *spB8 >= 0; spB8++)
+         {
++#ifdef GE_PORT_NATIVE
++            gePortStallStanPropIter((s32)(spB8 - ptr_list_object_lookup_indices), (s32)*spB8);
++            if (*spB8 >= MAX_PROPS)
++            {
++                printf("[getv][stanlos] impossible prop index=%d slot=%d max=%d\n",
++                       (s32)*spB8, (s32)(spB8 - ptr_list_object_lookup_indices), MAX_PROPS);
++                fflush(stdout);
++            }
++#endif
+             prop = &g_Props[*spB8];
+ 
+             if (propIsOfCdType(prop, cdtypes) != 0)
+@@ -1879,9 +1892,15 @@
+                                                 dest_z = p_z + dest_z;
+                                             }
+ 
++#ifdef GE_PORT_NATIVE
++                                            gePortStallStanPhase(13, 0);
++#endif
+                                             temp_f0_2 = stanGetPositionYValue(*pTile, p_x, p_z);
+                                             unkHeight += temp_f0_2;
+                                             unkA += temp_f0_2;
++#ifdef GE_PORT_NATIVE
++                                            gePortStallStanPhase(14, 0);
++#endif
+                                             temp_f2 = (stanGetPositionYValue(sp154, dest_x, dest_z) - temp_f0_2) / sp140;
+                                             spC0 = temp_f2;
+                                             spC4 = temp_f2;
+--- a/src/game/chrprop.c
++++ b/src/game/chrprop.c
+@@ -3606,6 +3606,12 @@
+     s32 room;
+     s32 i;
+     s32 j;
++#ifdef GE_PORT_NATIVE
++    s32 ge_stan_room_steps = 0;
++    s32 ge_stan_room_warned = 0;
++    extern void gePortStallStanRoomPropsProgress(int room, int chunk, int steps, int writes);
++    extern int gePortStallStanRoomPropsActive(void);
++#endif
+ 
+ #ifdef GE_PORT_NATIVE
+     ge_roomprops_generation++;
+@@ -3617,11 +3623,45 @@
+     while (room >= 0)
+     {
+         // Find the chunk to start at
+-        s32 chunkindex = RoomPropListBlockIndices[room];
++        s32 chunkindex;
++#ifdef GE_PORT_NATIVE
++        if (gePortStallStanRoomPropsActive() && room >= g_MaxNumRooms && !(ge_stan_room_warned & 1))
++        {
++            ge_stan_room_warned |= 1;
++            printf("[getv][stanlos] impossible room id=%d maxrooms=%d\n", room, g_MaxNumRooms);
++            fflush(stdout);
++        }
++#endif
++        chunkindex = RoomPropListBlockIndices[room];
+ 
+         // Iterate the chunks
+         while (chunkindex >= 0)
+         {
++#ifdef GE_PORT_NATIVE
++            if (gePortStallStanRoomPropsActive())
++            {
++                s32 writes = (s32)(writeptr - ptr_list_object_lookup_indices);
++                ge_stan_room_steps++;
++                gePortStallStanRoomPropsProgress(room, chunkindex, ge_stan_room_steps, writes);
++
++                if (chunkindex >= BSS_8007161C_LEN && !(ge_stan_room_warned & 2))
++                {
++                    ge_stan_room_warned |= 2;
++                    printf("[getv][stanlos] impossible room chunk=%d room=%d maxchunks=%d\n",
++                           chunkindex, room, BSS_8007161C_LEN);
++                    fflush(stdout);
++                }
++
++                if (ge_stan_room_steps > BSS_8007161C_LEN && !(ge_stan_room_warned & 4))
++                {
++                    ge_stan_room_warned |= 4;
++                    printf("[getv][stanlos] room chunk traversal exceeded %d steps "
++                           "room=%d chunk=%d writes=%d\n",
++                           BSS_8007161C_LEN, room, chunkindex, writes);
++                    fflush(stdout);
++                }
++            }
++#endif
+             // Iterate the propnums within each chunk
+             for (i = 0; i < 15; i++)
+             {
+@@ -3629,6 +3669,17 @@
+ 
+                 if (propnum >= 0)
+                 {
++#ifdef GE_PORT_NATIVE
++                    if (gePortStallStanRoomPropsActive()
++                            && propnum >= MAX_PROPS
++                            && !(ge_stan_room_warned & 8))
++                    {
++                        ge_stan_room_warned |= 8;
++                        printf("[getv][stanlos] impossible room prop index=%d room=%d chunk=%d\n",
++                               propnum, room, chunkindex);
++                        fflush(stdout);
++                    }
++#endif
+                     // Check if it's in the list already
+                     s16 *ptr = ptr_list_object_lookup_indices;
+ 
+@@ -3641,6 +3692,20 @@
+                     if (ptr == writeptr)
+                     {
+                         // Prop is not in the list, so insert it
++#ifdef GE_PORT_NATIVE
++                        if (gePortStallStanRoomPropsActive()
++                                && writeptr - ptr_list_object_lookup_indices
++                                   >= PTR_LIST_OBJECT_LOOKUP_INDICES_LEN - 1
++                                && !(ge_stan_room_warned & 16))
++                        {
++                            ge_stan_room_warned |= 16;
++                            printf("[getv][stanlos] prop lookup list has no terminator space "
++                                   "writes=%d capacity=%d room=%d chunk=%d\n",
++                                   (s32)(writeptr - ptr_list_object_lookup_indices),
++                                   PTR_LIST_OBJECT_LOOKUP_INDICES_LEN, room, chunkindex);
++                            fflush(stdout);
++                        }
++#endif
+                         *writeptr = propnum;
+                         writeptr++;
+                     }
+@@ -3654,6 +3719,19 @@
+         room = *rooms;
+     }
+ 
++#ifdef GE_PORT_NATIVE
++    if (gePortStallStanRoomPropsActive()
++            && writeptr - ptr_list_object_lookup_indices >= PTR_LIST_OBJECT_LOOKUP_INDICES_LEN
++            && !(ge_stan_room_warned & 32))
++    {
++        ge_stan_room_warned |= 32;
++        printf("[getv][stanlos] prop lookup terminator write is out of bounds "
++               "writes=%d capacity=%d\n",
++               (s32)(writeptr - ptr_list_object_lookup_indices),
++               PTR_LIST_OBJECT_LOOKUP_INDICES_LEN);
++        fflush(stdout);
++    }
++#endif
+     *writeptr = -1;
+     writeptr++;
+     num_obj_position_data_entries = writeptr - ptr_list_object_lookup_indices;
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -105,6 +105,18 @@
+ _Static_assert(__builtin_offsetof(WeaponObjRecord, weaponnum)
+                >  __builtin_offsetof(WeaponObjRecord, timer),
+                "GE_SUBWORD3 order changed: WeaponObjRecord weaponnum/timer");
++_Static_assert(sizeof(collision_data) == 0x4c,
++               "native collision_data size changed");
++_Static_assert(__builtin_offsetof(collision_data, edges) == 0x00,
++               "collision_data.edges offset changed");
++_Static_assert(__builtin_offsetof(collision_data, polygon) == 0x04,
++               "collision_data.polygon offset changed");
++_Static_assert(__builtin_offsetof(collision_data, top) == 0x44,
++               "collision_data.top offset changed");
++_Static_assert(__builtin_offsetof(collision_data, bottom) == 0x48,
++               "collision_data.bottom offset changed");
++_Static_assert(sizeof(collision_data) <= 0x50U,
++               "legacy 0x50 collision allocation is too small for native collision_data");
+ 
+ static int getv_subword_init_on(void)
+ {

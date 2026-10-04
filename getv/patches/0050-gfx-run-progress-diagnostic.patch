@@ -1,0 +1,18 @@
+--- a/src/boss.c
++++ b/src/boss.c
+@@ -98,6 +98,7 @@
+ extern void gePortStallViewMove(int player);
+ extern void gePortStallLvlRender(void);
+ extern void gePortStallGfxSubmit(void);
++extern void gePortStallGfxTaskArm(void);
+ extern void gePortStallMemaDefrag(void);
+ 
+ s32 gePortCoopPlayers(void)
+@@ -783,6 +784,7 @@
+                             gePortBootMark("bm:rspGfxTaskStart");
+ #ifdef GE_PORT_NATIVE
+                             gePortStallGfxSubmit();
++                            gePortStallGfxTaskArm();
+ #endif
+                             rspGfxTaskStart(firstGdl, gdl, 0, rspReplyMsg);
+ 

@@ -1,0 +1,10 @@
+--- a/getv/port/fast3d/gfx_pc.c
++++ b/getv/port/fast3d/gfx_pc.c
+@@ -628,0 +629,7 @@
++            /* dynAllocate() reuses two frame-local buffers. A texture generated there can have
++             * the same address as a previous frame while carrying different pixels (the
++             * gunbarrel blood wipe is one such texture). Keep the cached GPU object, but force
++             * the caller through import/upload again for transient source addresses. */
++            if (gePortTextureSourceIsTransient(orig_addr)) {
++                return false;
++            }

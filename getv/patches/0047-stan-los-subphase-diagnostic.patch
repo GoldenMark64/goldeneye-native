@@ -1,0 +1,88 @@
+--- a/src/game/stan.c
++++ b/src/game/stan.c
+@@ -1687,7 +1687,9 @@
+ {
+ #ifdef GE_PORT_NATIVE
+     extern void gePortStallStanCall(void);
++    extern void gePortStallStanPhase(int phase, int detail);
+     gePortStallStanCall();
++    gePortStallStanPhase(1, cdtypes);
+ #endif
+     struct PropRecord *prop;
+     s32 retval; // sp158
+@@ -1752,7 +1754,13 @@
+     }
+ #endif
+ 
++#ifdef GE_PORT_NATIVE
++    gePortStallStanPhase(2, 0);
++#endif
+     retval = sub_GAME_7F0B0C24(&sp154, p_x, p_z, dest_x, dest_z, &spD0[0], &sp124, 0x14);
++#ifdef GE_PORT_NATIVE
++    gePortStallStanPhase(3, sp124);
++#endif
+ 
+ 
+     if (sp124 > 20)
+@@ -1795,7 +1803,13 @@
+     if (cdtypes != 0)
+     {
+         spD0[sp124] = -1;
++#ifdef GE_PORT_NATIVE
++        gePortStallStanPhase(4, sp124);
++#endif
+         roomGetProps((s32 *)&spD0);
++#ifdef GE_PORT_NATIVE
++        gePortStallStanPhase(5, 0);
++#endif
+ 
+         for (spB8 = ptr_list_object_lookup_indices; *spB8 >= 0; spB8++)
+         {
+@@ -1803,10 +1817,27 @@
+ 
+             if (propIsOfCdType(prop, cdtypes) != 0)
+             {
++#ifdef GE_PORT_NATIVE
++                gePortStallStanPhase(6, (s32)*spB8);
++#endif
+                 chraiGetCollisionBounds(prop, &polygon, &numvertices0, &spA4, &spA0);
++#ifdef GE_PORT_NATIVE
++                gePortStallStanPhase(7, numvertices0);
++                if (numvertices0 < 0 || numvertices0 > 8)
++                {
++                    printf("[getv][stanlos] impossible collision edge count=%d prop_index=%d "
++                           "prop=%p type=%d polygon=%p\n",
++                           numvertices0, (s32)*spB8, (void *)prop, prop->type,
++                           (void *)polygon);
++                    fflush(stdout);
++                }
++#endif
+ 
+                 if (numvertices0 > 0)
+                 {
++#ifdef GE_PORT_NATIVE
++                    gePortStallStanPhase(8, numvertices0);
++#endif
+                     for (i = 0; i < numvertices0; i++)
+                     {
+                         next = (i + 1) % numvertices0;
+@@ -1894,6 +1925,9 @@
+         dest_z -= p_z;
+         dest_z *= sp140;
+         dest_z = p_z + dest_z;
++#ifdef GE_PORT_NATIVE
++        gePortStallStanPhase(9, 0);
++#endif
+         /*stanlineret = */ walkTilesBetweenPoints_NoCallback(&sp154, p_x, p_z, dest_x, dest_z);
+         #ifdef DEBUG
+         assert(stanlineret==1)
+@@ -1903,6 +1937,9 @@
+     *pTile = sp154;
+     stanSavedColl_someMin = sp140;
+ 
++#ifdef GE_PORT_NATIVE
++    gePortStallStanPhase(10, retval);
++#endif
+     return retval;
+ }
+ 

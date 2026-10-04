@@ -1,0 +1,22 @@
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -8110,7 +8110,19 @@
+         f32 nd; // canonical name
+         f32 ftemp_7;
+         f32 sp240;
++#ifdef GE_PORT_NATIVE
++        /* The retail placeholder is exactly two 32-bit words. That was enough for the
++         * first two fields of StandTileLocusCallbackRecord on N64: rooms@0 and count@4.
++         * On a 64-bit native build, rooms widens to 8 bytes and count moves to offset 8,
++         * beyond move_bond_temp_struct's 8-byte extent. stanTileDistanceRelated() also
++         * initialises bufMax/nearEdgeCount, so keeping the retail placeholder here makes
++         * every ladder/locus query write past curLocus and makes stanGetLocusCount() read
++         * outside it. Use the real native record while preserving the retail stack shape
++         * for non-native matching builds. */
++        struct StandTileLocusCallbackRecord curLocus;
++#else
+         struct move_bond_temp_struct curLocus;
++#endif
+         struct move_bond_collision bondCollision;
+         f32 shorten; // canonical name
+         f32 headpos_x;

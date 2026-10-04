@@ -1,0 +1,424 @@
+--- a/src/bondtypes.h
++++ b/src/bondtypes.h
+@@ -401,6 +401,20 @@
+         };
+     }rect4f;
+ 
++#ifdef GE_PORT_NATIVE
++    /*
++     * Object collision hulls are stored as collision_data.polygon[8], but the
++     * original APIs expose that storage through rect4f * because retail hulls
++     * were normally rectangles. Native hull projection can legitimately keep
++     * 5-8 points. Index through the actual coord2d backing array so those
++     * elements are not C array-bounds UB; keep the original member access for
++     * non-native matching builds.
++     */
++#define GE_COLLISION_POLY_POINT(poly, index) (((struct coord2d *)(void *)(poly))[index])
++#else
++#define GE_COLLISION_POLY_POINT(poly, index) ((poly)->points[index])
++#endif
++
+     struct rectbbox
+     {
+         f32 left;
+--- a/src/game/chrprop.c
++++ b/src/game/chrprop.c
+@@ -2778,8 +2778,8 @@
+     for (i=0; i<edges; i++)
+     {
+         // curse you compiler loop unroller
+-        diff = (    (polygon->points[(i+1) % edges].f[1] - polygon->points[i].f[1]) * (point->f[0] - polygon->points[i].f[0]))
+-                 - ((polygon->points[(i+1) % edges].f[0] - polygon->points[i].f[0]) * (point->f[2] - polygon->points[i].f[1]));
++        diff = (    (GE_COLLISION_POLY_POINT(polygon, (i+1) % edges).f[1] - GE_COLLISION_POLY_POINT(polygon, i).f[1]) * (point->f[0] - GE_COLLISION_POLY_POINT(polygon, i).f[0]))
++                 - ((GE_COLLISION_POLY_POINT(polygon, (i+1) % edges).f[0] - GE_COLLISION_POLY_POINT(polygon, i).f[0]) * (point->f[2] - GE_COLLISION_POLY_POINT(polygon, i).f[1]));
+ 
+         if (diff != 0.0f)
+         {
+@@ -4314,8 +4314,8 @@
+     lim = 4;
+ #endif
+     cnt = 0;
+-    poly->points[cnt].x = pts[minxi][0];
+-    poly->points[cnt].y = pts[minxi][1];
++    GE_COLLISION_POLY_POINT(poly, cnt).x = pts[minxi][0];
++    GE_COLLISION_POLY_POINT(poly, cnt).y = pts[minxi][1];
+     cnt++;
+ 
+     for (i = 0; i < lim; i++)
+@@ -4324,15 +4324,15 @@
+ 
+         if (((pts[index][0] - pts[minzi][0]) * (pts[minxi][1] - pts[minzi][1])) < ((pts[minxi][0] - pts[minzi][0]) * (pts[index][1] - pts[minzi][1])))
+         {
+-            poly->points[cnt].x = pts[index][0];
+-            poly->points[cnt].y = pts[index][1];
++            GE_COLLISION_POLY_POINT(poly, cnt).x = pts[index][0];
++            GE_COLLISION_POLY_POINT(poly, cnt).y = pts[index][1];
+             cnt++;
+             break;
+         }
+     }
+ 
+-    poly->points[cnt].x = pts[minzi][0];
+-    poly->points[cnt].y = pts[minzi][1];
++    GE_COLLISION_POLY_POINT(poly, cnt).x = pts[minzi][0];
++    GE_COLLISION_POLY_POINT(poly, cnt).y = pts[minzi][1];
+     cnt++;
+ 
+     for (i = 0; i < lim; i++)
+@@ -4341,15 +4341,15 @@
+ 
+         if (((pts[index][0] - pts[maxxi][0]) * (pts[minzi][1] - pts[maxxi][1])) < ((pts[minzi][0] - pts[maxxi][0]) * (pts[index][1] - pts[maxxi][1])))
+         {
+-            poly->points[cnt].x = pts[index][0];
+-            poly->points[cnt].y = pts[index][1];
++            GE_COLLISION_POLY_POINT(poly, cnt).x = pts[index][0];
++            GE_COLLISION_POLY_POINT(poly, cnt).y = pts[index][1];
+             cnt++;
+             break;
+         }
+     }
+ 
+-    poly->points[cnt].x = pts[maxxi][0];
+-    poly->points[cnt].y = pts[maxxi][1];
++    GE_COLLISION_POLY_POINT(poly, cnt).x = pts[maxxi][0];
++    GE_COLLISION_POLY_POINT(poly, cnt).y = pts[maxxi][1];
+     cnt++;
+ 
+     for (i = 0; i < lim; i++)
+@@ -4358,15 +4358,15 @@
+ 
+         if (((pts[index][0] - pts[maxzi][0]) * (pts[maxxi][1] - pts[maxzi][1])) < ((pts[maxxi][0] - pts[maxzi][0]) * (pts[index][1] - pts[maxzi][1])))
+         {
+-            poly->points[cnt].x = pts[index][0];
+-            poly->points[cnt].y = pts[index][1];
++            GE_COLLISION_POLY_POINT(poly, cnt).x = pts[index][0];
++            GE_COLLISION_POLY_POINT(poly, cnt).y = pts[index][1];
+             cnt++;
+             break;
+         }
+     }
+ 
+-    poly->points[cnt].x = pts[maxzi][0];
+-    poly->points[cnt].y = pts[maxzi][1];
++    GE_COLLISION_POLY_POINT(poly, cnt).x = pts[maxzi][0];
++    GE_COLLISION_POLY_POINT(poly, cnt).y = pts[maxzi][1];
+     cnt++;
+ 
+     for (i = 0; i < lim; i++)
+@@ -4375,8 +4375,8 @@
+ 
+         if (((pts[index][0] - pts[minxi][0]) * (pts[maxzi][1] - pts[minxi][1])) < ((pts[maxzi][0] - pts[minxi][0]) * (pts[index][1] - pts[minxi][1])))
+         {
+-            poly->points[cnt].x = pts[index][0];
+-            poly->points[cnt].y = pts[index][1];
++            GE_COLLISION_POLY_POINT(poly, cnt).x = pts[index][0];
++            GE_COLLISION_POLY_POINT(poly, cnt).y = pts[index][1];
+             cnt++;
+             break;
+         }
+@@ -4386,8 +4386,8 @@
+ 
+     for (i = 0; i < cnt; i++)
+     {
+-        poly->points[i].x += m->m[3][0];
+-        poly->points[i].y += m->m[3][2];
++        GE_COLLISION_POLY_POINT(poly, i).x += m->m[3][0];
++        GE_COLLISION_POLY_POINT(poly, i).y += m->m[3][2];
+     }
+ }
+ 
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -900,7 +900,13 @@
+         bbox = chrobjGetBboxFromObjectRecord(obj);
+         matrix_4x4_copy(&obj->mtx, &sp24);
+         matrix_4x4_set_position(&obj->runtime_pos, &sp24);
++#ifdef GE_PORT_NATIVE
++        sub_GAME_7F03F540(bbox, &sp24,
++                          (struct rect4f *)(void *)obj->ptr_allocated_collisiondata_block->polygon,
++                          obj->ptr_allocated_collisiondata_block);
++#else
+         sub_GAME_7F03F540(bbox, &sp24, &obj->ptr_allocated_collisiondata_block->polygon, obj->ptr_allocated_collisiondata_block);
++#endif
+ 
+         obj->ptr_allocated_collisiondata_block->bottom = obj->runtime_pos.f[1] + chrpropSumMatrixPosY(bbox, &sp24);
+         obj->ptr_allocated_collisiondata_block->top = obj->runtime_pos.f[1] + chrpropSumMatrixNegY(bbox, &sp24);
+@@ -1506,12 +1512,16 @@
+             for (i = 0; i < numedges; i++)
+             {
+                 next = (i + 1) % numedges;
+-                if (doSegmentsIntersect(rayStart->x, rayStart->z, rayEnd->x, rayEnd->z, polygon->points[i].x, polygon->points[i].y, polygon->points[next].x, polygon->points[next].y))
+-                {
+-                    edgeStart2d.x = polygon->points[i].x;
+-                    edgeStart2d.y = polygon->points[i].y;
+-                    edgeEnd2d.x = polygon->points[next].x;
+-                    edgeEnd2d.y = polygon->points[next].y;
++                if (doSegmentsIntersect(rayStart->x, rayStart->z, rayEnd->x, rayEnd->z,
++                                        GE_COLLISION_POLY_POINT(polygon, i).x,
++                                        GE_COLLISION_POLY_POINT(polygon, i).y,
++                                        GE_COLLISION_POLY_POINT(polygon, next).x,
++                                        GE_COLLISION_POLY_POINT(polygon, next).y))
++                {
++                    edgeStart2d.x = GE_COLLISION_POLY_POINT(polygon, i).x;
++                    edgeStart2d.y = GE_COLLISION_POLY_POINT(polygon, i).y;
++                    edgeEnd2d.x = GE_COLLISION_POLY_POINT(polygon, next).x;
++                    edgeEnd2d.y = GE_COLLISION_POLY_POINT(polygon, next).y;
+                     dist = calculateSegmentIntersectionFraction(&rayStart2d, &rayEnd2d, &edgeStart2d, &edgeEnd2d);
+ 
+                     if (dist < bestfrac)
+@@ -1524,12 +1534,12 @@
+             if (bestedge > 0)
+             {
+                 next = (bestedge + 1) % numedges;
+-                edgeStart3d.x = polygon->points[bestedge].x;
++                edgeStart3d.x = GE_COLLISION_POLY_POINT(polygon, bestedge).x;
+                 edgeStart3d.y = 0.0f;
+-                edgeStart3d.z = polygon->points[bestedge].y;
+-                edgeEnd3d.x = polygon->points[next].x;
++                edgeStart3d.z = GE_COLLISION_POLY_POINT(polygon, bestedge).y;
++                edgeEnd3d.x = GE_COLLISION_POLY_POINT(polygon, next).x;
+                 edgeEnd3d.y = 0.0f;
+-                edgeEnd3d.z = polygon->points[next].y;
++                edgeEnd3d.z = GE_COLLISION_POLY_POINT(polygon, next).y;
+ 
+                 chrlvLineLineIntersection(&edgeStart3d, &edgeEnd3d, rayStart, rayDir, &intersection);
+                 dist = (rayDir->z * (intersection.z - rayStart->z)) + (((intersection.x - rayStart->x) * rayDir->x) + ((intersection.y - rayStart->y) * rayDir->y));
+@@ -4016,14 +4026,14 @@
+     for (i = 0; i < numvertices0; i++)
+     {
+         next = (i + 1) % numvertices0;
+-        diff1 = rect1->points[next].y - (f64)rect1->points[i].y;
+-        diff2 = rect1->points[i].x - (f64)rect1->points[next].x;
++        diff1 = GE_COLLISION_POLY_POINT(rect1, next).y - (f64)GE_COLLISION_POLY_POINT(rect1, i).y;
++        diff2 = GE_COLLISION_POLY_POINT(rect1, i).x - (f64)GE_COLLISION_POLY_POINT(rect1, next).x;
+ 
+         if (diff1 == 0.0f && diff2 == 0.0f)
+         {
+-            tmp.x = rect1->points[i].x;
++            tmp.x = GE_COLLISION_POLY_POINT(rect1, i).x;
+             tmp.y = 0.0f;
+-            tmp.z = rect1->points[i].y;
++            tmp.z = GE_COLLISION_POLY_POINT(rect1, i).y;
+             if (chrpropTestPointInPolygon(&tmp, rect2, numvertices1))
+             {
+                 return FALSE;
+@@ -4031,12 +4041,14 @@
+         }
+         else
+         {
+-            sum1 = rect1->points[i].x * diff1 + rect1->points[i].y * diff2;
++            sum1 = GE_COLLISION_POLY_POINT(rect1, i).x * diff1
++                 + GE_COLLISION_POLY_POINT(rect1, i).y * diff2;
+             j = (next + 1) % numvertices0;
+ 
+             while (j != i)
+             {
+-                sum2 = rect1->points[j].x * diff1 + rect1->points[j].y * diff2;
++                sum2 = GE_COLLISION_POLY_POINT(rect1, j).x * diff1
++                     + GE_COLLISION_POLY_POINT(rect1, j).y * diff2;
+ 
+                 if (sum2 != sum1) { break; }
+ 
+@@ -4045,7 +4057,8 @@
+ 
+             for (k = 0; k < numvertices1; k++)
+             {
+-                sum3 = rect2->points[k].x * diff1 + rect2->points[k].y * diff2;
++                sum3 = GE_COLLISION_POLY_POINT(rect2, k).x * diff1
++                     + GE_COLLISION_POLY_POINT(rect2, k).y * diff2;
+ 
+                 if (sum2 == sum1)
+                 {
+@@ -4091,9 +4104,9 @@
+ 
+     for (i=0; i<arg1; i++)
+     {
+-        sp48.f[0] = arg0->points[i].f[0];
++        sp48.f[0] = GE_COLLISION_POLY_POINT(arg0, i).f[0];
+         sp48.f[1] = 0.0f;
+-        sp48.f[2] = arg0->points[i].f[1];
++        sp48.f[2] = GE_COLLISION_POLY_POINT(arg0, i).f[1];
+ 
+         if (chrpropTestPointInPolygon(&sp48, arg2, arg3) != 0)
+         {
+@@ -4103,9 +4116,9 @@
+ 
+     for (i=0; i<arg3; i++)
+     {
+-        sp48.f[0] = arg2->points[i].f[0];
++        sp48.f[0] = GE_COLLISION_POLY_POINT(arg2, i).f[0];
+         sp48.f[1] = 0.0f;
+-        sp48.f[2] = arg2->points[i].f[1];
++        sp48.f[2] = GE_COLLISION_POLY_POINT(arg2, i).f[1];
+ 
+         if (chrpropTestPointInPolygon(&sp48, arg0, arg1) != 0)
+         {
+@@ -4156,22 +4169,22 @@
+ 
+     for (i=0; i<edges; i++)
+     {
+-        temp_s0 = &polygon->points[(i+1) % edges];
++        temp_s0 = &GE_COLLISION_POLY_POINT(polygon, (i+1) % edges);
+ 
+-        temp_f0 = stanGetSignedPointLineDistance(polygon->points[i].f[0], polygon->points[i].f[1], temp_s0->f[0], temp_s0->f[1], px, pz);
++        temp_f0 = stanGetSignedPointLineDistance(GE_COLLISION_POLY_POINT(polygon, i).f[0], GE_COLLISION_POLY_POINT(polygon, i).f[1], temp_s0->f[0], temp_s0->f[1], px, pz);
+ 
+         if (temp_f0 < 0.0f)
+         {
+             temp_f0 = -temp_f0;
+         }
+ 
+-        temp_f26 = distBetweenPoints2d(polygon->points[i].f[0], polygon->points[i].f[1], px, pz);
++        temp_f26 = distBetweenPoints2d(GE_COLLISION_POLY_POINT(polygon, i).f[0], GE_COLLISION_POLY_POINT(polygon, i).f[1], px, pz);
+         temp_f30 = distBetweenPoints2d(temp_s0->f[0], temp_s0->f[1], px, pz);
+ 
+         if ((temp_f0 < collision_radius)
+             && ((temp_f26 < collision_radius)
+                 || (temp_f30 < collision_radius)
+-                || stanPointProjectsOntoEdge(polygon->points[i].f[0], polygon->points[i].f[1], temp_s0->f[0], temp_s0->f[1], px, pz)
++                || stanPointProjectsOntoEdge(GE_COLLISION_POLY_POINT(polygon, i).f[0], GE_COLLISION_POLY_POINT(polygon, i).f[1], temp_s0->f[0], temp_s0->f[1], px, pz)
+             )
+         )
+         {
+@@ -10340,7 +10353,11 @@
+     if ((obj->ptr_allocated_collisiondata_block != NULL) && (obj->flags & PROPFLAG_00000100) && !(obj->state & PROPSTATE_20))
+     {
+         *edges = obj->ptr_allocated_collisiondata_block->edges;
++#ifdef GE_PORT_NATIVE
++        *polygon = (struct rect4f *)(void *)obj->ptr_allocated_collisiondata_block->polygon;
++#else
+         *polygon = &obj->ptr_allocated_collisiondata_block->polygon;
++#endif
+         *bottom = obj->ptr_allocated_collisiondata_block->bottom;
+         *top = obj->ptr_allocated_collisiondata_block->top;
+         return;
+@@ -13194,7 +13211,13 @@
+     }
+ 
+     door7F0526EC(door, &sp2C);
++#ifdef GE_PORT_NATIVE
++    sub_GAME_7F03F540(&door->bbox, &sp2C,
++                      (struct rect4f *)(void *)door->ptr_allocated_collisiondata_block->polygon,
++                      door->ptr_allocated_collisiondata_block);
++#else
+     sub_GAME_7F03F540(&door->bbox, &sp2C, &door->ptr_allocated_collisiondata_block->polygon, door->ptr_allocated_collisiondata_block);
++#endif
+ 
+     if (door->doorType == DOORTYPE_VERTICAL)
+     {
+--- a/src/game/stan.c
++++ b/src/game/stan.c
+@@ -1855,12 +1855,16 @@
+                     {
+                         next = (i + 1) % numvertices0;
+ 
+-                        if (doSegmentsIntersect(p_x, p_z, dest_x, dest_z, polygon->points[i].f[0], polygon->points[i].f[1], polygon->points[next].f[0], polygon->points[next].f[1]) != 0)
++                        if (doSegmentsIntersect(p_x, p_z, dest_x, dest_z,
++                                                GE_COLLISION_POLY_POINT(polygon, i).f[0],
++                                                GE_COLLISION_POLY_POINT(polygon, i).f[1],
++                                                GE_COLLISION_POLY_POINT(polygon, next).f[0],
++                                                GE_COLLISION_POLY_POINT(polygon, next).f[1]) != 0)
+                         {
+-                            sp134.f[0] = polygon->points[i].f[0];
+-                            sp134.f[1] = polygon->points[i].f[1];
+-                            sp12C.f[0] = polygon->points[next].f[0];
+-                            sp12C.f[1] = polygon->points[next].f[1];
++                            sp134.f[0] = GE_COLLISION_POLY_POINT(polygon, i).f[0];
++                            sp134.f[1] = GE_COLLISION_POLY_POINT(polygon, i).f[1];
++                            sp12C.f[0] = GE_COLLISION_POLY_POINT(polygon, next).f[0];
++                            sp12C.f[1] = GE_COLLISION_POLY_POINT(polygon, next).f[1];
+ 
+                             temp_f0 = calculateSegmentIntersectionFraction(&sp14C, &sp144, &sp134, &sp12C);
+ 
+@@ -2032,14 +2036,18 @@
+                         {
+                             next = (i + 1) % numEdges;
+ 
+-                            if (doSegmentsIntersect(start_x, start_z, end_x, end_z, polygon->points[i].f[0], polygon->points[i].f[1], polygon->points[next].f[0], polygon->points[next].f[1]))
++                            if (doSegmentsIntersect(start_x, start_z, end_x, end_z,
++                                                    GE_COLLISION_POLY_POINT(polygon, i).f[0],
++                                                    GE_COLLISION_POLY_POINT(polygon, i).f[1],
++                                                    GE_COLLISION_POLY_POINT(polygon, next).f[0],
++                                                    GE_COLLISION_POLY_POINT(polygon, next).f[1]))
+                             {
+-                                edgeStart.f[0] = polygon->points[i].f[0];
+-                                tmp = &polygon->points[i];
++                                edgeStart.f[0] = GE_COLLISION_POLY_POINT(polygon, i).f[0];
++                                tmp = &GE_COLLISION_POLY_POINT(polygon, i);
+                                 edgeStart.f[1] = (*tmp).f[1];
+ 
+-                                edgeEnd.f[0] = polygon->points[next].f[0];
+-                                edgeEnd.f[1] = polygon->points[next].f[1];
++                                edgeEnd.f[0] = GE_COLLISION_POLY_POINT(polygon, next).f[0];
++                                edgeEnd.f[1] = GE_COLLISION_POLY_POINT(polygon, next).f[1];
+ 
+                                 frac = calculateSegmentIntersectionFraction(&lineStart, &lineEnd, &edgeStart, &edgeEnd);
+ 
+@@ -2209,7 +2217,12 @@
+                     {
+                         next = (i + 1) % numvertices0;
+ 
+-                        var_f20 = stanGetSignedPointLineDistance(polygon->points[i].f[0], polygon->points[i].f[1], polygon->points[next].f[0], polygon->points[next].f[1], arg1, arg2);
++                        var_f20 = stanGetSignedPointLineDistance(
++                            GE_COLLISION_POLY_POINT(polygon, i).f[0],
++                            GE_COLLISION_POLY_POINT(polygon, i).f[1],
++                            GE_COLLISION_POLY_POINT(polygon, next).f[0],
++                            GE_COLLISION_POLY_POINT(polygon, next).f[1],
++                            arg1, arg2);
+ 
+                         if (var_f20 < 0.0f)
+                         {
+@@ -2218,22 +2231,31 @@
+ 
+                         if (var_f24 < var_f20)
+                         {
+-                            temp_f0_2 = distBetweenPoints2d(polygon->points[i].f[0], polygon->points[i].f[1], arg1, arg2);
+-                            temp_f0_3 = distBetweenPoints2d(polygon->points[next].f[0], polygon->points[next].f[1], arg1, arg2);
++                            temp_f0_2 = distBetweenPoints2d(
++                                GE_COLLISION_POLY_POINT(polygon, i).f[0],
++                                GE_COLLISION_POLY_POINT(polygon, i).f[1], arg1, arg2);
++                            temp_f0_3 = distBetweenPoints2d(
++                                GE_COLLISION_POLY_POINT(polygon, next).f[0],
++                                GE_COLLISION_POLY_POINT(polygon, next).f[1], arg1, arg2);
+ 
+                             if ((var_f20 < arg3)
+                                 && (
+                                     (temp_f0_2 < arg3)
+                                     || (temp_f0_3 < arg3)
+-                                    || (stanPointProjectsOntoEdge(polygon->points[i].f[0], polygon->points[i].f[1], polygon->points[next].f[0], polygon->points[next].f[1], arg1, arg2) != 0)))
++                                    || (stanPointProjectsOntoEdge(
++                                        GE_COLLISION_POLY_POINT(polygon, i).f[0],
++                                        GE_COLLISION_POLY_POINT(polygon, i).f[1],
++                                        GE_COLLISION_POLY_POINT(polygon, next).f[0],
++                                        GE_COLLISION_POLY_POINT(polygon, next).f[1],
++                                        arg1, arg2) != 0)))
+                             {
+                                 D_800413BC = 1;
+                                 var_f24 = var_f20;
+ 
+-                                stanSavedColl_pntA.f[0] = polygon->points[i].f[0];
+-                                stanSavedColl_pntA.f[1] = polygon->points[i].f[1];
+-                                stanSavedColl_pntB.f[0] = polygon->points[next].f[0];
+-                                stanSavedColl_pntB.f[1] = polygon->points[next].f[1];
++                                stanSavedColl_pntA.f[0] = GE_COLLISION_POLY_POINT(polygon, i).f[0];
++                                stanSavedColl_pntA.f[1] = GE_COLLISION_POLY_POINT(polygon, i).f[1];
++                                stanSavedColl_pntB.f[0] = GE_COLLISION_POLY_POINT(polygon, next).f[0];
++                                stanSavedColl_pntB.f[1] = GE_COLLISION_POLY_POINT(polygon, next).f[1];
+                                 stanSavedColl_tile = NULL;
+                                 stanSavedColl_pointI = 0;
+                                 stanSavedColl_posData = prop;
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -3064,8 +3064,10 @@
+             for (edge = 0; edge < edges; edge++) {
+                 s32 next = (edge + 1) % edges;
+                 f32 edge_dist = stanGetSignedPointLineDistance(
+-                    polygon->points[edge].f[0], polygon->points[edge].f[1],
+-                    polygon->points[next].f[0], polygon->points[next].f[1],
++                    GE_COLLISION_POLY_POINT(polygon, edge).f[0],
++                    GE_COLLISION_POLY_POINT(polygon, edge).f[1],
++                    GE_COLLISION_POLY_POINT(polygon, next).f[0],
++                    GE_COLLISION_POLY_POINT(polygon, next).f[1],
+                     g_CurrentPlayer->field_488.collision_position.f[0],
+                     g_CurrentPlayer->field_488.collision_position.f[2]);
+                 if (edge_dist < 0.0f) {

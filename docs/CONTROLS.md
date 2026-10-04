@@ -305,6 +305,7 @@ Mouse Y inversion is independent and uses `GETV_MOUSE_INVERT` or the launcher ch
 
 | Shortcut | Effect |
 |---|---|
+| `F3` | Capture a local diagnostic bundle for the current rendered frame |
 | `F5` / `F6` | Decrease / increase field of view by 10%, clamped to 50-160% |
 | `F8` | Toggle the free camera when free camera is enabled |
 | `F9` | Toggle vertical sync |
@@ -317,6 +318,13 @@ Shift or Ctrl to change speed. The game continues running, and those keys still 
 gameplay inputs while the camera is active. Enable the feature before launch with
 `GETV_FREECAM = 1` in the config file or `--GETV_FREECAM=1` on the command line; `F8` then toggles
 it during play.
+
+`F3` is global and is not passed through as a gameplay key. A capture is written under the
+per-user GoldenEye-Native data directory in `diagnostics/capture-...` and the exact path is
+printed to the terminal. It is local-only: pressing F3 does not upload, submit, or open anything.
+The v1 bundle contains the game-frame screenshot, bounded player/objective state, recent typed
+events, effective non-secret settings/bindings, and a report stub. Run the bug-report collector
+before sharing a capture; the native screenshot is deliberately not treated as publication-ready.
 
 Most other settings are startup-only. Change them in the launcher, config, environment, or command
 line and restart the process. The complete setting reference is

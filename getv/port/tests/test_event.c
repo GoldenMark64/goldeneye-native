@@ -22,8 +22,7 @@
 /* port_random.c owns this in a real build; the seed only has to exist and be deterministic
  * for these checks. ge_event.c does not pull in the N64 types the way ge_player_api.c does,
  * which is why this needs the header explicitly where test_intent did not. */
-#include <PR/ultratypes.h>
-u64 g_randomSeed = 0xAB8D9F7781280783ULL;   /* matches port_random.c's real initialiser */
+unsigned long long g_randomSeed = 0xAB8D9F7781280783ULL;   /* matches port_random.c's real initialiser */
 
 /* ---------------------------------------------------------------- the fake world */
 
@@ -270,6 +269,22 @@ int main(void)
     fake_stage = 4;
     tick();
     check("unsubscribed: silent",        cap_n, 0);
+
+    /* ---------------- bounded recent history ----------------
+     *
+     * Subscribers are optional; diagnostics must still have a short typed history to attach to
+     * an F3 capture. Asking for fewer records returns the newest records in chronological order. */
+    {
+        GeEventRecord recent[4];
+        size_t n = geEventRecentCopy(recent, 4);
+        check("recent history obeys caller capacity", (int)n, 4);
+        check("recent history is chronological",
+              n == 4 && recent[0].sequence < recent[1].sequence
+                     && recent[1].sequence < recent[2].sequence
+                     && recent[2].sequence < recent[3].sequence,
+              1);
+        check("recent history carries frame", n == 4 ? recent[3].frame : -99, 0);
+    }
 
     printf("\n%s -- %d failure(s)\n", failures ? "FAILED" : "PASSED", failures);
     return failures ? 1 : 0;

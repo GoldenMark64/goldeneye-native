@@ -1,0 +1,118 @@
+--- a/src/boss.c
++++ b/src/boss.c
+@@ -91,6 +91,15 @@
+ // forward declarations
+ #ifdef GE_PORT_NATIVE
+ /* Read once. Clamped to the engine's MAX_PLAYER_COUNT of 4. */
++extern void gePortStallWaitLoop(void);
++extern void gePortStallInput(void);
++extern void gePortStallTickStart(int frame);
++extern void gePortStallLvlManage(void);
++extern void gePortStallViewMove(int player);
++extern void gePortStallLvlRender(void);
++extern void gePortStallGfxSubmit(void);
++extern void gePortStallMemaDefrag(void);
++
+ s32 gePortCoopPlayers(void)
+ {
+     static s32 n = -1;
+@@ -584,6 +593,9 @@
+                             }
+                             else
+                             {
++#ifdef GE_PORT_NATIVE
++                                gePortStallWaitLoop();
++#endif
+                                 waitForNextFrame();
+                             }
+ 
+@@ -593,6 +605,9 @@
+                             gePortBootMark("bm:speedgraphMarkerHandler");
+                             speedgraphMarkerHandler(0x20000);
+                             gePortBootMark("bm:joyConsumeSamplesWrapper");
++#ifdef GE_PORT_NATIVE
++                            gePortStallInput();
++#endif
+                             joyConsumeSamplesWrapper();
+                             gePortBootMark("bm:permit_stderr");
+                             permit_stderr(0);
+@@ -612,6 +627,9 @@
+                             else
+                             {
+ 
++#ifdef GE_PORT_NATIVE
++                            gePortStallTickStart((int)gePortRenderedFrame());
++#endif
+                             gdl = firstGdl = dynGetMasterDisplayList();
+ 
+ #ifdef DEBUGMENU
+@@ -637,6 +655,9 @@
+ 			                }
+ 
+                             gePortBootMark("bm:lvlManageMpGame");
++#ifdef GE_PORT_NATIVE
++                            gePortStallLvlManage();
++#endif
+                             lvlManageMpGame();
+                             gePortBootMark("bm:shuffle_player_ids");
+                             shuffle_player_ids();
+@@ -657,10 +678,16 @@
+                                     viSetViewPosition(localPlayer->viewleft, localPlayer->viewtop);
+ 
+                                     gePortBootMark("bm:lvlViewMoveTick");
++#ifdef GE_PORT_NATIVE
++                                    gePortStallViewMove(i);
++#endif
+                                     lvlViewMoveTick();
+                                 }
+                             }
+ 
++#ifdef GE_PORT_NATIVE
++                            gePortStallLvlRender();
++#endif
+                             gdl = lvlRender(gdl);
+ 
+                             // Lets Visualise the Coverage Value used for Scilohete Anti-Ailising (edges)
+@@ -754,10 +781,16 @@
+ 
+                             rspReplyMsg = (OSMesg)(&localGfxDoneMsg);
+                             gePortBootMark("bm:rspGfxTaskStart");
++#ifdef GE_PORT_NATIVE
++                            gePortStallGfxSubmit();
++#endif
+                             rspGfxTaskStart(firstGdl, gdl, 0, rspReplyMsg);
+ 
+                             pendingGfx++;
+                             gePortBootMark("bm:memaSingleDefragPass");
++#ifdef GE_PORT_NATIVE
++                            gePortStallMemaDefrag();
++#endif
+                             memaSingleDefragPass();
+ #ifdef VERSION_EU
+                             gePortBootMark("bm:eu_sub_7f0c00a4");
+--- a/src/game/bg.c
++++ b/src/game/bg.c
+@@ -3507,6 +3507,10 @@
+ */
+ void bgLoadRoomModelData(s32 roomID)
+ {
++#ifdef GE_PORT_NATIVE
++    extern void gePortStallRoomLoad(int room);
++    gePortStallRoomLoad(roomID);
++#endif
+     /*
+      * Keep this prototype visible here for IDO codegen.
+      * Without it, the memaRealloc call below schedules a2 too early.
+--- a/src/game/stan.c
++++ b/src/game/stan.c
+@@ -1685,6 +1685,10 @@
+ */
+ s32 stanTestLineUnobstructed(StandTile **pTile, f32 p_x, f32 p_z, f32 dest_x, f32 dest_z, s32 cdtypes, f32 unkHeight, f32 unkA, f32 unkB, f32 unkC)
+ {
++#ifdef GE_PORT_NATIVE
++    extern void gePortStallStanCall(void);
++    gePortStallStanCall();
++#endif
+     struct PropRecord *prop;
+     s32 retval; // sp158
+     StandTile *sp154; // sp154

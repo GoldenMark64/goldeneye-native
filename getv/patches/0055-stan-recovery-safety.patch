@@ -1,0 +1,40 @@
+diff --git a/src/game/bondview2.c b/src/game/bondview2.c
+--- a/src/game/bondview2.c
++++ b/src/game/bondview2.c
+@@ -3379,6 +3379,18 @@ void bondviewCalcUpdatePlayerCollision(struct coord3d *offset, s32 allow_scoot)
+                 }
+             }
+ 
++#ifdef GE_PORT_NATIVE
++            /* An isolated or malformed STAN tile can legitimately have no linked
++             * neighbours. Retail assumes at least one link and performs modulo by
++             * the count below; on native that is undefined behaviour when the count
++             * is zero. Treat it like any other failed recovery attempt and stop
++             * walking neighbours without changing current_tile_ptr. */
++            if (phi_a0_3 == 0)
++            {
++                break;
++            }
++#endif
++
+             temp_a3 = randomGetNext() % (u32)phi_a0_3;
+ 
+             for (i=0, phi_a0_3 = 0; i<(s32) GE_NIB(stan->tail.half, 12); i++)   /* same nibble as above */
+diff --git a/src/game/stan.c b/src/game/stan.c
+--- a/src/game/stan.c
++++ b/src/game/stan.c
+@@ -449,6 +449,14 @@ StandTile *stanFindTileBelowPos(coord3d *pos, u8 *rooms, f32 *yRtn)
+ 
+                 while (((*((u32 *) tile)) != 0) && (tile->room == room))
+                 {
++#ifdef GE_PORT_NATIVE
++                    /* This flag describes only the tile currently being tested.
++                     * Retail leaves it uninitialised, which makes the first read UB
++                     * and can leak a previous candidate's edge state into the next
++                     * tile on native compilers. */
++                    nearEdge = 0;
++#endif
++
+                     for (i = 0; i < 3; i++)
+                     {
+                         edgeDist = getShortest2dDispToInfTripleEdge(tile, i, scaled[0], scaled[2]);

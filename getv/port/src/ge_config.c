@@ -30,8 +30,10 @@
  * -----------------------------------------------------------------
  *   1. $GETV_CONFIG                                    (explicit override)
  *   2. --config=<path>                                 (explicit override)
- *   3. <dir of argv[0]>/goldeneye.cfg                  (beside the binary)
- *   4. platform user-data directory/goldeneye.cfg
+ *   3. <dir of argv[0]>/goldeneye.ini                  (beside the binary)
+ *      falling back to legacy goldeneye.cfg
+ *   4. platform user-data directory/goldeneye.ini
+ *      falling back to legacy goldeneye.cfg
  *
  * argv[0] is used rather than _NSGetExecutablePath() deliberately: this file is globbed
  * into the port layer too (build_sim.sh / build.sh compile port/src/*.c), and
@@ -207,7 +209,8 @@ GE_CHEATS[] = {
 #define GE_CHEAT_ALL_PLAYERS 0x0F
 
 
-#define GE_CFG_BASENAME "goldeneye.cfg"
+#define GE_CFG_BASENAME "goldeneye.ini"
+#define GE_CFG_LEGACY_BASENAME "goldeneye.cfg"
 static int g_errors = 0;
 static char g_cfgpath[1024] = "";
 
@@ -326,6 +329,32 @@ static void key_crosshair_scale(const char *v, int over)
         return;
     }
     put("GETV_CROSSHAIR_SCALE", v, over);
+}
+
+static void key_gunbarrel_bond_speed(const char *v, int over)
+{
+    char *end = NULL;
+    double speed = strtod(v, &end);
+
+    if (end == v || *end != '\0' || speed != speed || speed < 0.25 || speed > 1.50) {
+        ge_err("gunbarrel_bond_speed=\"%s\" - expected a number from 0.25 to 1.50%s", v, "");
+        return;
+    }
+
+    put("GETV_GUNBARREL_BOND_SPEED", v, over);
+}
+
+static void key_gunbarrel_sequence_speed(const char *v, int over)
+{
+    char *end = NULL;
+    double speed = strtod(v, &end);
+
+    if (end == v || *end != '\0' || speed != speed || speed < 0.25 || speed > 1.0) {
+        ge_err("gunbarrel_sequence_speed=\"%s\" - expected a number from 0.25 to 1.0%s", v, "");
+        return;
+    }
+
+    put("GETV_GUNBARREL_SEQUENCE_SPEED", v, over);
 }
 
 static void key_aspect(const char *v, int over)
@@ -990,6 +1019,15 @@ static int apply(const char *key_in, const char *val, int over)
  if (strcmp(key, "controls") == 0)    { key_controls(val, over); return 1; }
  if (strcmp(key, "filtering") == 0)   { key_filtering(val, over); return 1; }
  if (strcmp(key, "widescreen") == 0)  { key_widescreen(val, over); return 1; }
+ if (strcmp(key, "pd_renderer") == 0 || strcmp(key, "perfect_dark_renderer") == 0) {
+     key_bool_gate("GETV_PD_RENDERER", key, val, over); return 1;
+ }
+ if (strcmp(key, "gunbarrel_bond_speed") == 0 || strcmp(key, "gunbarrel_walk_speed") == 0) {
+     key_gunbarrel_bond_speed(val, over); return 1;
+ }
+ if (strcmp(key, "gunbarrel_sequence_speed") == 0 || strcmp(key, "gunbarrel_speed") == 0) {
+     key_gunbarrel_sequence_speed(val, over); return 1;
+ }
  /* hd_textures: off by default (configHDTextures, port_support.c) -- unlike widescreen and
   * filtering above, this path has had no compiler available to verify it against. texpack
   * is a bare directory path, same pass-through shape as moddir below. */
@@ -1387,20 +1425,26 @@ static int locate(const char *argv0, const char *cliPath)
                  * question. Not overridden if already set, so a caller can point it
                  * elsewhere. */
                 if (getenv("GETV_EXEDIR") == NULL) { put("GETV_EXEDIR", buf, 0); }
- strcat(buf, "/" GE_CFG_BASENAME);
- if (try_path(buf)) { return 1; }
+                strcat(buf, "/" GE_CFG_BASENAME);
+                if (try_path(buf)) { return 1; }
+                buf[n] = '\0';
+                strcat(buf, "/" GE_CFG_LEGACY_BASENAME);
+                if (try_path(buf)) { return 1; }
             }
-        } else if (try_path(GE_CFG_BASENAME)) {
- return 1;
+        } else {
+            if (try_path(GE_CFG_BASENAME)) { return 1; }
+            if (try_path(GE_CFG_LEGACY_BASENAME)) { return 1; }
         }
     }
 
     /* Search step 4: the per-user config directory. On macOS this is
      * "$HOME/Library/Application Support/Goldeneye-Native/goldeneye.cfg"; see
      * getv/port/src/port_paths.c for the other hosts. */
- if (gePortUserDataDir("Goldeneye-Native", "Goldeneye-Native", dir, sizeof dir) == 0) {
- snprintf(buf, sizeof buf, "%s/" GE_CFG_BASENAME, dir);
- if (try_path(buf)) { return 1; }
+    if (gePortUserDataDir("Goldeneye-Native", "Goldeneye-Native", dir, sizeof dir) == 0) {
+        snprintf(buf, sizeof buf, "%s/" GE_CFG_BASENAME, dir);
+        if (try_path(buf)) { return 1; }
+        snprintf(buf, sizeof buf, "%s/" GE_CFG_LEGACY_BASENAME, dir);
+        if (try_path(buf)) { return 1; }
     }
  return 0;
 }
@@ -1488,10 +1532,12 @@ static void usage(void)
 "controls=1.1..2.4 or honey/solitaire/kissy/goodnight/plenty/galore/\n"
 "domino/goodhead.  2.2 and 2.4 are dual-analog.\n"
 "GE's own default is 1.1 Honey; the shipped template picks\n"
-"2.2 Galore because this port presents one modern pad as\n"
-"N64 ports 0+1.\n"
-"filtering=point|bilinear|three-point                               [three-point]\n"
-"gamepad=auto|xbox|playstation|switch|generic changes PROMPT GLYPHS only  [auto]\n"
+	"2.2 Galore because this port presents one modern pad as\n"
+	"N64 ports 0+1.\n"
+	"filtering=point|bilinear|three-point                               [three-point]\n"
+	"gunbarrel_bond_speed=0.25..1.50  Bond walk animation only         [0.91]\n"
+	"gunbarrel_sequence_speed=0.25..1.0 pre-shot authored cadence      [0.692308]\n"
+	"gamepad=auto|xbox|playstation|switch|generic changes PROMPT GLYPHS only  [auto]\n"
 "input_preset=modern|n64  the defaults every binding falls back to       [modern]\n"
 "aim_mode=hold|toggle [hold]   crouch_mode=hold|toggle [toggle]\n"
 "use_reloads=0|1 use also reloads with nothing in reach [auto: off once reload is bound]\n"
@@ -1525,7 +1571,7 @@ static void usage(void)
 }
 
 static const char *DEFAULT_CFG =
-"# goldeneye.cfg - GoldenEye 007, native port\n"
+	"# goldeneye.ini - GoldenEye 007, native port\n"
 "#\n"
 "# Lines are key = value.  '#' and ';' start a comment.\n"
 "# Precedence: command line  > GETV_* environment  > this file  > defaults.\n"
@@ -1537,10 +1583,15 @@ static const char *DEFAULT_CFG =
 "aspect      = 4:3          # 4:3 | 16:9 | auto. Only used if resolution is unset.\n"
 "fullscreen  = 0\n"
 "# supersample = 1          # 1 or 2. 2 renders at double size and downsamples.\n"
-"#                          # Commented so `preset = plus` can raise it. Uncomment to\n"
-"#                          # pin it and the profile will leave it alone.\n"
-"filtering   = three-point  # point | bilinear | three-point (three-point = real N64)\n"
-"\n"
+	"#                          # Commented so `preset = plus` can raise it. Uncomment to\n"
+	"#                          # pin it and the profile will leave it alone.\n"
+	"filtering   = three-point  # point | bilinear | three-point (three-point = real N64)\n"
+	"pd_renderer = 0            # experimental Perfect Dark-derived desktop GL backend; off by default\n"
+	"gunbarrel_bond_speed = 0.91 # Bond's walk animation in the gunbarrel intro only\n"
+	"                            # Lower = slower; barrel motion and blood timing are unchanged.\n"
+	"gunbarrel_sequence_speed = 0.692308 # calibrated to ~13s N64 Rare-logo-to-shot reference\n"
+	"                                    # 0.25..1.0; barrel and Bond stay on the same authored cadence.\n"
+	"\n"
 "# --- framerate -------------------------------------------------------------\n"
 "# 30, 50, 60, or off.\n"
 "#\n"
@@ -2083,12 +2134,15 @@ int geConfigInit(int argc, char **argv)
         if (home != NULL && *home != '\0') {
             static char oldp[1024];
             char newp[1024];
+            char newlegacy[1024];
             struct stat st;
             snprintf(oldp, sizeof oldp,
-                     "%s/Library/Application Support/GoldenEye/" GE_CFG_BASENAME, home);
+                     "%s/Library/Application Support/GoldenEye/" GE_CFG_LEGACY_BASENAME, home);
             snprintf(newp, sizeof newp,
                      "%s/Library/Application Support/Goldeneye-Native/" GE_CFG_BASENAME, home);
-            if (stat(oldp, &st) == 0 && stat(newp, &st) != 0) {
+            snprintf(newlegacy, sizeof newlegacy,
+                     "%s/Library/Application Support/Goldeneye-Native/" GE_CFG_LEGACY_BASENAME, home);
+            if (stat(oldp, &st) == 0 && stat(newp, &st) != 0 && stat(newlegacy, &st) != 0) {
                 printf("[getv][config] using the pre-rename config: %s\n", oldp);
                 cliPath = oldp;
             }

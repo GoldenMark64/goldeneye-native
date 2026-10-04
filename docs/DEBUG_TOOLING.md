@@ -351,6 +351,70 @@ for import by `tools/collect_bug_report.py`.
 Publishing an issue remains a separate, explicit approval step. The game must not call GitHub,
 open a browser submission or silently attach files.
 
+### Current v1 implementation
+
+Desktop builds now reserve `F3` for a local diagnostic capture. The key is edge-triggered (SDL
+key repeat does not create multiple bundles), is consumed before gameplay input, and works even
+when the developer console owns keyboard input.
+
+The native v1 directory contains:
+
+- `report.md`: local-only report stub with the exact frame/tick/stage/difficulty;
+- `session.json`: schema version 1, platform/architecture/renderer, safe effective settings,
+  resolved input bindings, screenshot status and tested frame identity;
+- `state.json`: bounded player fields and objective statuses;
+- `events.jsonl`: the newest 64 typed event-bus records, oldest first; and
+- `screenshot.bmp`: the renderer-native scene capture.
+
+OpenGL reads the same pre-ImGui scene used by `GETV_SHOTFRAME`. Metal temporarily makes only the
+F3 frame's drawable readable, blits the game/postfx result to a private texture before ImGui, and
+restores `framebufferOnly` afterward. A simultaneous `GETV_SHOTFRAME` request remains independent.
+
+This is intentionally a **local capture format**, not yet the publication-ready bundle described
+by the acceptance gate below. The running binary does not currently export an authoritative
+build commit/compatibility ID, so those fields are explicit `null` values rather than guessed
+from the later collector checkout. Native v1 also does not yet create `manifest.json`,
+`commands.jsonl`, `inspector.json`, SHA-256 entries or a metadata-free PNG; those remain
+collector/schema follow-on work. `tools/collect_bug_report.py` remains the sanitization and
+PNG-normalization boundary before anything is shared.
+
+F3 also cannot diagnose a hard freeze once the main thread has stopped pumping SDL events.
+`GETV_STALLTRACE=1` now covers that gap with a diagnostic-only watchdog. The game thread publishes
+only integer phase/hotspot telemetry through SDL atomics; the watchdog thread never reads live game
+structures. If a macro phase does not advance for 250 ms it reports the phase, last room-load/LOS
+hotspot and bounded per-frame counters, repeating at most once per second until progress resumes.
+This is intended to localize a hang before a debugger/perf pass, not to replace stack sampling when
+the reported phase still contains too much code.
+
+### Renderer and GPU flight recorders
+
+The 1.0 tree also contains a deeper renderer-forensics layer created for the Intel Iris Xe hang
+investigation. It is deliberately dormant during normal play. Nothing is allocated or written
+unless the corresponding diagnostic setting is explicitly supplied.
+
+- `GETV_GPUFLIGHT=<path>` creates an mmap-backed rolling record of OpenGL submissions. Records carry
+  frame/draw serials, VBO sizes and hashes, shader/program identity, texture identity and hashes,
+  depth/blend/decal state, Fast3D command context and display-list provenance.
+- `GETV_GPUFLIGHT_PAYLOAD_VERTS=<n>` additionally retains exact VBO payloads for the selected vertex
+  count so a hardware batch can be compared byte-for-byte without recording every draw payload.
+- `GETV_FUNFLIGHT=<path>` records the renderer call chain (`gfx_run`, display-list execution,
+  flushes, `glBufferData`, `glDrawArrays`) and links each batch back to the GPU-flight serial.
+- `GETV_STALLTRACE=1` runs the low-frequency watchdog described above. On a sustained stall it
+  freezes the function-flight ring so a recoverable ten-second GPU hang cannot overwrite the
+  sub-second history that led into it.
+
+The companion tools are `decode_gpu_flight.py`, `decode_function_flight.py`,
+`map_gpu_hang_draw.py`, `analyze_frozen_gpu_hang.py`, `capture_gpu_hang.sh` and
+`run_gpu_hang_autocapture.sh`. The unattended launcher exists because a real GPU wedge can freeze
+the keyboard, mouse and desktop along with the game: it pre-authorizes the privileged capture,
+waits for the function ring to freeze and for i915's first-error state to name the same PID, then
+captures the evidence and terminates the game without requiring input during the stall.
+
+These raw flight files are local engineering evidence, not bug-report attachments. They can be
+hundreds of megabytes and may contain exact transient render buffers. Reduce them to bounded text
+with the decoder/analyzer tools before sharing anything. The full workflow and the 1.0 Intel case
+study are in [`RENDERER_TROUBLESHOOTING.md`](RENDERER_TROUBLESHOOTING.md).
+
 ### Authoritative session manifest
 
 Add a versioned native `session.json`. It is authoritative for the binary and session that were

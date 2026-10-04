@@ -1,0 +1,367 @@
+--- a/src/game/objective_status.c
++++ b/src/game/objective_status.c
+@@ -1,8 +1,10 @@
+ #include <math.h>
++#include <stdio.h>
+ #include <stdlib.h>
+ #include <ultra64.h>
+ #include <bondconstants.h>
+ #include <bondtypes.h>
++#include <boss.h>
+ #include "objective_status.h"
+ #include "player.h"
+ #include "stan.h"
+@@ -200,6 +202,102 @@
+     return obj;
+ }
+ 
++#ifdef GE_PORT_NATIVE
++typedef struct GeDepotObjectiveDebugState
++{
++    s32 initialized;
++    TagObjectRecord *tag;
++    ObjectRecord *tagged;
++    ObjectRecord *lookup;
++    PropRecord *prop;
++    u32 runtime_bitflags;
++    u8 state;
++    s32 destroyed_level;
++    s32 healthy;
++    f32 damage;
++    f32 maxdamage;
++    s32 damage_lines;
++} GeDepotObjectiveDebugState;
++
++static GeDepotObjectiveDebugState ge_depot_obj_debug_state[3];
++
++static void ge_depot_obj_debug_destroy(s32 objective_num, s32 tag_id, ObjectRecord *lookup)
++{
++    GeDepotObjectiveDebugState *last;
++    TagObjectRecord *tag;
++    ObjectRecord *tagged;
++    PropRecord *prop;
++    u32 runtime_bitflags;
++    u8 state;
++    s32 destroyed_level;
++    s32 healthy;
++    f32 damage;
++    f32 maxdamage;
++    s32 core_changed;
++    s32 damage_changed;
++
++    if (!ge_obj_dbg() || bossGetStageNum() != LEVELID_DEPOT || objective_num != 1
++            || tag_id < 1 || tag_id > 3)
++    {
++        return;
++    }
++
++    tag = sub_GAME_7F057080(tag_id);
++    tagged = tag ? tag->TaggedObject : NULL;
++    prop = tagged ? tagged->prop : NULL;
++    runtime_bitflags = tagged ? tagged->runtime_bitflags : 0;
++    state = tagged ? tagged->state : 0;
++    destroyed_level = tagged ? objGetDestroyedLevel(tagged) : -1;
++    healthy = tagged ? objIsHealthy(tagged) : -1;
++    damage = tagged ? tagged->damage : -1.0f;
++    maxdamage = tagged ? tagged->maxdamage : -1.0f;
++
++    last = &ge_depot_obj_debug_state[tag_id - 1];
++    core_changed = !last->initialized
++        || last->tag != tag
++        || last->tagged != tagged
++        || last->lookup != lookup
++        || last->prop != prop
++        || last->runtime_bitflags != runtime_bitflags
++        || last->state != state
++        || last->destroyed_level != destroyed_level
++        || last->healthy != healthy;
++    damage_changed = !last->initialized
++        || last->damage != damage
++        || last->maxdamage != maxdamage;
++
++    if (core_changed || (damage_changed && last->damage_lines < 8))
++    {
++        printf("[getv][depot-obj] objective=%d tag=%d tagrec=%p tagged=%p lookup=%p "
++               "type=%d model=%d pad=%d prop=%p proptype=%d runtime=0x%x state=0x%x "
++               "damage=%.3f max=%.3f destroyed=%d healthy=%d\n",
++               objective_num, tag_id, (void *)tag, (void *)tagged, (void *)lookup,
++               tagged ? tagged->type : -1, tagged ? tagged->obj : -1,
++               tagged ? tagged->pad : -1, (void *)prop, prop ? prop->type : -1,
++               runtime_bitflags, state, (double)damage, (double)maxdamage,
++               destroyed_level, healthy);
++        fflush(stdout);
++
++        if (damage_changed && !core_changed)
++        {
++            last->damage_lines++;
++        }
++    }
++
++    last->initialized = 1;
++    last->tag = tag;
++    last->tagged = tagged;
++    last->lookup = lookup;
++    last->prop = prop;
++    last->runtime_bitflags = runtime_bitflags;
++    last->state = state;
++    last->destroyed_level = destroyed_level;
++    last->healthy = healthy;
++    last->damage = damage;
++    last->maxdamage = maxdamage;
++}
++#endif
++
+ 
+ 
+ /*
+@@ -329,6 +427,9 @@
+                         case PROPDEF_OBJECTIVE_DESTROY_OBJECT:
+                         {
+                             ObjectRecord *obj = objFindByTagId(objective->ObjRefID);
++#ifdef GE_PORT_NATIVE
++                            ge_depot_obj_debug_destroy(objectiveNum, objective->ObjRefID, obj);
++#endif
+                             if (obj && obj->prop && objIsHealthy(obj))
+                             {
+                                 currentstatus = OBJECTIVESTATUS_INCOMPLETE;
+--- a/src/game/gun.c
++++ b/src/game/gun.c
+@@ -1,4 +1,5 @@
+ #include <ultra64.h>
++#include <stdio.h>
+ #include "include/limits.h"
+ #include <bondconstants.h>
+ #include <bondtypes.h>
+@@ -46,6 +47,40 @@
+ CasingRecord g_Casings[20];
+ s32 dword_CODE_bss_80076A48; // Unused
+ 
++#ifdef GE_PORT_NATIVE
++static s32 ge_timedmine_debug_on(void)
++{
++    static s32 cached = -1;
++    if (cached < 0)
++    {
++        const char *e = getenv("GETV_TIMEDMINE_DEBUG");
++        cached = (e && *e == '1') ? 1 : 0;
++    }
++    return cached;
++}
++
++static void ge_timedmine_debug_throw(const char *phase, WeaponObjRecord *weapon)
++{
++    ObjectRecord *obj;
++    PropRecord *prop;
++
++    if (!ge_timedmine_debug_on() || !weapon)
++    {
++        return;
++    }
++
++    obj = (ObjectRecord *)weapon;
++    prop = obj->prop;
++    printf("[getv][timedmine] %s obj=%p prop=%p objtype=%d proptype=%d model=%d "
++           "weapon=%d timer=%d clock=%d runtime=0x%x projectile=%p hasprojectile=%d\n",
++           phase, (void *)obj, (void *)prop, obj->type, prop ? prop->type : -1,
++           obj->obj, weapon->weaponnum, weapon->timer, g_ClockTimer,
++           obj->runtime_bitflags, (void *)obj->projectile,
++           (obj->runtime_bitflags & RUNTIMEBITFLAG_HASPROJECTILE) != 0);
++    fflush(stdout);
++}
++#endif
++
+ #ifdef REFRESH_PAL
+     /* PAL */
+     #define THROWN_ITEM_REFRESH_RATE                   50
+@@ -2131,11 +2166,25 @@
+             break;
+         }
+ 
++#ifdef GE_PORT_NATIVE
++        if (current_weapon == ITEM_TIMEDMINE)
++        {
++            ge_timedmine_debug_throw("timer-set", wor);
++        }
++#endif
++
+         wor->runtime_bitflags &= ~(RUNTIMEBITFLAG_OWNER);
+         wor->runtime_bitflags |= get_cur_playernum() << RUNTIMEBITSHIFT_OWNER;
+ 
+         gunInitProjectileFromPlayer(wor, &spE0, &spA0_a, &throw_speed_vec, &unk_mtxf);
+ 
++#ifdef GE_PORT_NATIVE
++        if (current_weapon == ITEM_TIMEDMINE)
++        {
++            ge_timedmine_debug_throw("projectile-init", wor);
++        }
++#endif
++
+         if ((wor->runtime_bitflags & RUNTIMEBITFLAG_HASPROJECTILE) != 0)
+         {
+             wor->projectile->flags = (s32) (wor->projectile->flags | 2);
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -119,6 +119,116 @@
+     return cached;
+ }
+ 
++typedef struct GeTimedMineDebugState
++{
++    WeaponObjRecord *weapon;
++    s32 ticks;
++    s32 last_bucket;
++    s32 last_shuffle;
++    s32 last_objtype;
++    s32 last_proptype;
++    s32 last_weaponnum;
++    s32 initialized;
++} GeTimedMineDebugState;
++
++static GeTimedMineDebugState ge_timedmine_debug_states[4];
++
++static s32 ge_timedmine_debug_on(void)
++{
++    static s32 cached = -1;
++    if (cached < 0)
++    {
++        const char *e = getenv("GETV_TIMEDMINE_DEBUG");
++        cached = (e && *e == '1') ? 1 : 0;
++    }
++    return cached;
++}
++
++static GeTimedMineDebugState *ge_timedmine_debug_state(WeaponObjRecord *weapon)
++{
++    s32 i;
++
++    for (i = 0; i < 4; i++)
++    {
++        if (ge_timedmine_debug_states[i].weapon == weapon)
++        {
++            return &ge_timedmine_debug_states[i];
++        }
++    }
++
++    for (i = 0; i < 4; i++)
++    {
++        if (!ge_timedmine_debug_states[i].weapon)
++        {
++            ge_timedmine_debug_states[i].weapon = weapon;
++            ge_timedmine_debug_states[i].last_bucket = -9999;
++            ge_timedmine_debug_states[i].last_shuffle = -9999;
++            ge_timedmine_debug_states[i].last_objtype = -9999;
++            ge_timedmine_debug_states[i].last_proptype = -9999;
++            ge_timedmine_debug_states[i].last_weaponnum = -9999;
++            return &ge_timedmine_debug_states[i];
++        }
++    }
++
++    return &ge_timedmine_debug_states[0];
++}
++
++static s32 ge_timedmine_debug_matches(ObjectRecord *obj, WeaponObjRecord *weapon)
++{
++    return obj && weapon
++        && (weapon->weaponnum == ITEM_TIMEDMINE || obj->obj == PROP_CHRTIMEDMINE);
++}
++
++static void ge_timedmine_debug_tick(const char *phase, PropRecord *prop, ObjectRecord *obj,
++                                    WeaponObjRecord *weapon, s32 advance, s32 force)
++{
++    GeTimedMineDebugState *state;
++    s32 bucket;
++    s32 shuffle;
++    s32 proptype;
++    s32 changed;
++
++    if (!ge_timedmine_debug_on() || !ge_timedmine_debug_matches(obj, weapon))
++    {
++        return;
++    }
++
++    state = ge_timedmine_debug_state(weapon);
++    if (advance)
++    {
++        state->ticks++;
++    }
++
++    bucket = weapon->timer >= 0 ? (weapon->timer + 59) / 60 : -1;
++    shuffle = get_player_position_in_shuffled(get_cur_playernum());
++    proptype = prop ? prop->type : -1;
++    changed = !state->initialized
++        || state->last_bucket != bucket
++        || state->last_shuffle != shuffle
++        || state->last_objtype != obj->type
++        || state->last_proptype != proptype
++        || state->last_weaponnum != weapon->weaponnum;
++
++    if (force || changed || weapon->timer <= 10)
++    {
++        printf("[getv][timedmine] %s tick=%d obj=%p prop=%p objtype=%d proptype=%d "
++               "model=%d weapon=%d timer=%d clock=%d shuffle=%d runtime=0x%x "
++               "projectile=%p hasprojectile=%d\n",
++               phase, state->ticks, (void *)obj, (void *)prop, obj->type, proptype,
++               obj->obj, weapon->weaponnum, weapon->timer, g_ClockTimer, shuffle,
++               obj->runtime_bitflags, (void *)obj->projectile,
++               (obj->runtime_bitflags & RUNTIMEBITFLAG_HASPROJECTILE) != 0);
++        fflush(stdout);
++    }
++
++    state->initialized = 1;
++    state->last_bucket = bucket;
++    state->last_shuffle = shuffle;
++    state->last_objtype = obj->type;
++    state->last_proptype = proptype;
++    state->last_weaponnum = weapon->weaponnum;
++}
++
+ /* Restore the pre-fix values of the PropDefHeaderRecord group (type/state/extrascale) and
+  * the ObjectRecord group (obj/pad) exactly as the positional literal produced them.
+  * `type`/`pad` are the values the literal MEANT to place there. */
+@@ -3494,6 +3604,10 @@
+ 
+     obj = prop->obj;
+ 
++#ifdef GE_PORT_NATIVE
++    ge_timedmine_debug_tick("tick-entry", prop, obj, (WeaponObjRecord *)obj, 1, 0);
++#endif
++
+     if (get_player_position_in_shuffled(get_cur_playernum()) != 0)
+     {
+         return;
+@@ -3546,8 +3660,21 @@
+         {
+             weapon->timer -= g_ClockTimer;
+ 
++#ifdef GE_PORT_NATIVE
++            if (weapon->weaponnum == ITEM_TIMEDMINE)
++            {
++                ge_timedmine_debug_tick("countdown", prop, obj, weapon, 0, 0);
++            }
++#endif
++
+             if (weapon->timer < 0)
+             {
++#ifdef GE_PORT_NATIVE
++                if (weapon->weaponnum == ITEM_TIMEDMINE)
++                {
++                    ge_timedmine_debug_tick("explode-before", prop, obj, weapon, 0, 1);
++                }
++#endif
+ #if defined(VERSION_US)
+                 propExplode(prop, (obj->flags2 & PROPFLAG2_DOOR_ALTCOORDSYSTEM) ? EXPLOSION_DEF_MASSIVE : EXPLOSION_DEF_STANDARD);
+ #else
+@@ -3560,6 +3687,13 @@
+                 weapon->timer = -1;
+                 obj->runtime_bitflags |= RUNTIMEBITFLAG_REMOVE;
+ 
++#ifdef GE_PORT_NATIVE
++                if (weapon->weaponnum == ITEM_TIMEDMINE)
++                {
++                    ge_timedmine_debug_tick("explode-after", prop, obj, weapon, 0, 1);
++                }
++#endif
++
+             }
+         }
+         else if (weapon->weaponnum == ITEM_REMOTEMINE)

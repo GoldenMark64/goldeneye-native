@@ -28,6 +28,7 @@
 #include <PR/libaudio.h>
 
 #include <SDL.h>
+#include "ge_audio_queue_policy.h"
 
 /* ------------------------------------------------------------------ config -- */
 
@@ -48,9 +49,8 @@
  * the right size. */
 #define GE_ACMD_SIZE        3000
 
-/* How much audio to keep queued on the device, in stereo frames. Two video frames'
- * worth is enough to ride out a slow frame without adding audible latency; the game
- * pushes ~736 samples per frame at 60 Hz. */
+/* How much audio to keep queued on the device, in stereo frames. GE_FRAME_SAMPLES is
+ * already about 33.4 ms at 22.05 kHz, so this target is about 133.5 ms. */
 #define GE_QUEUE_TARGET     (GE_FRAME_SAMPLES * 4)
 
 /* Mirrors GE_DMEM_SIZE in port/audio/ge_mixer.c -- reporting only. */
@@ -66,9 +66,6 @@ static s32          geCmdLen   = 0;
 static int          geAudioReady = 0;
 static int          geAudioStarted = 0;
 static unsigned long long geFrames = 0;
-/* Our own substitute for SDL_GetQueuedAudioSize -- see gePortAudioFrame. */
-static unsigned long long geSubmitted = 0;
-static Uint32 geClockStart = 0;
 
 /* Rare's reverb configuration, copied verbatim out of src/audi.c (CUSTOM_FX_PARAMS_N).
  * music.c asks for AL_FX_CUSTOM but never fills in ALSynConfig.params - on the N64
@@ -573,36 +570,21 @@ void gePortAudioFrame(void)
      * FRAMES_PER_FIELD_AS_POW2), so submitting one per 60 Hz video frame is twice as
      * much audio as the device consumes, and the queue would grow without bound.
      *
-     * Tracked here rather than read back with SDL_GetQueuedAudioSize(). Both work; this
-     * one has no dependency on the audio backend's bookkeeping, and it drifts only as
-     * far as SDL_GetTicks does. SDL_GetQueuedAudioSize was once suspected of causing
-     * the frame-1 crash described at the head of gePortAudioFrame; it does not, and
-     * replacing it with the accounting below changed nothing. */
-    {
-        Uint32 now = SDL_GetTicks();
-        unsigned long long consumed;
+     * Use the device's real queued-byte count. A lifetime submitted-minus-wall-clock
+     * estimate looks equivalent only while gePortAudioFrame() keeps running. If the
+     * game stalls for several seconds, wall time advances while submissions stop;
+     * after resume that synthetic counter stays clamped at zero until the historical
+     * deficit is repaid, even as SDL is physically accumulating fresh audio. That turns
+     * a game stall into a similarly long playback delay. SDL's queue is the state this
+     * feedback loop actually controls, so measure it directly. */
+    queued = geAudioQueuedFramesFromBytes(SDL_GetQueuedAudioSize(geAudioDev));
 
-        if (geClockStart == 0) {
-            geClockStart = now;
-        }
-        consumed = (unsigned long long)(now - geClockStart) * GE_OUTPUT_RATE / 1000ULL;
-
-        queued = (geSubmitted > consumed) ? (s32)(geSubmitted - consumed) : 0;
-    }
-
-    want = GE_QUEUE_TARGET - queued;
-    if (want > GE_MAX_FRAME) {
-        want = GE_MAX_FRAME;
-    }
-    want &= ~0xf;                    /* the synth requires a 16-sample boundary */
-    if (want < GE_MIN_FRAME) {
-        /* Already comfortably ahead. Rendering nothing is correct: the sequence
-         * players advance by samples, so skipping a frame here does not drop events,
-         * it just defers them. */
-        if (queued >= GE_QUEUE_TARGET) {
-            return;
-        }
-        want = GE_MIN_FRAME;
+    want = geAudioWantForQueued(queued, GE_QUEUE_TARGET, GE_MIN_FRAME, GE_MAX_FRAME);
+    /* Already comfortably ahead. Rendering nothing is correct: the sequence
+     * players advance by samples, so skipping a frame here does not drop events,
+     * it just defers them. */
+    if (want == 0) {
+        return;
     }
 
     if (geFrames < 4) {
@@ -662,7 +644,6 @@ void gePortAudioFrame(void)
 
     if (geFrames < 4) { printf("[getv] af%llu: -> SDL_QueueAudio\n", geFrames); fflush(stdout); }
     if (!getenv("GETV_NO_AUDIO_QUEUE")) SDL_QueueAudio(geAudioDev, geOutBuf, (Uint32)want * 4);
-    geSubmitted += (unsigned long long)want;
     if (geFrames < 4) { printf("[getv] af%llu: queued ok\n", geFrames); fflush(stdout); }
 
     if (geFrames++ == 0) {

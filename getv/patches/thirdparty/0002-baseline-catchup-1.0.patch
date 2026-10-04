@@ -1,0 +1,72 @@
+diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
+--- a/getv/port/fast3d/gfx_opengl.c	2026-10-03 22:09:10.294399945 +0000
++++ b/getv/port/fast3d/gfx_opengl.c	2026-10-03 22:09:10.306400048 +0000
+@@ -66,0 +67 @@
++#include "../src/ge_stall_watchdog.h"
+@@ -991,0 +993,2 @@
++    int drawdiag_selected = 0;
++
+@@ -1029,0 +1033 @@
++        drawdiag_selected = geDrawDiagLastSelected();
+@@ -1032,0 +1037,11 @@
++
++    /* Attribution diagnostic only. The existing draw filter decides which submission is
++     * selected; when GETV_DRAWDIAG_SYNC=1, synchronise immediately after that selected draw.
++     * A GPU hang therefore leaves the just-printed drawdiag line as the exact selected draw
++     * whose completion we were waiting for (or the first selected sync point after prior work).
++     * Normal rendering never executes this glFinish(). */
++    if (drawdiag_selected && gePortDrawSyncEnabled()) {
++        gePortStallGfxPhase(11);
++        glFinish();
++        gePortStallGfxPhase(3);
++    }
+diff -ruN -u0 a/getv/port/fast3d/gfx_pc.c b/getv/port/fast3d/gfx_pc.c
+--- a/getv/port/fast3d/gfx_pc.c	2026-10-03 22:09:10.296399962 +0000
++++ b/getv/port/fast3d/gfx_pc.c	2026-10-03 22:09:10.311400090 +0000
+@@ -33,0 +34 @@
++#include "../src/ge_stall_watchdog.h"
+@@ -5340,0 +5342 @@
++static int ge_stall_gfx_cmd_progress;
+@@ -5354,0 +5357 @@
++        gePortStallGfxCommand((int)opcode, ge_dl_depth, ++ge_stall_gfx_cmd_progress);
+@@ -5850,0 +5854 @@
++    gePortStallGfxPhase(1);
+@@ -5858,0 +5863 @@
++    gePortStallGfxPhase(2);
+@@ -5860,0 +5866,2 @@
++    ge_stall_gfx_cmd_progress = 0;
++    gePortStallGfxPhase(3);
+@@ -5861,0 +5869 @@
++    gePortStallGfxPhase(4);
+@@ -5865,0 +5874 @@
++    gePortStallGfxPhase(5);
+@@ -5866,0 +5876 @@
++    gePortStallGfxPhase(6);
+diff -ruN -u0 a/getv/port/fast3d/gfx_sdl2.c b/getv/port/fast3d/gfx_sdl2.c
+--- a/getv/port/fast3d/gfx_sdl2.c	2026-10-03 22:09:10.296399962 +0000
++++ b/getv/port/fast3d/gfx_sdl2.c	2026-10-03 22:09:10.302400014 +0000
+@@ -61,0 +62 @@
++#include "../src/ge_stall_watchdog.h"
+@@ -632,0 +634 @@
++    gePortStallGfxPhase(7);
+@@ -633,0 +636 @@
++    gePortStallGfxPhase(9);
+@@ -634,0 +638 @@
++    gePortStallGfxPhase(10);
+@@ -639,0 +644 @@
++    gePortStallGfxPhase(7);
+@@ -641,0 +647,10 @@
++    /* Diagnostic only: when explicitly requested, force all previously submitted GL
++     * work to complete before presentation. If a long watchdog stall moves here from
++     * SDL_GL_SwapWindow(), the swap was merely the first implicit GPU synchronisation
++     * point; if this returns promptly and present still stalls, the block is genuinely
++     * in the presentation/driver/compositor path. Normal rendering never calls this. */
++    if (gePortStallGfxSyncProbeEnabled()) {
++        gePortStallGfxPhase(8);
++        glFinish();
++    }
++
+@@ -643,0 +659 @@
++    gePortStallGfxPhase(9);
+@@ -644,0 +661 @@
++    gePortStallGfxPhase(10);

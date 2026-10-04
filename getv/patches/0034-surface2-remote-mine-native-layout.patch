@@ -1,0 +1,33 @@
+--- a/src/game/propobj.c
++++ b/src/game/propobj.c
+@@ -11977,6 +11977,22 @@
+     KeyRecord * key;
+     PropRecord *p;
+ 
++#ifdef GE_PORT_NATIVE
++    /*
++     * Retail relies on PROPDEF_KEY and PROP_TYPE_WEAPON both being numeric 4, then views the
++     * WeaponObjRecord through KeyRecord so keyID aliases weaponnum at original offset 0x80.
++     * Native little-endian GE_SUBWORD3 moves weaponnum behind timer/LinkedWeaponType, so that
++     * overlay reads timer instead. Use the live prop kind and semantic weapon field directly.
++     */
++    if (prop->type == PROP_TYPE_WEAPON)
++    {
++        WeaponObjRecord *weapon = prop->weapon;
++        if (weapon && ID == weapon->weaponnum)
++        {
++            return (KeyRecord *)weapon;
++        }
++    }
++#else
+     if (prop->type == PROPDEF_KEY)
+     {
+         key = prop->obj;
+@@ -11985,6 +12001,7 @@
+             return key;
+         }
+     }
++#endif
+ 
+     for (p = prop->child; p; p = p->prev)
+     {

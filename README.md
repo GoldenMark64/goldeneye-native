@@ -7,11 +7,10 @@
 > fork preserves the latest publicly available version of upstream `main` from before its
 > deletion, including the complete Git history through commit `47fe1a1`.
 >
-> I am not the original maintainer or an expert on the full project, and I do not yet know the
-> complete state of the code or all of the work still required. I am preserving the project and
-> am happy to work alongside other contributors who are interested in reviewing, maintaining,
-> and continuing it. This is a community continuation, not an official handoff from the original
-> maintainer.
+> I am not the original maintainer. This fork is a community continuation, not an official handoff
+> from the original maintainer. The project has now completed its 1.0 stabilization and human
+> campaign-certification pass; development continues here for optional features, portability and
+> any new defects that are reported.
 >
 > Development continues on this fork. Reviewed fixes are merged into a stable, playable `main`
 > one at a time and recorded in the [`PATCH_QUEUE.md`](PATCH_QUEUE.md) so they can be offered back
@@ -34,12 +33,32 @@ can only work around, this one just fixes.
 
 You supply your own legally dumped cartridge. No game data ships here, and none ever will.
 
+## GoldenEye Native 1.0 certification
+
+The 1.0 release line has been completed through human playtesting across **Agent, Secret Agent and
+00 Agent**, covering the complete retail campaign. As of October 3, 2026, there are **no known
+game-breaking bugs remaining in the tested retail campaign path**. This is a statement about the
+tested 1.0 configuration, not a claim that every optional mod, graphics setting, controller or GPU
+driver combination is exhaustively certified.
+
+The final Linux stability blocker was an Intel Iris Xe / i915 whole-desktop GPU hang. A dedicated
+GPU/function-flight forensic subsystem was built to correlate GoldenEye display-list work with
+Mesa/i915 command batches while the machine was wedged. The captured renderer calls returned
+normally; the GPU failure occurred asynchronously and was recovered by disabling i915 GuC
+submission on the affected Latitude (`i915.enable_guc=0`). See
+[`docs/RENDERER_TROUBLESHOOTING.md`](docs/RENDERER_TROUBLESHOOTING.md) and
+[`docs/TESTING_1.0.md`](docs/TESTING_1.0.md).
+
 ## Documentation
 
 - **New player:** [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md)
 - **No-code Windows install:** [`docs/WINDOWS_INSTALL.md`](docs/WINDOWS_INSTALL.md)
 - **Controls and rebinding:** [`docs/CONTROLS.md`](docs/CONTROLS.md)
 - **All settings:** [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md)
+- **1.0 certification and fixes:** [`docs/RELEASE_1.0.md`](docs/RELEASE_1.0.md),
+  [`docs/TESTING_1.0.md`](docs/TESTING_1.0.md), and [`docs/FIXES_1.0.md`](docs/FIXES_1.0.md)
+- **Advanced renderer/GPU troubleshooting:**
+  [`docs/RENDERER_TROUBLESHOOTING.md`](docs/RENDERER_TROUBLESHOOTING.md)
 - **Contributor source build and workflow:** [`docs/BUILDING.md`](docs/BUILDING.md),
   [`CONTRIBUTING.md`](CONTRIBUTING.md), and
   [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md)

@@ -43,5 +43,7 @@ jobs:
           done
       - name: Check game mouse gates and angle application
         run: python3 tools/tests/test_modern_mouse_game.py --cc gcc
+      - name: Check file-select native hitbox layout
+        run: python3 tools/tests/test_file_select_hitbox_layout.py
       - name: Check auto-crouch across render-only frames
         run: python3 tools/tests/test_autocrouch_ticks.py

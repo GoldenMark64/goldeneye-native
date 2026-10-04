@@ -16,6 +16,9 @@ start with [`BUILDING.md`](BUILDING.md).
 | [`SETUP.md`](SETUP.md) | Detailed manual macOS pipeline and deep build troubleshooting. |
 | [`WINDOWS_PACKAGING.md`](WINDOWS_PACKAGING.md) | Maintainer guide for producing and testing the ROM-free Windows setup package. |
 | [`RELEASING.md`](RELEASING.md) | Review the gates and security requirements for future coordinated, ROM-free player packages. |
+| [`RELEASE_1.0.md`](RELEASE_1.0.md) | GoldenEye Native 1.0 release scope and certification statement. |
+| [`TESTING_1.0.md`](TESTING_1.0.md) | Human campaign certification record for Agent, Secret Agent and 00 Agent. |
+| [`FIXES_1.0.md`](FIXES_1.0.md) | Release-facing summary of the 1.0 stabilization fixes. |
 | [`FAQ.md`](FAQ.md) | Common player and project questions. |
 | [`CHEATS.md`](CHEATS.md) | GoldenEye's built-in named cheat system. |
 
@@ -58,6 +61,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | [`WINDOWS_STAN_ORDERING.md`](WINDOWS_STAN_ORDERING.md) | Windows geometry-ordering root cause and fix. |
 | [`PROP_ALLOCATOR_TELEMETRY.md`](PROP_ALLOCATOR_TELEMETRY.md) | Versioned, content-free runtime prop-pool observations. |
 | [`PERFECT_DARK.md`](PERFECT_DARK.md) | Audited opportunities from the MIT-licensed Perfect Dark port. |
+| [`RENDERER_TROUBLESHOOTING.md`](RENDERER_TROUBLESHOOTING.md) | GPU/function flight recording, hardware-batch correlation and the Intel i915/GuC case study. |
 
 ## Direction and maintenance
 

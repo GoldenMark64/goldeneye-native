@@ -132,6 +132,25 @@ against an arbitrary host window.
 Sets `GETV_WIDESCREEN`, read by both the renderer (`configWidescreen`, `port_support.c`) and the
 game layer (`lv.c`'s per-player aspect write).
 
+### `pd_renderer` / `perfect_dark_renderer`
+
+`0` or `1`, default **`0`**. Desktop OpenGL only. The launcher exposes the same switch as
+**Perfect Dark renderer compatibility path** under Video.
+
+This is an opt-in backend compatibility profile adapted from the MIT-licensed Perfect Dark PC
+port. It requests an OpenGL 3.3 compatibility context, emits the same GoldenEye combiner logic as
+GLSL 1.30, binds a dedicated VAO, uses `GL_RGBA8` texture storage and performs an end-of-frame
+`glFlush()`. GoldenEye's Fast3D frontend, display lists, vertex interpretation and game logic remain
+GoldenEye's own path.
+
+It was built as a controlled A/B during the Intel GPU-hang investigation. It did **not** eliminate
+that hang, so it is not the default renderer and is not presented as the 1.0 stability fix. It is
+kept because it is useful for backend compatibility testing and future renderer work. The normal
+1.0 OpenGL path is unchanged unless this setting is explicitly enabled.
+
+Sets `GETV_PD_RENDERER=1`. See [`RENDERER_TROUBLESHOOTING.md`](RENDERER_TROUBLESHOOTING.md) for
+the investigation and [`THIRD_PARTY.md`](THIRD_PARTY.md) for provenance.
+
 ### `hd_textures` / `texpack`
 
 `hd_textures` is `on` or `off`, default **off**. `texpack` is a directory path, default
@@ -148,12 +167,12 @@ tool, not a player setting; **not** `GETV_TEXDUMP`, which is [`image.c`'s own un
 decoded, which is how a pack gets started: dump, convert the ones worth upscaling to `.png`, drop
 them back in named by hash.
 
-**Off by default, unlike `filtering` and `widescreen` above.** Those two were verified by tracing
-the actual call order and checking the arithmetic by hand; this one has not had a compiler
-available to run any verification against and is offered as written-and-reasoned-through rather
-than measured. An empty pack directory is a no-op either way, so turning it on without a pack
-installed costs nothing beyond one failed file lookup per unique texture - but "costs little if
-wrong" and "verified correct" are different claims, and only the first one currently holds.
+**Off by default, unlike `filtering` and `widescreen` above.** End-to-end validation dumped the 56
+textures decoded during DAM's first 121 frames, replaced each with a same-sized flat-magenta PNG,
+and compared the resulting frame with the baseline: 91% of sampled pixels changed and 3,244
+magenta pixels appeared where the baseline had none. The lookup, content-hash naming and upload
+path therefore have direct runtime validation. It remains opt-in because faithful presentation is
+the default, not because the mechanism is unverified.
 
 Sets `GETV_HD_TEXTURES` and `GETV_TEXPACK`, read by `configHDTextures` and the pack-directory
 resolver in `port_support.c`.

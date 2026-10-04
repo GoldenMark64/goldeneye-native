@@ -1,0 +1,39 @@
+name: GFX run progress diagnostic regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gfx-run-progress-diagnostic:
+    name: gfx-run-progress-diagnostic-linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Fetch pinned decomp source (no ROM or generated assets)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: n64decomp/007
+          ref: c4356466796c697dfd298010b9bed261f9ed8c6a
+          path: vendor/ge-decomp
+          persist-credentials: false
+      - name: Apply source patches
+        shell: bash
+        run: |
+          for patch in "$GITHUB_WORKSPACE"/getv/patches/0*.patch; do
+            [[ "$(basename "$patch")" == 0002-* ]] && continue
+            git -C vendor/ge-decomp apply "$patch"
+          done
+      - name: Reconstruct pinned Fast3D sources
+        run: bash tools/fetch-thirdparty.sh
+      - name: Verify third-party reconstruction
+        run: bash tools/fetch-thirdparty.sh verify
+      - name: Run GFX progress diagnostic regression
+        run: python3 tools/tests/test_gfx_run_progress_diag.py

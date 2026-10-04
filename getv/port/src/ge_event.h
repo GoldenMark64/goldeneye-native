@@ -24,6 +24,8 @@
 #ifndef GE_EVENT_H
 #define GE_EVENT_H
 
+#include <stddef.h>
+
 typedef enum GeEventType {
     GE_EV_NONE = 0,
     GE_EV_LEVEL_CHANGE,      /* a = new stage, b = old stage */
@@ -35,6 +37,17 @@ typedef enum GeEventType {
     GE_EV_GUARD_CLEAR,       /* a = slot, b = guard chrnum */
     GE_EV_COUNT
 } GeEventType;
+
+#define GE_EVENT_HISTORY_MAX 64
+
+typedef struct GeEventRecord {
+    unsigned long long sequence;
+    int frame;
+    GeEventType type;
+    int a;
+    int b;
+    int c;
+} GeEventRecord;
 
 /* A C subscriber. Return value ignored; subscribers must not block or post input from here --
  * an event fires inside the frame hook, and a subscriber that posts would be posting for a tick
@@ -49,6 +62,10 @@ void geEventUnsubscribe(GeEventFn fn, void *user);
 void geEventEmit(GeEventType type, int a, int b, int c);
 
 const char *geEventName(GeEventType type);
+
+/* Copy the bounded recent history oldest-first. Events are typed integer records only; no
+ * arbitrary strings, pointers or user input enter this history. Returns the copied count. */
+size_t geEventRecentCopy(GeEventRecord *out, size_t capacity);
 
 /* Poll the derivable state and emit what changed. Called once per rendered frame. */
 void gePortEventFrame(int frame);

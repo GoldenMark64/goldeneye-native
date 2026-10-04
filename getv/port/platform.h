@@ -25,6 +25,7 @@ extern "C" {
 
 void sys_fatal(const char *fmt, ...) __attribute__((noreturn));
 void sys_sleep(double sec);
+bool gePortTextureSourceIsTransient(const void *ptr);
 
 #ifdef __cplusplus
 }

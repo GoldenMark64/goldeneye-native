@@ -7,6 +7,7 @@
  */
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +21,27 @@
 #include "../fs/fs.h"
 #include "../pc_main.h"
 #include "../fast3d/gfx_window_manager_api.h"   /* WAPI_WIN_CENTERPOS */
+
+/* dyn.c owns two alternating transient graphics buffers. Texture bytes built with dynAllocate()
+ * are mutable even when their pointer repeats on a later frame, so Fast3D must not treat their
+ * address as immutable texture identity. */
+extern unsigned char *g_VtxBuffers[3];
+
+bool gePortTextureSourceIsTransient(const void *ptr)
+{
+    uintptr_t p;
+    uintptr_t begin;
+    uintptr_t end;
+
+    if (ptr == NULL || g_VtxBuffers[0] == NULL || g_VtxBuffers[2] == NULL) {
+        return false;
+    }
+
+    p = (uintptr_t)ptr;
+    begin = (uintptr_t)g_VtxBuffers[0];
+    end = (uintptr_t)g_VtxBuffers[2];
+    return p >= begin && p < end;
+}
 
 /* ---- platform ---------------------------------------------------------- */
 

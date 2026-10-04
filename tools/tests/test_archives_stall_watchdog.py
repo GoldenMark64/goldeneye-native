@@ -61,6 +61,11 @@ class ArchivesStallWatchdogTests(unittest.TestCase):
 #include <stdlib.h>
 #include "ge_stall_watchdog.h"
 
+/* The watchdog now freezes the optional high-rate function-flight recorder after
+ * a sustained stall. This focused harness does not link that recorder, so provide
+ * the same no-op boundary used for other unrelated runtime dependencies. */
+void geFunctionFlightFreeze(void) {}
+
 int main(void)
 {
     int i;

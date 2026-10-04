@@ -12,6 +12,7 @@ This directory holds the manifest plus the ordered patch stack the repository ke
 | `MANIFEST` | the fifteen upstream paths and where each one lands |
 | `0001-getv-port-layer.patch` | historical GoldenEye-Native baseline over the pinned sm64ex files |
 | `0002-release-1.0-renderer-stack.patch` | exact release overlay applied by `fetch-thirdparty.sh`; rebased against the published `0001` and reconstructs the tested Fast3D renderer without fuzzy replay |
+| `ge_mixer-0064.template.c` | table-free frozen-0064 mixer template; the stock resampler coefficients are reused from the fetched historical mixer rather than republished here |
 | `0002-baseline-catchup-1.0.patch` | superseded pre-release catch-up retained for review/provenance only; not replayed by the clean installer |
 | `0002-dynamic-texture-refresh.patch` | focused overlay that forces transient dynamic textures through re-upload while preserving their selected cache node |
 | `0003-gfx-state-boundary-diagnostic.patch` | focused 0053 diagnostic overlay that tags Fast3D batch flush reasons and dumps bounded RDP/renderer state at an opt-in command ordinal |
@@ -45,9 +46,10 @@ tools/fetch-thirdparty.sh regen
 ```
 
 `regen` rewrites `0001-getv-port-layer.patch` from the current working tree after reversing
-the applied release overlay, then runs `verify` on the complete stack. The older focused overlays
-remain useful as the review history for individual diagnostics, while clean installs consume the
-single exact release overlay above.
+the applied release overlay and restoring the historical mixer baseline, then runs `verify` on the
+complete reconstruction. The older focused overlays remain useful as the review history for
+individual diagnostics, while clean installs consume the exact release overlay plus the deterministic
+mixer reconstruction above.
 
 This is the same hazard `getv/patches/README.md` describes for `vendor/ge-decomp`, and it has
 the same fix: refresh the patch before any commit that touches the code it covers.

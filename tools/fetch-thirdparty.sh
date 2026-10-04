@@ -54,6 +54,8 @@ MANIFEST="$ROOT/getv/patches/thirdparty/MANIFEST"
 PATCHDIR="$ROOT/getv/patches/thirdparty"
 PATCHFILE="$PATCHDIR/0001-getv-port-layer.patch"
 RELEASE_OVERLAY="$PATCHDIR/0002-release-1.0-renderer-stack.patch"
+MIXER_TEMPLATE="$PATCHDIR/ge_mixer-0064.template.c"
+MIXER_RECONSTRUCT="$ROOT/tools/reconstruct-ge-mixer.py"
 CACHE="${GETV_SM64EX_CACHE:-$ROOT/vendor/sm64ex-cache.git}"
 REUSE="$ROOT/vendor/sm64ex"
 
@@ -133,6 +135,17 @@ apply_patches() {
     [ -f "$p" ] || die "missing $p"
     ( cd "$dir" && patch -p1 -s -i "$p" ) || return 1
   done
+
+  # Frozen 0064 uses the same stock 64x4 libultra resampler coefficients already
+  # present in the historical fetched mixer, but a newer scalar mixer implementation
+  # surrounds them. Keep the dense coefficient table out of the public patch/template:
+  # validate and reuse the already-fetched values, then render the exact 0064 source.
+  [ -f "$MIXER_TEMPLATE" ] || die "missing $MIXER_TEMPLATE"
+  [ -f "$MIXER_RECONSTRUCT" ] || die "missing $MIXER_RECONSTRUCT"
+  local mixer="$dir/getv/port/audio/ge_mixer.c"
+  local mixer_new="$mixer.0064-new"
+  python3 "$MIXER_RECONSTRUCT" "$mixer" "$MIXER_TEMPLATE" "$mixer_new" || return 1
+  mv -f "$mixer_new" "$mixer"
 }
 
 # ------------------------------------------------------------------------------ fetch
@@ -183,7 +196,7 @@ cmd_verify() {
 
 # ------------------------------------------------------------------------------ regen
 cmd_regen() {
-  local repo tmp dst
+  local repo tmp dst baseline
   repo="$(resolve_repo)" || die "could not obtain sm64ex at $UPSTREAM_SHA (network?)"
   tmp="$(mktemp -d)" || die "mktemp"
   trap 'rm -rf "$tmp"' RETURN
@@ -193,6 +206,16 @@ cmd_regen() {
     mkdir -p "$tmp/b/$(dirname "$dst")"
     cp "$ROOT/$dst" "$tmp/b/$dst"
   done < <(manifest)
+
+  # ge_mixer.c is a post-baseline deterministic reconstruction rather than an
+  # ordinary overlay patch. Put the historical baseline mixer back into the
+  # comparison copy before regenerating 0001, otherwise regen would absorb the
+  # 0064 mixer into the historical baseline and defeat the publication split.
+  baseline="$tmp/baseline-existing"
+  export_pristine "$repo" "$baseline" || return 1
+  ( cd "$baseline" && patch -p1 -s -i "$PATCHFILE" ) \
+    || die "could not reconstruct current historical baseline for regen"
+  cp "$baseline/getv/port/audio/ge_mixer.c" "$tmp/b/getv/port/audio/ge_mixer.c"
 
   # Keep focused post-baseline renderer fixes as their own reviewable patches. The working tree
   # already contains them, so reverse them in the comparison copy before regenerating 0001.

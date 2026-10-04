@@ -94,9 +94,14 @@ defect seen in the first public reconstruction.
 
 That comparison exposed a packaging error in `0002-release-1.0-renderer-stack.patch`: its
 zero-context hunks had been consolidated from the wrong intermediate renderer state, leaving
-misplaced/duplicated code in `gfx_opengl.c`, `gfx_pc.c`, and `gfx_sdl2.c`. The release overlay was
-regenerated directly from the unchanged renderer source files that predate and produced frozen
-0064. `tools/fetch-thirdparty.sh verify` then reproduced all 15 fetched files byte-for-byte.
+misplaced/duplicated code in `gfx_opengl.c`, `gfx_pc.c`, and `gfx_sdl2.c`.
+
+An initial repair still used the dev workspace's locally evolved `0001-getv-port-layer.patch` as
+its baseline, while the public review branch carried an older `0001`. A real clean ZIP therefore
+still failed during patch application. The final repair regenerates the release overlay against
+the **exact GitHub `0001` blob** and targets the unchanged third-party source files that predate
+and produced frozen 0064. A clean-room reconstruction from pinned sm64ex + public `0001` + the
+corrected release overlay reproduces all 15 fetched files byte-for-byte.
 
 Post-correction validation: dynamic-texture refresh 3/3, gfx-state diagnostic 8/8, GPU-flight
 recorder 4/4, PD-renderer A/B 3/3, and the normal port suite 39/39 PASS.

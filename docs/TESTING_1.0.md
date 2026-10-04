@@ -84,6 +84,23 @@ Focused regression rerun after the catch-up: AI_PRINT 4/4, Train door/objective 
 2/2, VTXSTORE 2/2, EXTRAMEM 3/3, projectile rooms 2/2, guard-gun 4/4, NPC animation 4/4,
 reverse-animation 3/3, and gunbarrel timing PASS.
 
+### Frozen 0064 renderer equivalence
+
+The final review also compared the public third-party reconstruction against the frozen pre-GitHub
+playtest binary `goldeneye-funflight-0064` (SHA-256
+`d4f12b8d9f2d48f704ad703e932aa25ce5dbe40047fcd39d45b227e4c491a99e`). Human A/B validation
+confirmed that 0064 has working widescreen and does not reproduce the persistent stray-line visual
+defect seen in the first public reconstruction.
+
+That comparison exposed a packaging error in `0002-release-1.0-renderer-stack.patch`: its
+zero-context hunks had been consolidated from the wrong intermediate renderer state, leaving
+misplaced/duplicated code in `gfx_opengl.c`, `gfx_pc.c`, and `gfx_sdl2.c`. The release overlay was
+regenerated directly from the unchanged renderer source files that predate and produced frozen
+0064. `tools/fetch-thirdparty.sh verify` then reproduced all 15 fetched files byte-for-byte.
+
+Post-correction validation: dynamic-texture refresh 3/3, gfx-state diagnostic 8/8, GPU-flight
+recorder 4/4, PD-renderer A/B 3/3, and the normal port suite 39/39 PASS.
+
 ## Intel GPU blocker closure
 
 The final recurring blocker was a whole-desktop Intel Iris Xe GPU stall. The investigation created

@@ -1,18 +1,15 @@
-diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
---- a/getv/port/fast3d/gfx_opengl.c	2026-10-04 00:10:57.505185659 +0000
-+++ b/getv/port/fast3d/gfx_opengl.c	2026-10-04 00:10:57.506185673 +0000
-@@ -65,0 +66,5 @@
-+#include "../src/ge_draw_diag.h"
+--- a/getv/port/fast3d/gfx_opengl.c
++++ b/getv/port/fast3d/gfx_opengl.c
+@@ -66,0 +67,3 @@
 +#include "../src/ge_function_flight.h"
 +#include "../src/ge_gpu_flight.h"
 +#include "../src/ge_gdl_source.h"
-+#include "../src/ge_stall_watchdog.h"
-@@ -85,0 +91,4 @@
+@@ -87,0 +91,4 @@
 +    uint64_t content_hash;
 +    uint64_t height_hash;
 +    int wrap_s;
 +    int wrap_t;
-@@ -113,0 +123,25 @@
+@@ -115,0 +123,15 @@
 +static GLuint ge_pd_vao = 0;
 +
 +/* Renderer A/B adapted from perfect-dark-pc-port/perfect_dark @
@@ -28,17 +25,10 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +    }
 +    return resolved != 0;
 +}
-+
-+/* Shadow only the GL state that matters to the pre-submit hang diagnostic. These assignments do
-+ * not query or alter GL state; they simply preserve the arguments already passing through the
-+ * renderer so GETV_DRAWDIAG can print them without adding synchronous driver calls. */
-+static int ge_drawdiag_depth_test = -1;
-+static int ge_drawdiag_depth_write = -1;
-+static int ge_drawdiag_blend = -1;
-+static int ge_drawdiag_decal = -1;
+@@ -123,0 +146,2 @@
 +static int ge_drawdiag_viewport[4];
 +static int ge_drawdiag_scissor[4];
-@@ -133,2 +167,5 @@
+@@ -143,2 +167,5 @@
 -        glEnableVertexAttribArray(prg->attrib_locations[i]);
 -        glVertexAttribPointer(prg->attrib_locations[i], prg->attrib_sizes[i], GL_FLOAT, GL_FALSE, num_floats * sizeof(float), (void *) (pos * sizeof(float)));
 +        if (prg->attrib_locations[i] >= 0) {
@@ -46,10 +36,10 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +            glVertexAttribPointer(prg->attrib_locations[i], prg->attrib_sizes[i], GL_FLOAT, GL_FALSE,
 +                                  num_floats * sizeof(float), (void *) (pos * sizeof(float)));
 +        }
-@@ -383,0 +421,2 @@
+@@ -393,0 +421,2 @@
 +    append_line(vs_buf, &vs_len, "#define GE_ATTR attribute");
 +    append_line(vs_buf, &vs_len, "#define GE_VARY varying");
-@@ -385 +424,13 @@
+@@ -395 +424,13 @@
 -    append_line(vs_buf, &vs_len, "#version 120");
 +    if (ge_pd_renderer_mode()) {
 +        /* Perfect Dark's backend moved this renderer family onto GLSL 1.30+.
@@ -64,34 +54,34 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +        append_line(vs_buf, &vs_len, "#define GE_ATTR attribute");
 +        append_line(vs_buf, &vs_len, "#define GE_VARY varying");
 +    }
-@@ -387 +438 @@
+@@ -397 +438 @@
 -    append_line(vs_buf, &vs_len, "attribute vec4 aVtxPos;");
 +    append_line(vs_buf, &vs_len, "GE_ATTR vec4 aVtxPos;");
-@@ -389,2 +440,2 @@
+@@ -399,2 +440,2 @@
 -        append_line(vs_buf, &vs_len, "attribute vec2 aTexCoord;");
 -        append_line(vs_buf, &vs_len, "varying vec2 vTexCoord;");
 +        append_line(vs_buf, &vs_len, "GE_ATTR vec2 aTexCoord;");
 +        append_line(vs_buf, &vs_len, "GE_VARY vec2 vTexCoord;");
-@@ -401,2 +452,2 @@
+@@ -411,2 +452,2 @@
 -        append_line(vs_buf, &vs_len, "attribute vec3 aViewPos;");
 -        append_line(vs_buf, &vs_len, "varying vec3 vViewPos;");
 +        append_line(vs_buf, &vs_len, "GE_ATTR vec3 aViewPos;");
 +        append_line(vs_buf, &vs_len, "GE_VARY vec3 vViewPos;");
-@@ -406,2 +457,2 @@
+@@ -416,2 +457,2 @@
 -        append_line(vs_buf, &vs_len, "attribute vec4 aFog;");
 -        append_line(vs_buf, &vs_len, "varying vec4 vFog;");
 +        append_line(vs_buf, &vs_len, "GE_ATTR vec4 aFog;");
 +        append_line(vs_buf, &vs_len, "GE_VARY vec4 vFog;");
-@@ -411,2 +462,2 @@
+@@ -421,2 +462,2 @@
 -        vs_len += sprintf(vs_buf + vs_len, "attribute vec%d aInput%d;\n", opt_alpha ? 4 : 3, i + 1);
 -        vs_len += sprintf(vs_buf + vs_len, "varying vec%d vInput%d;\n", opt_alpha ? 4 : 3, i + 1);
 +        vs_len += sprintf(vs_buf + vs_len, "GE_ATTR vec%d aInput%d;\n", opt_alpha ? 4 : 3, i + 1);
 +        vs_len += sprintf(vs_buf + vs_len, "GE_VARY vec%d vInput%d;\n", opt_alpha ? 4 : 3, i + 1);
-@@ -434,0 +486,3 @@
+@@ -444,0 +486,3 @@
 +    append_line(fs_buf, &fs_len, "#define GE_VARY varying");
 +    append_line(fs_buf, &fs_len, "#define GE_TEXTURE texture2D");
 +    append_line(fs_buf, &fs_len, "#define GE_FRAGCOLOR gl_FragColor");
-@@ -436 +490,12 @@
+@@ -446 +490,12 @@
 -    append_line(fs_buf, &fs_len, "#version 120");
 +    if (ge_pd_renderer_mode()) {
 +        append_line(fs_buf, &fs_len, "#version 130");
@@ -105,49 +95,49 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +        append_line(fs_buf, &fs_len, "#define GE_TEXTURE texture2D");
 +        append_line(fs_buf, &fs_len, "#define GE_FRAGCOLOR gl_FragColor");
 +    }
-@@ -440 +505 @@
+@@ -450 +505 @@
 -        append_line(fs_buf, &fs_len, "varying vec2 vTexCoord;");
 +        append_line(fs_buf, &fs_len, "GE_VARY vec2 vTexCoord;");
-@@ -443 +508 @@
+@@ -453 +508 @@
 -        append_line(fs_buf, &fs_len, "varying vec4 vFog;");
 +        append_line(fs_buf, &fs_len, "GE_VARY vec4 vFog;");
-@@ -446 +511 @@
+@@ -456 +511 @@
 -        fs_len += sprintf(fs_buf + fs_len, "varying vec%d vInput%d;\n", opt_alpha ? 4 : 3, i + 1);
 +        fs_len += sprintf(fs_buf + fs_len, "GE_VARY vec%d vInput%d;\n", opt_alpha ? 4 : 3, i + 1);
-@@ -487 +552 @@
+@@ -497 +552 @@
 -            append_line(fs_buf, &fs_len, "#define TEX_OFFSET(off) texture2D(tex, texCoord - (off)/texSize)");
 +            append_line(fs_buf, &fs_len, "#define TEX_OFFSET(off) GE_TEXTURE(tex, texCoord - (off)/texSize)");
-@@ -500 +565 @@
+@@ -510 +565 @@
 -            append_line(fs_buf, &fs_len, "return texture2D(tex, uv);");
 +            append_line(fs_buf, &fs_len, "return GE_TEXTURE(tex, uv);");
-@@ -504 +569 @@
+@@ -514 +569 @@
 -            append_line(fs_buf, &fs_len, "return texture2D(tex, uv);");
 +            append_line(fs_buf, &fs_len, "return GE_TEXTURE(tex, uv);");
-@@ -533 +598 @@
+@@ -543 +598 @@
 -        append_line(fs_buf, &fs_len, "float parallaxHeight = texture2D(uTexHeight, vTexCoord).r - 0.5;");
 +        append_line(fs_buf, &fs_len, "float parallaxHeight = GE_TEXTURE(uTexHeight, vTexCoord).r - 0.5;");
-@@ -586 +651 @@
+@@ -596 +651 @@
 -        append_line(fs_buf, &fs_len, "gl_FragColor = texel;");
 +        append_line(fs_buf, &fs_len, "GE_FRAGCOLOR = texel;");
-@@ -588 +653 @@
+@@ -598 +653 @@
 -        append_line(fs_buf, &fs_len, "gl_FragColor = vec4(texel, 1.0);");
 +        append_line(fs_buf, &fs_len, "GE_FRAGCOLOR = vec4(texel, 1.0);");
-@@ -596 +661 @@
+@@ -606 +661 @@
 -            append_line(fs_buf, &fs_len, "gl_FragColor = vec4(texVal0.rgb, 1.0);");
 +            append_line(fs_buf, &fs_len, "GE_FRAGCOLOR = vec4(texVal0.rgb, 1.0);");
-@@ -598 +663 @@
+@@ -608 +663 @@
 -            append_line(fs_buf, &fs_len, "gl_FragColor = vec4(vInput1.rgb, 1.0);");
 +            append_line(fs_buf, &fs_len, "GE_FRAGCOLOR = vec4(vInput1.rgb, 1.0);");
-@@ -702,0 +768,3 @@
+@@ -712,0 +768,3 @@
 +    geGpuFlightRecordShader(shader_id, shader_program,
 +                            vs_buf, vs_len, fs_buf, fs_len);
 +
-@@ -758,0 +827,4 @@
+@@ -768,0 +827,4 @@
 +    tex_cache[num_textures].content_hash = 0;
 +    tex_cache[num_textures].height_hash = 0;
 +    tex_cache[num_textures].wrap_s = 0;
 +    tex_cache[num_textures].wrap_t = 0;
-@@ -795 +867,7 @@
+@@ -805 +867,7 @@
 -    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba32_buf);
 +    if (geGpuFlightIsEnabled() && rgba32_buf != NULL && width > 0 && height > 0 &&
 +        (size_t)width <= SIZE_MAX / (size_t)height / 4u) {
@@ -156,45 +146,36 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +    }
 +    glTexImage2D(GL_TEXTURE_2D, 0, ge_pd_renderer_mode() ? GL_RGBA8 : GL_RGBA,
 +                 width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba32_buf);
-@@ -844,0 +923,5 @@
+@@ -854,0 +923,5 @@
 +    if (geGpuFlightIsEnabled() && rgba32_buf != NULL && width > 0 && height > 0 &&
 +        (size_t)width <= SIZE_MAX / (size_t)height / 4u) {
 +        t->height_hash = geGpuFlightHashBytes(
 +            rgba32_buf, (size_t)width * (size_t)height * 4u);
 +    }
-@@ -859,0 +943 @@
+@@ -869,0 +943 @@
 +    opengl_tex[opengl_curtex]->height_hash = 0;
-@@ -909,0 +994,2 @@
+@@ -919,0 +994,2 @@
 +    const GLenum wrap_s = gfx_cm_to_opengl(cms);
 +    const GLenum wrap_t = gfx_cm_to_opengl(cmt);
-@@ -926,2 +1012,2 @@
+@@ -936,2 +1012,2 @@
 -    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gfx_cm_to_opengl(cms));
 -    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gfx_cm_to_opengl(cmt));
 +    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
 +    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
-@@ -930,0 +1017,2 @@
+@@ -940,0 +1017,2 @@
 +        opengl_tex[tile]->wrap_s = (int)wrap_s;
 +        opengl_tex[tile]->wrap_t = (int)wrap_t;
-@@ -935,0 +1024 @@
-+    ge_drawdiag_depth_test = depth_test ? 1 : 0;
-@@ -943,0 +1033 @@
-+    ge_drawdiag_depth_write = z_upd ? 1 : 0;
-@@ -947,0 +1038 @@
-+    ge_drawdiag_decal = zmode_decal ? 1 : 0;
-@@ -962,0 +1054,4 @@
+@@ -975,0 +1054,4 @@
 +    ge_drawdiag_viewport[0] = x;
 +    ge_drawdiag_viewport[1] = y;
 +    ge_drawdiag_viewport[2] = width;
 +    ge_drawdiag_viewport[3] = height;
-@@ -966,0 +1062,4 @@
+@@ -979,0 +1062,4 @@
 +    ge_drawdiag_scissor[0] = x;
 +    ge_drawdiag_scissor[1] = y;
 +    ge_drawdiag_scissor[2] = width;
 +    ge_drawdiag_scissor[3] = height;
-@@ -970,0 +1070 @@
-+    ge_drawdiag_blend = use_alpha ? 1 : 0;
-@@ -978,0 +1079,11 @@
-+    int drawdiag_selected = 0;
+@@ -993,0 +1080,9 @@
 +    const int flight_enabled = geGpuFlightIsEnabled();
 +    const int drawdiag_enabled = geDrawDiagIsEnabled();
 +    const int funflight_enabled = geFunctionFlightIsEnabled();
@@ -204,11 +185,10 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_OPENGL_DRAW_TRIANGLES,
 +                          GE_FUNFLIGHT_PHASE_ENTER, (uintptr_t)buf_vbo,
 +                          buf_vbo_len, buf_vbo_num_tris, 0);
-+
-@@ -979,0 +1091,97 @@
+@@ -996 +1091 @@
+-    if (geDrawDiagIsEnabled()) {
 +    if (drawdiag_enabled || flight_enabled || funflight_enabled) {
-+        struct GeDrawDiagState state;
-+        int tile;
+@@ -998,0 +1094,8 @@
 +        uintptr_t gfx_w0 = 0;
 +        uintptr_t gfx_w1 = 0;
 +        uintptr_t gfx_cmd_ptr = 0;
@@ -217,36 +197,9 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +        uint32_t gfx_dl_stack_base_depth = 0;
 +        uint32_t gfx_dl_stack_count = 0;
 +        struct GeGdlSourceInfo gfx_source;
-+
-+        memset(&state, 0, sizeof(state));
+@@ -1000,0 +1104 @@
 +        memset(&gfx_source, 0, sizeof(gfx_source));
-+        state.texture_id[0] = -1;
-+        state.texture_id[1] = -1;
-+        state.depth_test = ge_drawdiag_depth_test;
-+        state.depth_write = ge_drawdiag_depth_write;
-+        state.blend = ge_drawdiag_blend;
-+        state.decal = ge_drawdiag_decal;
-+
-+        if (opengl_prg != NULL) {
-+            state.shader_id = opengl_prg->shader_id;
-+            state.program_id = opengl_prg->opengl_program_id;
-+            state.stride_floats = opengl_prg->num_floats;
-+            state.num_attribs = opengl_prg->num_attribs;
-+            state.used_texture[0] = opengl_prg->used_textures[0] ? 1 : 0;
-+            state.used_texture[1] = opengl_prg->used_textures[1] ? 1 : 0;
-+        }
-+
-+        for (tile = 0; tile < 2; tile++) {
-+            if (opengl_tex[tile] != NULL && tex_cache != NULL) {
-+                const ptrdiff_t id = opengl_tex[tile] - tex_cache;
-+                if (id >= 0 && id < num_textures) {
-+                    state.texture_id[tile] = (int)id;
-+                }
-+                state.texture_gl_id[tile] = opengl_tex[tile]->gltex;
-+                state.texture_width[tile] = (int)opengl_tex[tile]->size[0];
-+                state.texture_height[tile] = (int)opengl_tex[tile]->size[1];
-+                state.texture_filter[tile] = opengl_tex[tile]->filter ? 1 : 0;
-+                state.texture_has_height[tile] = opengl_tex[tile]->has_height ? 1 : 0;
+@@ -1027,0 +1132,38 @@
 +                state.texture_hash[tile] = opengl_tex[tile]->content_hash;
 +                state.height_hash[tile] = opengl_tex[tile]->height_hash;
 +                state.texture_wrap_s[tile] = opengl_tex[tile]->wrap_s;
@@ -285,11 +238,13 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +                geGpuFlightSetGlInfo((const char *)glGetString(GL_VENDOR),
 +                                     (const char *)glGetString(GL_RENDERER),
 +                                     (const char *)glGetString(GL_VERSION));
-+            }
+@@ -1028,0 +1171,2 @@
 +            gpu_serial = geGpuFlightRecordDraw(frame_count, buf_vbo, buf_vbo_len,
 +                                               buf_vbo_num_tris, &state);
-+        }
-+
+@@ -1031,3 +1175,9 @@
+-        geDrawDiagBeforeSubmit((unsigned long)frame_count, buf_vbo, buf_vbo_len,
+-                               buf_vbo_num_tris, &state);
+-        drawdiag_selected = geDrawDiagLastSelected();
 +        geFunctionFlightLinkGpu(gpu_serial, (uint32_t)frame_count,
 +                                state.shader_id, state.program_id,
 +                                buf_vbo_len, buf_vbo_num_tris);
@@ -299,34 +254,24 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +                                   buf_vbo_num_tris, &state);
 +            drawdiag_selected = geDrawDiagLastSelected();
 +        }
-+    }
+@@ -1034,0 +1185,3 @@
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GL_BUFFER_DATA, GE_FUNFLIGHT_PHASE_BEFORE,
 +                          (uintptr_t)buf_vbo, sizeof(float) * buf_vbo_len,
 +                          (uint64_t)opengl_vbo, GL_STREAM_DRAW);
-@@ -980,0 +1189,5 @@
+@@ -1035,0 +1189,5 @@
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GL_BUFFER_DATA, GE_FUNFLIGHT_PHASE_AFTER,
 +                          (uintptr_t)buf_vbo, sizeof(float) * buf_vbo_len,
 +                          (uint64_t)opengl_vbo, GL_STREAM_DRAW);
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GL_DRAW_ARRAYS, GE_FUNFLIGHT_PHASE_BEFORE,
 +                          0, GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
-@@ -981,0 +1195,16 @@
+@@ -1036,0 +1195,2 @@
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GL_DRAW_ARRAYS, GE_FUNFLIGHT_PHASE_AFTER,
 +                          0, GL_TRIANGLES, 0, 3 * buf_vbo_num_tris);
-+
-+    /* Attribution diagnostic only. The existing draw filter decides which submission is
-+     * selected; when GETV_DRAWDIAG_SYNC=1, synchronise immediately after that selected draw.
-+     * A GPU hang therefore leaves the just-printed drawdiag line as the exact selected draw
-+     * whose completion we were waiting for (or the first selected sync point after prior work).
-+     * Normal rendering never executes this glFinish(). */
-+    if (drawdiag_selected && gePortDrawSyncEnabled()) {
-+        gePortStallGfxPhase(11);
-+        glFinish();
-+        gePortStallGfxPhase(3);
-+    }
+@@ -1047,0 +1208,3 @@
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_OPENGL_DRAW_TRIANGLES,
 +                          GE_FUNFLIGHT_PHASE_EXIT, (uintptr_t)buf_vbo,
 +                          buf_vbo_len, buf_vbo_num_tris, gpu_serial);
-@@ -1478,0 +1708,10 @@
+@@ -1544,0 +1708,10 @@
 +    if (ge_pd_renderer_mode()) {
 +        if (is_es || vmajor < 3) {
 +            sys_fatal("GETV_PD_RENDERER=1 requires desktop OpenGL 3.x+. Reported: %s%d.%d",
@@ -337,7 +282,7 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +        fflush(stdout);
 +    }
 +
-@@ -1481,0 +1721,7 @@
+@@ -1547,0 +1721,7 @@
 +
 +#ifndef USE_GLES
 +    if (ge_pd_renderer_mode()) {
@@ -345,27 +290,25 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_opengl.c b/getv/port/fast3d/gfx_opengl.c
 +        glBindVertexArray(ge_pd_vao);
 +    }
 +#endif
-@@ -1790,0 +2037,6 @@
+@@ -1856,0 +2037,6 @@
 +
 +    /* Perfect Dark's backend explicitly glFlush()es at end_frame. Keep this behind the
 +     * renderer A/B gate so the control path remains byte-for-byte behaviorally unchanged. */
 +    if (ge_pd_renderer_mode()) {
 +        glFlush();
 +    }
-@@ -1796,0 +2049,6 @@
+@@ -1862,0 +2049,6 @@
 +#ifndef USE_GLES
 +    if (ge_pd_vao != 0) {
 +        glDeleteVertexArrays(1, &ge_pd_vao);
 +        ge_pd_vao = 0;
 +    }
 +#endif
-diff -ruN -u0 a/getv/port/fast3d/gfx_pc.c b/getv/port/fast3d/gfx_pc.c
---- a/getv/port/fast3d/gfx_pc.c	2026-10-04 00:10:57.507185687 +0000
-+++ b/getv/port/fast3d/gfx_pc.c	2026-10-04 00:10:57.508185701 +0000
-@@ -33,0 +34,2 @@
+--- a/getv/port/fast3d/gfx_pc.c
++++ b/getv/port/fast3d/gfx_pc.c
+@@ -33,0 +34 @@
 +#include "../src/ge_function_flight.h"
-+#include "../src/ge_stall_watchdog.h"
-@@ -458,0 +461,10 @@
+@@ -459,0 +461,10 @@
 +#define GE_DL_MAX_DEPTH 64
 +static int ge_dl_depth;
 +static int ge_stall_gfx_cmd_progress;
@@ -376,7 +319,7 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_pc.c b/getv/port/fast3d/gfx_pc.c
 + * triangle batch. The implementation lives below the command-trace helpers so the
 + * opt-in dump can include the same bounded history used by crash diagnostics. */
 +static void gfx_flush_reason(const char *reason);
-@@ -484,0 +497,7 @@
+@@ -485,0 +497,7 @@
 +        int ge_funflight_owns_batch = 0;
 +        if (geFunctionFlightIsEnabled() && geFunctionFlightCurrentBatch() == 0) {
 +            geFunctionFlightBeginBatch("direct", buf_vbo_len, buf_vbo_num_tris);
@@ -384,13 +327,13 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_pc.c b/getv/port/fast3d/gfx_pc.c
 +        }
 +        geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_FLUSH, GE_FUNFLIGHT_PHASE_ENTER,
 +                              0, buf_vbo_len, buf_vbo_num_tris, 0);
-@@ -490,0 +510,5 @@
+@@ -491,0 +510,5 @@
 +        geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_FLUSH, GE_FUNFLIGHT_PHASE_EXIT,
 +                              0, buf_vbo_len, buf_vbo_num_tris, 0);
 +        if (ge_funflight_owns_batch) {
 +            geFunctionFlightEndBatch();
 +        }
-@@ -627,0 +652,7 @@
+@@ -628,0 +652,7 @@
 +            /* dynAllocate() reuses two frame-local buffers. A texture generated there can have
 +             * the same address as a previous frame while carrying different pixels (the
 +             * gunbarrel blood wipe is one such texture). Keep the cached GPU object, but force
@@ -398,43 +341,43 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_pc.c b/getv/port/fast3d/gfx_pc.c
 +            if (gePortTextureSourceIsTransient(orig_addr)) {
 +                return false;
 +            }
-@@ -2779,0 +2811,2 @@
+@@ -2780,0 +2811,2 @@
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_SP_TRI1, GE_FUNFLIGHT_PHASE_CALL,
 +                          0, vtx1_idx, vtx2_idx, vtx3_idx);
-@@ -2992 +3025 @@
+@@ -2993 +3025 @@
 -        gfx_flush();
 +        gfx_flush_reason("depth_test");
-@@ -2999 +3032 @@
+@@ -3000 +3032 @@
 -        gfx_flush();
 +        gfx_flush_reason("depth_write");
-@@ -3006 +3039 @@
+@@ -3007 +3039 @@
 -        gfx_flush();
 +        gfx_flush_reason("decal");
-@@ -3018 +3051 @@
+@@ -3019 +3051 @@
 -        gfx_flush();
 +        gfx_flush_reason("cloud");
-@@ -3025 +3058 @@
+@@ -3026 +3058 @@
 -            gfx_flush();
 +            gfx_flush_reason("viewport");
-@@ -3030 +3063 @@
+@@ -3031 +3063 @@
 -            gfx_flush();
 +            gfx_flush_reason("scissor");
-@@ -3188 +3221 @@
+@@ -3189 +3221 @@
 -        gfx_flush();
 +        gfx_flush_reason("shader");
-@@ -3195 +3228 @@
+@@ -3196 +3228 @@
 -        gfx_flush();
 +        gfx_flush_reason("alpha_blend");
-@@ -3213 +3246 @@
+@@ -3214 +3246 @@
 -                gfx_flush();
 +                gfx_flush_reason(i == 0 ? "texture_import0" : "texture_import1");
-@@ -3302 +3335 @@
+@@ -3303 +3335 @@
 -                gfx_flush();
 +                gfx_flush_reason(i == 0 ? "sampler0" : "sampler1");
-@@ -3782 +3815 @@
+@@ -3783 +3815 @@
 -        gfx_flush();
 +        gfx_flush_reason("batch_full");
-@@ -5274,0 +5308,54 @@
+@@ -5275,0 +5308,54 @@
 +void gfx_get_flight_command_context(int *progress, int *depth, uint32_t *opcode,
 +                                    uintptr_t *w0, uintptr_t *w1,
 +                                    uintptr_t *cmd_ptr,
@@ -489,10 +432,11 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_pc.c b/getv/port/fast3d/gfx_pc.c
 +    if (cmd_ptr != NULL) *cmd_ptr = (uintptr_t)e->cmd;
 +}
 +
-@@ -5338,3 +5425,112 @@
+@@ -5339,4 +5425,112 @@
 -/* Ten is what the RSP has; this is a deliberate superset so nothing legitimate is cut. */
 -#define GE_DL_MAX_DEPTH 64
 -static int ge_dl_depth;
+-static int ge_stall_gfx_cmd_progress;
 +/* GETV_GFXBOUNDARY_CMD=N -- 0053 renderer state-boundary diagnostic.
 + *
 + * 0052 repeatedly found the Control GPU hang while the frontend was still inside the
@@ -605,65 +549,51 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_pc.c b/getv/port/fast3d/gfx_pc.c
 +        geFunctionFlightEndBatch();
 +    }
 +}
-@@ -5342,0 +5539,2 @@
+@@ -5344,0 +5539,2 @@
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_RUN_DL, GE_FUNFLIGHT_PHASE_ENTER,
 +                          (uintptr_t)cmd, (uint64_t)ge_dl_depth, 0, 0);
-@@ -5354,0 +5553,3 @@
-+        gePortStallGfxCommand((int)opcode, ge_dl_depth, ++ge_stall_gfx_cmd_progress);
+@@ -5357,0 +5554,2 @@
 +        geFunctionFlightSetCommandContext(ge_stall_gfx_cmd_progress, ge_dl_depth,
 +                                          opcode, (uintptr_t)cmd);
-@@ -5444,0 +5646,3 @@
+@@ -5447,0 +5646,3 @@
 +                        geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_RUN_DL,
 +                                              GE_FUNFLIGHT_PHASE_EXIT,
 +                                              (uintptr_t)cmd, (uint64_t)ge_dl_depth, 1, 0);
-@@ -5464,0 +5669,4 @@
+@@ -5467,0 +5669,4 @@
 +                    if (ge_dl_depth < GE_DL_MAX_DEPTH) {
 +                        ge_dl_stack[ge_dl_depth] = target;
 +                        ge_dl_callsite[ge_dl_depth] = cmd;
 +                    }
-@@ -5465,0 +5674,4 @@
+@@ -5468,0 +5674,4 @@
 +                    if (ge_dl_depth < GE_DL_MAX_DEPTH) {
 +                        ge_dl_stack[ge_dl_depth] = NULL;
 +                        ge_dl_callsite[ge_dl_depth] = NULL;
 +                    }
-@@ -5468,0 +5681,4 @@
+@@ -5471,0 +5681,4 @@
 +                    if (ge_dl_depth >= 0 && ge_dl_depth < GE_DL_MAX_DEPTH) {
 +                        ge_dl_stack[ge_dl_depth] = target;
 +                        ge_dl_callsite[ge_dl_depth] = cmd;
 +                    }
-@@ -5475,0 +5692,3 @@
+@@ -5478,0 +5692,3 @@
 +                geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_RUN_DL,
 +                                      GE_FUNFLIGHT_PHASE_EXIT,
 +                                      (uintptr_t)cmd, (uint64_t)ge_dl_depth, 0, 0);
-@@ -5846,0 +6066,3 @@
+@@ -5849,0 +6066,3 @@
 +    geFunctionFlightSetFrame((uint32_t)ge_bt_frame);
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_RUN, GE_FUNFLIGHT_PHASE_ENTER,
 +                          (uintptr_t)commands, 0, 0, 0);
-@@ -5850,0 +6073 @@
-+    gePortStallGfxPhase(1);
-@@ -5852,0 +6076,2 @@
+@@ -5856,0 +6076,2 @@
 +        geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_RUN, GE_FUNFLIGHT_PHASE_EXIT,
 +                              (uintptr_t)commands, 1, 0, 0);
-@@ -5858,0 +6084 @@
-+    gePortStallGfxPhase(2);
-@@ -5860,0 +6087,5 @@
-+    ge_stall_gfx_cmd_progress = 0;
+@@ -5866,0 +6088,3 @@
 +    memset(ge_dl_stack, 0, sizeof(ge_dl_stack));
 +    memset(ge_dl_callsite, 0, sizeof(ge_dl_callsite));
 +    ge_dl_stack[0] = commands;
-+    gePortStallGfxPhase(3);
-@@ -5861,0 +6093 @@
-+    gePortStallGfxPhase(4);
-@@ -5865,0 +6098 @@
-+    gePortStallGfxPhase(5);
-@@ -5866,0 +6100 @@
-+    gePortStallGfxPhase(6);
-@@ -5867,0 +6102,2 @@
+@@ -5877,0 +6102,2 @@
 +    geFunctionFlightEvent(GE_FUNFLIGHT_FUNC_GFX_RUN, GE_FUNFLIGHT_PHASE_EXIT,
 +                          (uintptr_t)commands, 0, 0, 0);
-diff -ruN -u0 a/getv/port/fast3d/gfx_pc.h b/getv/port/fast3d/gfx_pc.h
---- a/getv/port/fast3d/gfx_pc.h	2026-10-04 00:10:57.509185716 +0000
-+++ b/getv/port/fast3d/gfx_pc.h	2026-10-04 00:10:57.510185730 +0000
+--- a/getv/port/fast3d/gfx_pc.h
++++ b/getv/port/fast3d/gfx_pc.h
 @@ -3,0 +4,2 @@
 +#include <stdint.h>
 +
@@ -675,12 +605,9 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_pc.h b/getv/port/fast3d/gfx_pc.h
 +                                    uintptr_t *dl_stack, uintptr_t *dl_callsite,
 +                                    uint32_t dl_stack_cap,
 +                                    uint32_t *dl_stack_count);
-diff -ruN -u0 a/getv/port/fast3d/gfx_sdl2.c b/getv/port/fast3d/gfx_sdl2.c
---- a/getv/port/fast3d/gfx_sdl2.c	2026-10-04 00:10:57.511185745 +0000
-+++ b/getv/port/fast3d/gfx_sdl2.c	2026-10-04 00:10:57.512185759 +0000
-@@ -61,0 +62 @@
-+#include "../src/ge_stall_watchdog.h"
-@@ -256,0 +258,22 @@
+--- a/getv/port/fast3d/gfx_sdl2.c
++++ b/getv/port/fast3d/gfx_sdl2.c
+@@ -257,0 +258,22 @@
 +#ifdef GE_PLATFORM_DESKTOP
 +    /* GETV_PD_RENDERER=1: controlled Perfect Dark renderer A/B.
 +     *
@@ -703,26 +630,3 @@ diff -ruN -u0 a/getv/port/fast3d/gfx_sdl2.c b/getv/port/fast3d/gfx_sdl2.c
 +    }
 +#endif
 +
-@@ -632,0 +656 @@
-+    gePortStallGfxPhase(7);
-@@ -633,0 +658 @@
-+    gePortStallGfxPhase(9);
-@@ -634,0 +660 @@
-+    gePortStallGfxPhase(10);
-@@ -639,0 +666 @@
-+    gePortStallGfxPhase(7);
-@@ -641,0 +669,10 @@
-+    /* Diagnostic only: when explicitly requested, force all previously submitted GL
-+     * work to complete before presentation. If a long watchdog stall moves here from
-+     * SDL_GL_SwapWindow(), the swap was merely the first implicit GPU synchronisation
-+     * point; if this returns promptly and present still stalls, the block is genuinely
-+     * in the presentation/driver/compositor path. Normal rendering never calls this. */
-+    if (gePortStallGfxSyncProbeEnabled()) {
-+        gePortStallGfxPhase(8);
-+        glFinish();
-+    }
-+
-@@ -643,0 +681 @@
-+    gePortStallGfxPhase(9);
-@@ -644,0 +683 @@
-+    gePortStallGfxPhase(10);

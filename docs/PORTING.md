@@ -1,5 +1,16 @@
 # Porting this tree to Windows and Linux
 
+> [!IMPORTANT]
+> **Historical August 2026 porting record.** The opening plan below predates the working Linux and
+> Windows builds and predates the current tvOS/iOS bring-up. Statements such as “no Windows machine
+> and no Linux machine has ever compiled this tree,” “tvOS is on hold,” old source counts and old
+> estimates are preserved as engineering history, not current status. Later sections record some
+> of the progress that followed, so this file intentionally contains time-separated viewpoints.
+>
+> For current platform status and build instructions use [`README.md`](../README.md),
+> [`BUILDING.md`](BUILDING.md), [`GETTING_STARTED.md`](GETTING_STARTED.md) and
+> [`ROADMAP.md`](ROADMAP.md).
+
 Status as of 2026-08-22. Written from a macOS host. **No Windows machine and no Linux
 machine has ever compiled this tree**, so nothing below is a claim that anything works
 there. Every item is marked as done, unknown, or known missing, and the estimates are

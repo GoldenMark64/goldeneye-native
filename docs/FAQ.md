@@ -37,7 +37,8 @@ The current desktop targets are macOS, Linux and Windows.
   Ubuntu 24.04 x86-64 / Intel Iris Xe system. Other GPU, driver and distribution combinations are
   not exhaustively certified.
 - **macOS:** builds and plays on Apple silicon and Intel; OpenGL and a native Metal backend exist.
-- **Windows:** builds natively with mingw-w64 and passes the project's self-test, but does not yet
+- **Windows:** builds natively with mingw-w64 and has Windows bring-up/test coverage, but the
+  port-layer suite has grown since the earlier recorded Windows runs and the platform does not yet
   have the same full campaign-certification evidence as the primary Linux system.
 
 tvOS and iOS are bring-up targets. Android has a compiling arm64/GLES port layer but is not yet a

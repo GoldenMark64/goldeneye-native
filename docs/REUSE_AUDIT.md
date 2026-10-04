@@ -1,5 +1,13 @@
 # Reuse audit
 
+> [!IMPORTANT]
+> **Mixed current inventory and dated design audit.** The “Already in the tree” inventory and reuse
+> policy remain useful current references, but much of the adoption analysis below was written
+> during August 2026 exploration. Per-item recommendations and sequencing are historical unless a
+> row explicitly records a later completion. For current feature/platform status use
+> [`README.md`](../README.md), [`ROADMAP.md`](ROADMAP.md), and
+> [`TESTING_1.0.md`](TESTING_1.0.md).
+
 What this project should borrow, what it already borrows, and what it must not touch.
 
 The question worth asking before writing anything is not "what feature next" but "has
@@ -44,7 +52,7 @@ Rare N64 games and still happens to be wrong.
 | Developer/debug UI | **Dear ImGui** | MIT | **In progress.** The console UI is available whenever ImGui is built in; the live performance/debug overlay remains gated behind `GETV_IMGUI` and off by default. The value is a live panel over player, camera, AI, renderer and memory, which this project currently reads through printf and log grepping. |
 | Profiling | **Tracy** | BSD-3-Clause | **Done, 2026-08-26** - fetched, linked, and instrumented at the GL frame boundary (see `docs/THIRD_PARTY.md` §8b). Verified against a real build: graceful degradation without it, real client listening on port 8086 with it. Only the render phase is zoned so far; game tick/audio/AI attribution -- the actual motivating gap -- still needs zones placed in `boss.c`'s frame loop, which was out of scope for this pass (see the netplay writeup in `docs/NETPLAY.md` for why editing that loop is not a small change). |
 | GPU capture | **RenderDoc** | external tool | **Done, 2026-08-26** - see below. |
-| Metal backend | **libultraship** `gfx_metal.cpp` | **MIT (verified 2026-08-24)** | **Yes.** Removes the deprecated-GL risk on Apple platforms. our own audit scopes the adapter at about 8 signature differences; libultraship refactored the same Emill lineage from a C function-pointer struct into a C++ virtual class. |
+| Metal backend | **libultraship** `gfx_metal.cpp` | **MIT (verified 2026-08-24)** | **Done.** A native Metal backend is now present on Apple platforms. The August audit that motivated it is retained below as provenance/design history rather than future work. |
 | Modern renderer for GoldenEye+ | **RT64** | **MIT (verified 2026-08-24)** | **The serious candidate - see below.** |
 | Modern controls reference | GoldenEye digital-controls fork | **unchecked** | Check the licence first. If it is a fork of `n64decomp/007` it inherits that project's terms, which are not permissive by default. |
 
@@ -65,10 +73,11 @@ so it is the one option where that work is genuinely already done. It also ships
 widescreen and **frame interpolation**, and interpolation is exactly the mechanism the
 fixed-tick problem in `VISION.md` needs.
 
-The cost is real and should not be glossed: adopting RT64 replaces the renderer, and the
-current Fast3D + GL path works on macOS and Linux today. So the sequencing is
-**keep Fast3D now, evaluate RT64 when Phase 5 wants shadows, SSAO and HDR** - and evaluate
-it ahead of bgfx, not alongside it.
+The cost is real and should not be glossed: adopting RT64 would replace the renderer. The
+current Fast3D-derived path now supports OpenGL on macOS, Linux and Windows, with a native Metal
+backend on Apple platforms. The August sequencing below is therefore historical planning:
+**keep the working Fast3D path and revisit RT64 only as a deliberate renderer-replacement project**,
+not as a drop-in backend alongside bgfx.
 
 ### Correction, checked 2026-08-26: the cost above understates it
 

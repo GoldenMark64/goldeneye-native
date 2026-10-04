@@ -18,7 +18,7 @@ release from the original upstream maintainer, Nintendo, Rare, MGM or Danjaq.
 - Previously game-breaking native-port defects repaired during the stabilization cycle were
   exercised through campaign play and focused diagnostics/regressions.
 - The final recurring Linux/Intel whole-system GPU stall was isolated from GoldenEye game logic and
-  resolved on the primary Latitude test system by disabling i915 GuC submission.
+  resolved on the primary Ubuntu/i915 test environment by disabling i915 GuC submission.
 
 The certification applies to the tested default 1.0 gameplay path. It does not claim exhaustive
 coverage of every mod, cheat, multiplayer/netplay combination, controller, optional rendering
@@ -62,10 +62,10 @@ pd_renderer = 1
 The normal 1.0 renderer path is unchanged unless explicitly enabled. Provenance is recorded in
 `THIRD_PARTY.md` and the retained MIT notice.
 
-## Intel Iris Xe note
+## Intel/i915 note
 
-On the primary Dell Latitude 5530 test system, recurrent `i915`/render-engine hangs were eliminated
-after booting with:
+On the primary Ubuntu x86-64 Intel/i915 test environment, recurrent render-engine hangs were
+eliminated after booting with:
 
 ```text
 i915.enable_guc=0

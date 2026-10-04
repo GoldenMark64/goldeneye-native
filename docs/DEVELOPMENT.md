@@ -330,6 +330,7 @@ settings and switches to the selected executable only when starting a game.
 
 Run `bash tools/tests/run_renderer_app_tests.sh` on macOS for native app policy, separate-process
 preference persistence, unavailable builds/devices, overrides, handoff and shared-config tests.
-Run `python3 tools/tests/test_macos_launcher_app.py` for portable packaging tests. Native UI,
-both actual game executables and failed-initialization acceptance remain necessary before #52
-closes; Metal qualification and the eventual default flip belong to #53.
+Run `python3 tools/tests/test_macos_launcher_app.py` for portable packaging tests. Native UI
+acceptance, both actual game executables, and failed-initialization behavior still need direct
+validation before the launcher/package work should be considered complete. Metal qualification
+and any future default-renderer change should remain a separate, explicitly validated decision.

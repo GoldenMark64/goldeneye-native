@@ -135,7 +135,7 @@ A bot can operate from simpler sensing/world APIs today; once the live source ad
 `geEnemyThreatAt()` and the belief fields can support more informed retreat, pursuit and
 destination scoring.
 
-See [`BOTS.md`](BOTS.md) and [`ENEMY_API.md`](ENEMY_API.md) consumers as they evolve.
+See [`BOTS.md`](BOTS.md) for the current bot architecture and policy layer.
 
 ## Completion criteria
 

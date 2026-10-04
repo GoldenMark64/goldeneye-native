@@ -86,6 +86,7 @@ def native_compile_command(source: str, output: Path) -> list[str]:
         cc,
         "-fms-extensions",
         "-include", "src/ge_port_decls.h",
+        "-I", str(ROOT / "tools/tests/fixtures"),
         "-I", ".", "-I", "include", "-I", "include/PR",
         "-I", "src", "-I", "src/game", "-I", "src/inflate",
         "-DVERSION_US", "-DLANG_US", "-DREFRESH_NTSC",
@@ -114,13 +115,19 @@ class ReverseAnimationInterpolationNativeTests(unittest.TestCase):
         )
 
         harness = r'''
-#include <math.h>
 #include <stdio.h>
-#include <string.h>
 #include "bondtypes.h"
 
-s32 floorFloatToInt(f32 x) { return (s32)floorf(x); }
-s32 ceilFloatToInt(f32 x) { return (s32)ceilf(x); }
+s32 floorFloatToInt(f32 x)
+{
+    s32 i = (s32)x;
+    return (f32)i > x ? i - 1 : i;
+}
+s32 ceilFloatToInt(f32 x)
+{
+    s32 i = (s32)x;
+    return (f32)i < x ? i + 1 : i;
+}
 s32 modelConstrainOrWrapAnimFrame(s32 frame, ModelAnimation *anim, f32 endframe)
 {
     s32 end = (s32)endframe;
@@ -134,14 +141,17 @@ s32 modelConstrainOrWrapAnimFrame(s32 frame, ModelAnimation *anim, f32 endframe)
 __FUNC1__
 __FUNC2__
 
-static int closef(float a, float b) { return fabsf(a - b) < 0.0001f; }
+static int closef(float a, float b)
+{
+    float d = a - b;
+    if (d < 0.0f) d = -d;
+    return d < 0.0001f;
+}
 
 static int check_primary(float frame, float speed, int a, int b, float frac)
 {
-    ModelAnimation anim;
-    Model model;
-    memset(&anim, 0, sizeof(anim));
-    memset(&model, 0, sizeof(model));
+    ModelAnimation anim = {0};
+    Model model = {0};
     anim.unk04 = 20;
     model.anim = &anim;
     model.endframe = 20.0f;
@@ -155,12 +165,9 @@ static int check_primary(float frame, float speed, int a, int b, float frac)
 
 static int check_secondary(float frame, float speed, int a, int b, float frac)
 {
-    ModelAnimation anim1;
-    ModelAnimation anim2;
-    Model model;
-    memset(&anim1, 0, sizeof(anim1));
-    memset(&anim2, 0, sizeof(anim2));
-    memset(&model, 0, sizeof(model));
+    ModelAnimation anim1 = {0};
+    ModelAnimation anim2 = {0};
+    Model model = {0};
     anim1.unk04 = 20;
     anim2.unk04 = 20;
     model.anim = &anim1;
@@ -205,7 +212,8 @@ int main(void)
                 [
                     compiler(),
                     "-fms-extensions",
-                    "-I", ".", "-I", "include", "-I", "include/PR",
+                    "-I", str(ROOT / "tools/tests/fixtures"),
+        "-I", ".", "-I", "include", "-I", "include/PR",
                     "-I", "src", "-I", "src/game",
                     "-DGE_PORT_NATIVE", "-D_LANGUAGE_C=1",
                     str(cfile), "-lm", "-o", str(exe),

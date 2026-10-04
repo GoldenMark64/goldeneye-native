@@ -35,6 +35,7 @@ def compile_translation_unit(source: str, output: Path) -> subprocess.CompletedP
         cc,
         "-fms-extensions",
         "-include", "src/ge_port_decls.h",
+        "-I", str(ROOT / "tools/tests/fixtures"),
         "-I", ".", "-I", "include", "-I", "include/PR",
         "-I", "src", "-I", "src/game", "-I", "src/inflate",
         "-DVERSION_US", "-DLANG_US", "-DREFRESH_NTSC",

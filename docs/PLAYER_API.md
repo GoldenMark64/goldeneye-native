@@ -1,15 +1,17 @@
 # Player API
 
-**Status: implemented and in active use.**
+**Status: implemented; inherited from the pre-takeover SegfaultEvan development line.**
 
 The native player-input/state seam lives in:
 
 - `getv/port/src/ge_player_api.h`
 - `getv/port/src/ge_player_api.c`
 
-It is used by automation, bots and the experimental netplay path. The earlier version of this
-document was written while the interface was still research/design work; Git history preserves that
-research. This page documents the current implementation.
+It is used by automation, bots and the experimental netplay path. The implementation and its
+original validation were developed in SegfaultEvan's August 2026 history before the GoldenMark64
+1.0 stabilization work. The earlier version of this document was written while the interface was
+still research/design work; Git history preserves that research. This page documents what the
+current tree contains without treating the inherited tests as GoldenMark64 certification.
 
 ## Purpose
 
@@ -144,13 +146,14 @@ should still respect the button limitation above.
 
 ## Co-op status
 
-Older research in this document said co-op players could receive input but did not walk. That is
-obsolete.
+The current source contains the movement-routing changes that superseded the earlier "players do not
+walk" investigation, but that conclusion comes from SegfaultEvan's pre-takeover measurements, not
+from GoldenMark64's 1.0 campaign testing.
 
-[`COOP.md`](COOP.md) records the resolved movement work: co-op reaches first person and both
-players can walk when driven through the correct multi-port test/input path. The player API's
-two-controller movement routing is part of why a slot can now be treated as drivable even under
-the modern 2.x control styles.
+The relevant history includes the August 25 player-API companion-pad routing work and later co-op
+commits documenting first-person transition and measured player movement. [`COOP.md`](COOP.md)
+preserves that evidence. Until GoldenMark64 independently reruns a co-op validation pass, describe
+this as **inherited documented behavior**, not as a newly certified 1.0 result.
 
 ## Consumers
 

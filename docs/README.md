@@ -1,7 +1,8 @@
 # Documentation
 
-Choose the path that matches what you are trying to do. On Windows, use
-[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) to play without development tools. Contributors should
+Choose the path that matches what you are trying to do. On Windows,
+[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) records the no-code setup candidate and its current
+availability; there is not yet an official downloadable Windows setup package. Contributors should
 start with [`BUILDING.md`](BUILDING.md).
 
 ## Play and configure
@@ -9,7 +10,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | Guide | Use it for |
 |---|---|
 | [`GETTING_STARTED.md`](GETTING_STARTED.md) | Install, launch, configure, update, and run a first check on macOS, Linux, or Windows. |
-| [`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) | No-code Windows setup: download, install, play, and report failures safely. |
+| [`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) | Windows no-code setup candidate, current download availability, first run, and safe failure reporting. |
 | [`BUILDING.md`](BUILDING.md) | Developer source builds on Windows, macOS, and Linux. |
 | [`CONTROLS.md`](CONTROLS.md) | Complete keyboard/mouse map, gamepad defaults, rebinding, control styles, and live shortcuts. |
 | [`CONFIGURATION.md`](CONFIGURATION.md) | Full config-file, command-line, environment-gate, and launcher reference. |

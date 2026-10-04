@@ -18,7 +18,7 @@ No ROM or extracted game data is downloaded, bundled, or uploaded by this projec
 ### macOS
 
 1. Put your legally dumped GoldenEye 007 ROM on your **Desktop**. Do not rename it.
-2. On [the project page](https://github.com/seb-patron/goldeneye-native), click the green
+2. On [the project page](https://github.com/GoldenMark64/goldeneye-native), click the green
    **Code** button, then **Download ZIP**. Double-click the downloaded file to unzip it.
 3. Open the folder and double-click **Install on Mac**. If Gatekeeper blocks it, right-click the
    file, choose **Open**, and confirm once.

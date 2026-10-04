@@ -11,7 +11,7 @@ branch, pull request, or build artifact.
 ## Get the source
 
 ```bash
-git clone https://github.com/seb-patron/goldeneye-native.git
+git clone https://github.com/GoldenMark64/goldeneye-native.git
 cd goldeneye-native
 ```
 

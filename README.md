@@ -7,17 +7,18 @@
 > fork preserves the latest publicly available version of upstream `main` from before its
 > deletion, including the complete Git history through commit `47fe1a1`.
 >
-> I am not the original maintainer. This fork is a community continuation, not an official handoff
-> from the original maintainer. The project has now completed its 1.0 stabilization and human
-> campaign-certification pass; development continues here for optional features, portability and
-> any new defects that are reported.
+> I am not the original maintainer. This repository is the public home of GoldenMark64's
+> community continuation: a stable, playable GoldenEye Native build developed and campaign-tested
+> primarily on Linux, with native-port fixes, widescreen support, and source-only local builds.
+> The project has completed its 1.0 stabilization and human campaign-certification pass; development
+> continues here for optional features, portability, and any new defects that are reported.
 >
 > Development continues on this fork. Reviewed fixes are merged into a stable, playable `main`
 > one at a time and recorded in the [`PATCH_QUEUE.md`](PATCH_QUEUE.md) so they can be offered back
 > individually if the original upstream returns. See the
 > [community maintenance workflow](docs/MAINTAINING.md) for the branch and replay process.
 >
-> Found a problem? [Open a guided bug report](https://github.com/seb-patron/goldeneye-native/issues/new/choose).
+> Found a problem? [Open a guided bug report](https://github.com/GoldenMark64/goldeneye-native/issues/new/choose).
 > Community patches are welcome.
 
 **GoldenEye 007, compiled as a native application for macOS, Linux and Windows.** Mouse and
@@ -71,7 +72,7 @@ submission on the affected Latitude (`i915.enable_guc=0`). See
 
 **1.** Get your own GoldenEye 007 ROM and leave it on your **Desktop**. Do not rename it.
 
-**2.** On [the project page](https://github.com/seb-patron/goldeneye-native), click the green
+**2.** On [the project page](https://github.com/GoldenMark64/goldeneye-native), click the green
 **Code** button, then **Download ZIP**. Double-click the downloaded file to unzip it.
 
 **3.** Open the folder that appears and **double-click `Install on Mac`**.
@@ -341,7 +342,7 @@ bash getv/port/tests/run_tests.sh
 ```
 
 **Reporting a problem.** Use the
-[guided issue forms](https://github.com/seb-patron/goldeneye-native/issues/new/choose) and include
+[guided issue forms](https://github.com/GoldenMark64/goldeneye-native/issues/new/choose) and include
 your exact commit, platform, the four build counts the installer printed, and the first meaningful
 error. Never attach a ROM, a save, or anything extracted from one; issues containing game data get
 closed without being read.
@@ -502,7 +503,7 @@ notes remain in [`docs/SETUP.md`](docs/SETUP.md).
 
 Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first. The short version: say what you measured, run
 the self-test, and run `tools/check_patches.sh` if you touched anything in `getv/patches/`. File
-one problem per [issue](https://github.com/seb-patron/goldeneye-native/issues/new/choose) and keep
+one problem per [issue](https://github.com/GoldenMark64/goldeneye-native/issues/new/choose) and keep
 each pull request to one logical fix so it remains reviewable and independently replayable.
 
 Agent-assisted contributions are welcome. [`docs/AGENTIC_CONTRIBUTING.md`](docs/AGENTIC_CONTRIBUTING.md)

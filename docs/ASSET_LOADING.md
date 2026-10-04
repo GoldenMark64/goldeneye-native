@@ -1,5 +1,17 @@
 # Level asset loading - map, holes, and plan
 
+> [!IMPORTANT]
+> **Historical bring-up investigation.** This document records an early asset-loading analysis from
+> before the current playable/campaign-certified 1.0 tree. Its statements about non-compiling
+> translation units, unlinked backgrounds, live loader holes, build failures and work still to do
+> describe the tree examined at that time; they are **not current project status or build
+> instructions**. The forensic reasoning is retained because it documents how several native
+> layout/asset problems were understood.
+>
+> For current status use [`README.md`](../README.md), [`ROADMAP.md`](ROADMAP.md),
+> [`BUILDING.md`](BUILDING.md) and [`TESTING_1.0.md`](TESTING_1.0.md). Current source and
+> scripts win if they disagree with anything below.
+
 This is a map of the level-load path and the plan for finishing it, not a changelog - nothing
 described here has been applied to the tree yet. All paths are relative to the repo root unless
 absolute.

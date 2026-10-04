@@ -1,11 +1,16 @@
 # Vision
 
-Where this could go, and what it would cost. `ROADMAP.md` is the short list of what is
-being worked on now; this is the long arc behind it.
+This is the project's long-form design document: where GoldenEye Native could go and what those
+directions cost.
 
-Everything here is scored against what the tree actually does today, because a plan that
-does not distinguish shipped work from intention stops being useful about a week in. Three
-labels are used, and nothing is promoted without a measurement:
+> **Status note (October 4, 2026):** many feature-status tables below were written before the 1.0
+> stabilization/campaign-certification cycle and are preserved for design history. They are **not
+> authoritative current status**. Use [`ROADMAP.md`](ROADMAP.md) for current priorities,
+> [`README.md`](../README.md) for current user-visible feature state, and
+> [`TESTING_1.0.md`](TESTING_1.0.md) for certification scope.
+
+The DONE/PARTIAL/OPEN labels below describe the project state when each section was authored unless
+a section explicitly says otherwise:
 
 - **DONE** - implemented and verified. The verification is named.
 - **PARTIAL** - real code exists and does something, with a stated gap.

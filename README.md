@@ -62,11 +62,11 @@ game-breaking bugs remaining in the tested retail campaign path**. This is a sta
 tested 1.0 configuration, not a claim that every optional mod, graphics setting, controller or GPU
 driver combination is exhaustively certified.
 
-The final Linux stability blocker was an Intel Iris Xe / i915 whole-desktop GPU hang. A dedicated
+The final Linux stability blocker was an Intel/i915 whole-desktop GPU hang. A dedicated
 GPU/function-flight forensic subsystem was built to correlate GoldenEye display-list work with
 Mesa/i915 command batches while the machine was wedged. The captured renderer calls returned
-normally; the GPU failure occurred asynchronously and was recovered by disabling i915 GuC
-submission on the affected Latitude (`i915.enable_guc=0`). See
+normally; the GPU failure occurred asynchronously and was recovered on the affected test system by
+disabling i915 GuC submission (`i915.enable_guc=0`). See
 [`docs/RENDERER_TROUBLESHOOTING.md`](docs/RENDERER_TROUBLESHOOTING.md) and
 [`docs/TESTING_1.0.md`](docs/TESTING_1.0.md).
 
@@ -427,7 +427,7 @@ Written plainly, because a README that oversells is worse than one that undersel
   causes have been found and fixed and neither was sufficient. Treat LAN play as something to
   experiment with, not to plan an evening around. [`docs/NETPLAY.md`](docs/NETPLAY.md)
 - **Linux certification is hardware-specific.** The complete 1.0 campaign was certified on the
-  primary Ubuntu 24.04 / Intel Iris Xe test system with `i915.enable_guc=0`; other Linux
+  primary Ubuntu 24.04 x86-64 Intel/i915 test environment with `i915.enable_guc=0`; other Linux
   distributions, GPUs and driver combinations are not exhaustively certified.
 - **Windows is unplayed too.** It builds and boots, and the settings have been measured there
   rather than assumed: field of view, crosshair scale, the CRT filter and HD texture packs all
@@ -438,8 +438,9 @@ Written plainly, because a README that oversells is worse than one that undersel
   correctly on the file-select screen, so the decode path is sound and the fault is elsewhere.
 - **Select File draws a flat black background** where the original has a faint watermark.
 - **Some multiplayer edge cases** are unenforced on the headless path, including score caps.
-- **tvOS, iOS and Android are bring-up**, not products. tvOS and iOS build and deploy; Android
-  has a port layer that compiles for arm64 GLES and touch controls, and has not been run.
+- **tvOS, iOS and Android are bring-up**, not products. tvOS builds and deploys to configured
+  hardware; iOS builds and has a device-deploy path that requires explicit pairing/selection.
+  Android has a port layer that compiles for arm64 GLES and touch controls, and has not been run.
 
 [`docs/ROADMAP.md`](docs/ROADMAP.md) carries the full list and what is planned.
 

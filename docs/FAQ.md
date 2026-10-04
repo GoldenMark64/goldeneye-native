@@ -4,6 +4,11 @@ These answers describe the current GoldenEye Native 1.0 line. For exact certific
 [`TESTING_1.0.md`](TESTING_1.0.md); for known limitations and current feature status, see the
 [front page](../README.md).
 
+Some optional systems predate the GoldenMark64 1.0 stabilization work. In particular, the co-op
+and netplay status below is inherited from SegfaultEvan's August 2026 commits and measurements.
+Those results are preserved as project history but were **not independently re-certified by the
+GoldenMark64 1.0 campaign pass**.
+
 ## Is this an emulator?
 
 No. An emulator runs the retail N64 program by emulating the original hardware. GoldenEye Native
@@ -123,24 +128,29 @@ characters, scenarios and multiplayer arenas.
 
 ## Is LAN multiplayer finished?
 
-No. It is **beta/experimental**.
+No. It is **beta/experimental**, and the current status is inherited rather than newly certified.
 
-The current network path can open a real UDP session, complete the handshake, exchange synchronized
-input and run the integrated game-loop path. The remaining problem is correctness: repeated trials
-can desynchronize even with identical inputs, seed and pinned simulation step.
+SegfaultEvan's pre-takeover work wired the network path into the boot/tick loop and documented real
+UDP peer sessions exchanging synchronized input. The same work also documented repeated simulation
+desynchronization even after several obvious causes were controlled.
 
-So the accurate status is **connected and running, but not reliable enough to call finished**.
+GoldenMark64's 1.0 campaign-certification work did not independently repeat those LAN trials, so the
+accurate present claim is: **the repository contains an integrated experimental netplay path whose
+last documented upstream measurements reached real sessions but still desynchronized**.
 
 See [`NETPLAY.md`](NETPLAY.md).
 
 ## Can multiple people play campaign missions together?
 
-Yes, experimentally. Co-op can place two to four players into a solo mission with separate player
-positions/cameras, and the movement path has been fixed so the players can actually walk.
+The repository contains an experimental co-op path, but its movement/camera validation is inherited
+from SegfaultEvan's pre-takeover work rather than from the GoldenMark64 1.0 campaign pass.
 
-It remains **beta** because GoldenEye's mission scripting, objectives, AI and cutscenes were authored
-around one Bond. Extra players therefore exist in missions whose design does not fully account for
-them.
+SegfaultEvan's August 2026 commits document separate player cameras, transition to first person,
+and later measured co-op movement. The current tree preserves that work. GoldenMark64 has **not**
+independently re-certified those co-op results as part of 1.0.
+
+It remains **beta** in any case because GoldenEye's mission scripting, objectives, AI and cutscenes
+were authored around one Bond.
 
 See [`COOP.md`](COOP.md).
 

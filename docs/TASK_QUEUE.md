@@ -1,10 +1,15 @@
-# Task queue: Windows tree
+# Historical task queue: Windows / bot-development tree
 
-Ordered. Each item says what "done" means, because a task without a finish condition gets
-reported as finished by whoever is tired.
+> **Historical engineering record.** This queue predates the GoldenEye Native 1.0 stabilization
+> and campaign-certification work. It is preserved because its measurements, failure analyses and
+> design lessons remain useful, but it is **not the current release roadmap** and its OPEN/DONE
+> labels should not be read as current project status.
+>
+> For current priorities, use [`ROADMAP.md`](ROADMAP.md). For current 1.0 status, use
+> [`RELEASE_1.0.md`](RELEASE_1.0.md) and [`TESTING_1.0.md`](TESTING_1.0.md).
 
-This list crosses two machines before it reaches `main` -- see `docs/DEVELOPMENT.md` for how
-that integration works.
+The material below is preserved substantially as it was written during the earlier two-machine
+bot/Windows development phase.
 
 ---
 

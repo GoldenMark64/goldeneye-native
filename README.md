@@ -261,8 +261,8 @@ measured, and what remains open.
 | **Free camera** | **Beta** | Photo mode. `F8` unpins the camera from Bond and hands you the room: fly it on `W` `A` `S` `D`, look with the arrows, rise and drop on `R` and `F`, hold shift or ctrl to change pace. The camera is Rare's own -- a six-degree fly camera that shipped inside the cartridge and was never reachable from a controller. Visibility still roots at Bond, so leaving his room culls the world behind you. |
 | **Bots** | **Beta** | Fightable opponents with skill tiers that vary five dials, not one. [`BOTS.md`](docs/BOTS.md) |
 | **Horde mode** | **Beta** | Waves of enemies. Never in the original. [`COOP.md`](docs/COOP.md) |
-| **Co-op** | **Beta** | Two to four players through a solo mission's own geometry, objectives and cutscenes. Everyone gets their own spawn and camera, nobody can shoot a team mate, one death does not lose the run, and the player who went down is back on their feet five seconds later. Still beta because the mission is authored around one Bond, so extra players are present rather than accounted for. [`COOP.md`](docs/COOP.md) |
-| **LAN multiplayer** | **Beta** | Connects, exchanges input, completes a real session over UDP. It also desyncs. Read the limitation before planning an evening around it. [`NETPLAY.md`](docs/NETPLAY.md) |
+| **Co-op** | **Beta / inherited** | Pre-takeover SegfaultEvan work documented separate spawns/cameras, player movement, friendly-fire rules and respawn behavior. Those results are preserved here but were **not part of the GoldenMark64 1.0 campaign-certification pass**. Missions are still authored around one Bond. [`COOP.md`](docs/COOP.md) |
+| **LAN multiplayer** | **Beta / inherited** | Pre-takeover SegfaultEvan work wired real UDP sessions and measured input exchange, but also measured desynchronization. Those results are preserved here and were **not re-certified in the GoldenMark64 1.0 campaign pass**. [`NETPLAY.md`](docs/NETPLAY.md) |
 
 ## Which game exactly
 

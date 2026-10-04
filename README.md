@@ -375,7 +375,9 @@ closed without being read.
 
 Keyboard and mouse work alongside any SDL2-compatible controller. The core keyboard map is `WASD`
 to move, arrows or mouse to look, `Space`/left mouse to fire, `Q`/right mouse to aim, `E` or `F`
-to use, `R` to cycle weapons, `Tab` to pause, `C`/left Shift to crouch, and `V` to stand.
+to use, `R` to cycle weapons, `Tab` to pause, and `C`/left Shift to crouch in the N64-style
+keyboard preset. In the modern preset crouch defaults to `C`/left Ctrl. Crouch is a toggle by
+default; there is no separate stand key.
 
 Gamepad actions can be rebound globally or per player in the launcher, config file, or command
 line. The physical keyboard layout is currently fixed; it has no arbitrary key-binding UI. All

@@ -34,6 +34,23 @@ can only work around, this one just fixes.
 
 You supply your own legally dumped cartridge. No game data ships here, and none ever will.
 
+## Why this port is different
+
+- **Native, not emulated.** GoldenEye's reconstructed C source is compiled for the host machine and
+  renders directly through modern graphics APIs.
+- **High frame rates without speeding up the game.** Rendering can run uncapped while the simulation,
+  animation and AI retain the timing Rare tuned for the original game.
+- **Campaign-certified.** The 1.0 line was completed by a human player on Agent, Secret Agent and
+  00 Agent on the primary Linux test system.
+- **Modern desktop play.** Mouse and keyboard, controllers, widescreen and ultrawide displays work
+  without changing the original campaign into a different game.
+- **Source-only and reproducible.** The repository ships no ROM or extracted game assets. Players
+  provide their own supported cartridge dump, and the public patch queue records the community
+  continuation's native fixes.
+
+The frame-timing work is described in [`docs/FRAME_TIMING.md`](docs/FRAME_TIMING.md), and the 1.0
+human validation record is in [`docs/TESTING_1.0.md`](docs/TESTING_1.0.md).
+
 ## GoldenEye Native 1.0 certification
 
 The 1.0 release line has been completed through human playtesting across **Agent, Secret Agent and
@@ -177,7 +194,7 @@ otherwise.
 | Platform | Renderer | State |
 |---|---|---|
 | **macOS** (Apple silicon) | OpenGL or native Metal | Builds and plays. Primary target. |
-| **Linux** (x86-64 and arm64) | OpenGL | Builds. Verified on Debian 12 aarch64. |
+| **Linux** (x86-64 and arm64) | OpenGL | Builds and plays. Full 1.0 campaign certified on Ubuntu 24.04 x86-64; build verified on Debian 12 aarch64. |
 | **Windows** (x86-64) | OpenGL | Builds native mingw-w64. Self-test 16 of 16. |
 | **tvOS** (Apple TV) | GL ES or Metal | Builds, signs and deploys to real hardware. |
 | **iOS** | Metal | Bring-up. Builds; deploying needs a paired device. |
@@ -400,7 +417,9 @@ Written plainly, because a README that oversells is worse than one that undersel
   nobody touching a controller: five trials of two processes with no input, zero agreed. Two
   causes have been found and fixed and neither was sufficient. Treat LAN play as something to
   experiment with, not to plan an evening around. [`docs/NETPLAY.md`](docs/NETPLAY.md)
-- **Linux is unplayed.** It builds and renders; nobody has played a mission through on it.
+- **Linux certification is hardware-specific.** The complete 1.0 campaign was certified on the
+  primary Ubuntu 24.04 / Intel Iris Xe test system with `i915.enable_guc=0`; other Linux
+  distributions, GPUs and driver combinations are not exhaustively certified.
 - **Windows is unplayed too.** It builds, boots, passes the self-test 16 of 16, and the settings
   have since been measured there rather than assumed: field of view, crosshair scale, the CRT
   filter and HD texture packs all take effect, and netplay opens a session. What nobody has done

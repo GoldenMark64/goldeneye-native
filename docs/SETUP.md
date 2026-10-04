@@ -172,9 +172,10 @@ is tracked. You must supply `deps/SDL2-2.30.9` yourself - see section 2.3.
 
 ### xcodegen
 
-**Not needed.** `xcodegen` generates the Xcode project for the tvOS target from `getv/project.yml`.
-The macOS build never invokes it, and the tvOS target is on hold and does not currently build.
-Ignore any instruction elsewhere that tells you to install it, unless you are working on tvOS.
+**Not needed for this macOS build.** `xcodegen` generates the Xcode projects used by the Apple
+TV and iOS targets; the normal macOS build never invokes it. The tvOS target is active and
+`getv/build.sh` can build, sign and deploy its app to configured hardware, so install `xcodegen`
+when working on those mobile/TV targets rather than for the desktop Mac pipeline documented here.
 
 ---
 
@@ -189,8 +190,10 @@ git clone https://github.com/GoldenMark64/goldeneye-native.git
 cd goldeneye-native
 ```
 
-At this point `git ls-files | wc -l` reports about 83 files. That is the whole tracked tree: the
-port layer's own code, the patches, the documentation and the tooling. It is not a build tree.
+At this point the checkout is still only the tracked public source, patches, documentation and
+tooling; the decompilation checkout, fetched third-party files and ROM-derived build products are
+still absent. Do not use an old `git ls-files` count as an integrity check: the public source tree
+grows as the port gains code, tests and documentation.
 
 ### 2.2 Fetch the third-party port-layer sources
 
@@ -670,13 +673,14 @@ GETV_JOBS=10 ./build_mac.sh lib     # if you want it to
 Expected output:
 
 ```
-mac game: 167 built, 0 failed
-mac assets: 746 built, 0 failed
-mac audio: 40 built, 0 failed
-mac port layer: 64 built, 0 failed
+mac game: <count> built, 0 failed
+mac assets: <count> built, 0 failed
+mac audio: <count> built, 0 failed
+mac port layer: <count> built, 0 failed
 ```
 
-**Every count should read `0 failed`.** Any name in a `mac FAILED:` line is a real problem. That
+The exact built counts are descriptive rather than contractual: they change when source files are
+added or removed. **Every batch should read `0 failed`.** Any name in a `mac FAILED:` line is a real problem. That
 was not always true, and the next subsection explains why, because the old advice is still
 repeated from memory.
 
@@ -714,7 +718,7 @@ cd ../vendor/ge-decomp
       -not -name 'ge_layout_audit.c' -not -name 'ge_asset_fileview_check.c'
   find src/libultra/gu -name '*.c'; } \
   | grep -vE '/(ramromreplay\.c|audi\.c|usb\.c|rmon\.c|sched\.c|ramrom\.c|init\.c|indy_comms\.c|indy_commands\.c|tlb_manage\.c)$' \
-  | wc -l          # 168 = 167 built + 1 failed
+  | wc -l          # current game-source count; zero failures are the invariant
 find assets -name '*.c' ! -name '*.inc.c' \
       ! -path 'assets/obseg/setup/e/*' ! -path 'assets/obseg/setup/j/*' \
     | wc -l                                                      # 746
@@ -722,8 +726,10 @@ find src/libultra/audio src/libultrare/audio -name '*.c' | wc -l  # 40
 cd ../../getv
 ```
 
-The port layer's 23 is 21 sources under `getv/port/{fast3d,src,audio}/` plus the two harness files,
-`getv/Sources/ge_tvos_main.c` and `getv/port/mac/ge_mac_main.c`.
+The port-layer count is intentionally not hard-coded here. `build_mac.sh` compiles the current
+C/Objective-C++/C++ sources under `getv/port/{fast3d,src,audio}/` plus the Mac/tvOS harness sources,
+so that number grows as the native port layer gains subsystems. Treat `0 failed`, not a historical
+source count, as the correctness signal.
 
 ### 4.4 `port` - recompile only the port layer
 
@@ -732,7 +738,7 @@ The port layer's 23 is 21 sources under `getv/port/{fast3d,src,audio}/` plus the
 ```
 
 ```
-mac port layer: 64 built, 0 failed
+mac port layer: <count> built, 0 failed
 ```
 
 Recompiles the port sources and nothing else. Measured at about 23
@@ -800,7 +806,7 @@ The normal full build. Complete expected output:
 mac game: 167 built, 0 failed
 mac assets: 746 built, 0 failed
 mac audio: 40 built, 0 failed
-mac port layer: 64 built, 0 failed
+mac port layer: <count> built, 0 failed
 mac libge.a:  31M, 1016 members
 ld: warning: reducing alignment of section __DATA,__common from 0x8000 to 0x4000 because it exceeds segment maximum alignment
 mac binary: /path/to/goldeneye-native/getv/build-mac/goldeneye ( 20M, arm64)
@@ -810,10 +816,10 @@ The `ld` warning about `__DATA,__common` alignment is expected and harmless: the
 32 MB static array and the linker is telling you it cannot honour the requested section alignment
 at that size.
 
-Measured at 21 seconds wall on an Apple M1 with warm filesystem caches, at the default
-`GETV_JOBS=6`. `README.md` says "about five minutes"; that figure appears stale, but a first build
-on a cold cache, on a slower machine, or with the ROM extraction still fresh will take longer than
-21 seconds. Treat the number as an order of magnitude, not a guarantee.
+A warm rebuild on an Apple M1 has measured in the tens of seconds, but a first install also has
+dependency, extraction and generation work and can take much longer. The player-facing README uses
+a broad first-install estimate for that reason; do not treat a developer-tree warm rebuild as an
+installation-time guarantee.
 
 Note that there is no incremental check: `run_batch` compiles every file every time. `all` is
 always a full rebuild, which is why `port` exists.
@@ -1526,9 +1532,9 @@ Do not chase these:
 | `[getv][ob] index=670 name='LgunE' ... -> NATIVE (early-out)` | Asset loader taking the native path. |
 | `[getv][far] ...`, `[getv][zcmp] ...`, `[getv][texfmt] ...` | Renderer instrumentation, on by default. |
 
-Genuine open problems - untextured level props and characters, a scene that is too dark, menu
-polish, no framerate above 60, multiplayer edge cases - are listed in `README.md` and detailed in
-`docs/ROADMAP.md`. They are not setup faults and no amount of rebuilding will change them.
+Known runtime, presentation and optional-feature limitations are tracked in `README.md` and
+`docs/ROADMAP.md`. They are not setup faults, and rebuilding is not a substitute for checking the
+current issue/roadmap status.
 
 ---
 

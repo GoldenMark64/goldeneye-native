@@ -6,11 +6,12 @@
 fixed runtime `PropRecord` pool. It measures allocator activity directly; it never reconstructs
 occupancy from setup definitions and never calls a count safe, qualified, or recommended.
 
-The initial consumer is
-[`goldeneye-mission-editor#49`](https://github.com/seb-patron/goldeneye-mission-editor/issues/49).
-The language-neutral schema is also the legacy boundary for a future Rust capability. The producer
-does not compute editor evidence keys: the caller binds a report to its measured executable,
-materialized source, patch, profile, and configuration fingerprints.
+The initial consumer was the historical `goldeneye-mission-editor#49` work item. Its recorded
+external repository is no longer publicly available, so this document keeps the consumer name as
+provenance rather than linking to a dead URL. The language-neutral schema is also the legacy
+boundary for a future Rust capability. The producer does not compute editor evidence keys: the
+caller binds a report to its measured executable, materialized source, patch, profile, and
+configuration fingerprints.
 
 For a graphical setup, use the desktop launcher’s **Developer Tools** page. See the
 [guide and FAQ](DEVELOPER_TOOLS.md) for manual recording, report locations and interpretation.

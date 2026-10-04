@@ -1038,6 +1038,11 @@ void apply_profile(Model &m)
          * there" rather than a dependency on one being there. */
         m.hd_textures = true;
 
+        /* Base Game pins widescreen off for retail 4:3 framing. Switching back to
+         * GoldenEye+ must restore the enhanced profile's normal widescreen default
+         * instead of inheriting Base Game's forced-off value. */
+        m.widescreen = true;
+
         /* Only does anything with a pack that ships height maps, and there is none in the
          * game's own assets. It is here so the same installed pack means different things
          * when enabled: a pack can supply resolution and displacement together. */

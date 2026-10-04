@@ -30,8 +30,8 @@ free flying photo camera, HD upgrades, and more!
 
 This is not an emulator. It is the game's own source code, from the
 [`n64decomp/007`](https://github.com/n64decomp/007) decompilation, built into a real binary for
-your machine. There is no N64 being pretended at underneath, which is why the things emulators
-can only work around, this one just fixes.
+your machine. There is no N64 being emulated underneath. Because the game is compiled from reconstructed
+source, source-level behavior can be measured and repaired directly in the port.
 
 You supply your own legally dumped cartridge. No game data ships here, and none ever will.
 

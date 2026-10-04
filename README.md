@@ -22,8 +22,9 @@
 > Community patches are welcome.
 
 **GoldenEye 007, compiled as a native application for macOS, Linux and Windows.** Mouse and
-keyboard. Real widescreen. Hundreds of frames a second with the game still running at the original 1997 animation speed
-Rare tuned it to. Online Multiplayer or Co Op, AI Bots, Lua mod pack scripting, horde mode, a free flying photo camera, HD upgrades, and more!
+keyboard. Real widescreen. High-refresh rendering with timing improvements and documented
+limitations. Online Multiplayer or Co Op, AI Bots, Lua mod pack scripting, horde mode, a free
+flying photo camera, HD upgrades, and more!
 
 ![Silo, from the walkway beside the missile](docs/images/screenshot-01.jpg)
 
@@ -38,8 +39,10 @@ You supply your own legally dumped cartridge. No game data ships here, and none 
 
 - **Native, not emulated.** GoldenEye's reconstructed C source is compiled for the host machine and
   renders directly through modern graphics APIs.
-- **High frame rates without speeding up the game.** Rendering can run uncapped while the simulation,
-  animation and AI retain the timing Rare tuned for the original game.
+- **High-refresh timing improvements.** Uncapped rendering can use a real-time clock path so the
+  game clock does not simply accelerate with render rate. Several timing-sensitive systems have
+  also been corrected, while remaining frame-counted behavior is documented rather than claimed
+  to be fully solved.
 - **Campaign-certified.** The 1.0 line was completed by a human player on Agent, Secret Agent and
   00 Agent on the primary Linux test system.
 - **Modern desktop play.** Mouse and keyboard, controllers, widescreen and ultrawide displays work
@@ -202,15 +205,16 @@ otherwise.
 
 Same source tree everywhere. One build script each.
 
-## The frame-rate fix, which is the reason the rest is possible
+## Frame-rate and timing improvements
 
-GoldenEye counts time in whole video fields. On every emulator ever made, running it faster runs
-the *game* faster: guards firing at double speed, ammunition draining, the AI thinking quicker
-than it was tuned to. That is baked into the game rather than the hardware, so nobody could fix
-it from outside.
+GoldenEye mixes real elapsed time with systems that advance once per game update. That makes
+high-refresh behavior more complicated than simply removing the frame cap: without special
+handling, some parts of the game can advance too often.
 
-It is fixed here. The world keeps its own time while the renderer runs as fast as your machine
-allows.
+This port has made substantial improvements. Its uncapped mode uses a real-time clock path so the
+renderer can run ahead without making the game's main field clock advance once per rendered frame,
+and several timing-sensitive systems have received focused fixes. This is **not** a claim that
+every frame-quantized gameplay or animation system has been converted to real time.
 
 Measured on the Dam, 1280x960, Apple M1, three runs each:
 
@@ -221,16 +225,18 @@ Measured on the Dam, 1280x960, Apple M1, three runs each:
 | GoldenEye+ | 61.0 | 182 |
 | GoldenEye+ with an HD texture pack | 60.8 | 177 |
 
-486 frames a second with the game itself ticking at the 60 it should. Bond moves at the speed he
-moved in 1997 and the picture is as smooth as your monitor can show.
+These measurements show that the main game clock can remain near its intended 60 fields per
+second while rendering substantially faster. They do **not** prove complete retail-equivalent
+timing for every subsystem; some logic still advances per simulation update.
 
-[`docs/FRAME_TIMING.md`](docs/FRAME_TIMING.md) has the whole account.
+[`docs/FRAME_TIMING.md`](docs/FRAME_TIMING.md) documents what has improved, what has been
+measured, and what remains open.
 
 ## What works
 
 | Feature | State | Detail |
 |---|---|---|
-| **Fixed frame tick** | **Done** | Uncapped rendering with the world still ticking at 60. Nothing else here is possible without it. |
+| **High-refresh timing** | **Improved** | Real-clock free-run prevents render FPS from directly driving the main game clock; several timing-sensitive paths are corrected, but some frame-counted systems remain. [`FRAME_TIMING.md`](docs/FRAME_TIMING.md) |
 | **Mouse and keyboard** | **Done** | The default. Real mouse look, tuned and unit-tested. [`MOUSE.md`](docs/MOUSE.md) |
 | **Controller support** | **Done** | Xbox, PlayStation and MFi pads through SDL2, plugged in and detected. All 8 retail control styles. |
 | **Widescreen and ultrawide** | **Done** | The renderer takes its aspect from the actual framebuffer, so any window shape works, 16:9 through ultrawide. HUD and gun sight corrected. |

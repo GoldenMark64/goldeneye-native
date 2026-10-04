@@ -17,9 +17,8 @@ BUILD="$HERE/build"
 SDK="$(xcrun -sdk appletvos --show-sdk-path)"
 # GETV_RENDERER=gl|metal (default gl). metal selects port/fast3d/gfx_metal.mm -- see
 # build_mac.sh's own header comment for the full rationale; this is the same switch,
-# same default, on the tvOS device target. Only one physical Apple TV exists to deploy
-# to, so unlike build_mac.sh this does NOT give metal its own BUILD dir -- switching
-# renderers here always means a fresh cmd_lib anyway.
+# same default, on the tvOS device target. Unlike build_mac.sh this does NOT give
+# metal its own BUILD dir; switching renderers here always means a fresh cmd_lib.
 RENDERER="${GETV_RENDERER:-gl}"
 case "$RENDERER" in
   gl|metal) ;;
@@ -287,14 +286,24 @@ cmd_lib() {
   fi
 }
 
-DEV_DEVICECTL="F052F5AF-631E-5842-A449-EC788A18C74D"   # "Guest Bedroom (2)" Apple TV 4K
-DEV_XCODEBUILD="634383e218b182eaad97337eeade7c82e9e231cf"  # NOT the same id as devicectl
+# Physical-device identifiers are intentionally never stored in the repository.
+# Supply your own paired-device ids in the environment when building/deploying:
+#   DEV_XCODEBUILD=<Xcode destination id>
+#   DEV_DEVICECTL=<devicectl device id>
+# The two tools may report different identifiers for the same device.
+DEV_XCODEBUILD="${DEV_XCODEBUILD:-}"
+DEV_DEVICECTL="${DEV_DEVICECTL:-}"
 # Overridable, because a bundle identifier is the builder's own namespace rather than
 # the project's. Set GETV_BUNDLE_ID to something you control before signing for a
 # device; the default is deliberately generic and owned by nobody.
 BUNDLE_ID="${GETV_BUNDLE_ID:-org.goldeneyenative.getv}"
 
 cmd_app() {
+  [ -n "$DEV_XCODEBUILD" ] || {
+    echo "DEV_XCODEBUILD is required for a tvOS device app build." >&2
+    echo "Pair/select your Apple TV in Xcode, then export its Xcode destination id." >&2
+    return 1
+  }
   # project.yml's GCC_PREPROCESSOR_DEFINITIONS reads this via xcodegen's own ${VAR}
   # substitution (same mechanism already used there for ${N64TVOS_PREFIX} and
   # ${DEVELOPMENT_TEAM}) so ge_tvos_main.c's Xcode-compiled copy picks the SAME
@@ -329,6 +338,11 @@ cmd_app() {
 cmd_deploy() {
   local app="$HERE/build-device/Build/Products/Release-appletvos/Goldeneye-Native.app"
   [ -d "$app" ] || { echo "no app at $app - run '$0 app' first"; return 1; }
+  [ -n "$DEV_DEVICECTL" ] || {
+    echo "DEV_DEVICECTL is required for tvOS deployment." >&2
+    echo "Run 'xcrun devicectl list devices' and export the id of your paired Apple TV." >&2
+    return 1
+  }
   xcrun devicectl device uninstall app --device "$DEV_DEVICECTL" "$BUNDLE_ID" || true
   xcrun devicectl device install app --device "$DEV_DEVICECTL" "$app"
   xcrun devicectl device process launch --device "$DEV_DEVICECTL" --console "$BUNDLE_ID"

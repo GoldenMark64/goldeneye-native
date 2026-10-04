@@ -48,8 +48,8 @@ equally campaign-certified until they have equivalent evidence.
 ### Linux
 
 - Retest on additional GPU/driver combinations.
-- Keep the Intel Iris Xe / i915 GuC workaround documented as hardware-specific rather than a
-  universal GoldenEye fix.
+- Keep the Intel/i915 GuC workaround documented as hardware-specific rather than a universal
+  GoldenEye fix.
 - Add reports from other distributions and architectures without turning anecdotal success into
   blanket support claims.
 

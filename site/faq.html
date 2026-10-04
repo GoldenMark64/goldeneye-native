@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FAQ &mdash; Goldeneye-Native</title>
-<meta name="description" content="Questions people actually ask about Goldeneye-Native.">
+<meta name="description" content="Current Goldeneye-Native FAQ: native source port, supported platforms, ROM requirements, timing, multiplayer and project provenance.">
 <link rel="icon" href="assets/images/mark.png">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -15,155 +15,68 @@
     <div class="brand"><img src="assets/images/mark.png" alt=""> Goldeneye-Native</div>
     <nav class="site-nav">
       <a href="index.html">Overview</a>
-      <a href="build.html">Build it</a>
+      <a href="build.html">Install / build</a>
       <a href="faq.html" class="current">FAQ</a>
-      <a href="https://github.com/seb-patron/goldeneye-native/wiki">Wiki</a>
-      <a href="https://github.com/seb-patron/goldeneye-native" class="nav-icon" aria-label="GitHub">&#9733;</a>
+      <a href="https://github.com/GoldenMark64/goldeneye-native/blob/main/docs/README.md">Docs</a>
+      <a href="https://github.com/GoldenMark64/goldeneye-native" class="nav-icon" aria-label="GitHub">&#9733;</a>
     </nav>
   </div>
 </header>
 
 <div class="page-header">
   <div class="wrap">
-    <h1>Questions people actually ask</h1>
-    <p>The short version. The project's <a href="https://github.com/seb-patron/goldeneye-native/blob/main/docs/FAQ.md">docs/FAQ.md</a>
-    and <a href="https://github.com/seb-patron/goldeneye-native/wiki/FAQ">wiki FAQ</a> go deeper on most of these.</p>
+    <h1>Frequently asked questions</h1>
+    <p>The maintained <a href="https://github.com/GoldenMark64/goldeneye-native/blob/main/docs/FAQ.md">repository FAQ</a> is authoritative. This page is the short version.</p>
   </div>
 </div>
 
-<section class="content" style="border-bottom:none">
+<section class="content">
   <div class="wrap">
+    <h3>Is this an emulator?</h3>
+    <p>No. GoldenEye Native builds from the <a href="https://github.com/n64decomp/007">n64decomp/007</a> reconstruction of the game's C source and compiles it as a native application for the host operating system.</p>
 
-    <div class="faq-item reveal">
-      <h3>Is this an emulator?</h3>
-      <p>No, and that's the whole point. An emulator runs the retail ROM by pretending to be an N64,
-      which works but can't change the game &mdash; the game inside it is compiled MIPS machine code.
-      This is built from the <a href="https://github.com/n64decomp/007">decompilation</a>: the game as
-      editable C, compiled to a normal executable for your OS. No core, no plugin, no ROM loaded at
-      runtime.</p>
-    </div>
+    <h3>Do I need a ROM?</h3>
+    <p>Yes. You provide your own supported US retail cartridge dump locally. The tracked public tree is source-only and is intended not to contain ROMs or extracted game assets.</p>
 
-    <div class="faq-item reveal">
-      <h3>Is this the Xbox 360 remaster, or the cancelled XBLA build?</h3>
-      <p>Neither. Those are separate codebases. This is the Nintendo 64 game, from its decompilation.</p>
-    </div>
+    <h3>Which desktop platforms work?</h3>
+    <p>Linux, macOS and Windows have native builds. The complete 1.0 retail campaign was human-certified on the primary Ubuntu 24.04 x86-64 / Intel Iris Xe system. macOS builds on Apple silicon and Intel with OpenGL and Metal. Windows builds natively with mingw-w64 but has not received the same full human campaign certification.</p>
 
-    <div class="faq-item reveal">
-      <h3>How is this different from a source port like Ship of Harkinian?</h3>
-      <p>Same idea, different game. A decompilation gets turned into a native program with a modern
-      platform layer. Ship of Harkinian is Ocarina of Time; this one is GoldenEye.</p>
-    </div>
+    <h3>What about Apple TV, iPhone/iPad and Android?</h3>
+    <p>They are bring-up targets, not equivalent to the desktop release status. tvOS builds, signs and deploys to configured hardware. iOS builds and needs a paired device for device deployment. Android has a compiling arm64 GLES port layer and touch controls, but the game has not yet been run there.</p>
 
-    <div class="faq-item reveal">
-      <h3>Do I need the ROM?</h3>
-      <p>Yes &mdash; your own legal copy of the NTSC (US) cartridge. Nothing in this repository contains
-      game data and nothing ever will. Every texture, model, animation, sound bank and level layout is
-      read out of your dump once, at build time, and emitted as C.</p>
-    </div>
+    <h3>Can it render above 60 fps?</h3>
+    <p>Yes. The real-clock free-run path can keep the main game field clock near its intended rate while rendering substantially faster. That is a measured timing improvement, not a claim that every frame-counted gameplay and animation subsystem is completely converted to real time.</p>
 
-    <div class="faq-item reveal">
-      <h3>Does it support mouse and keyboard?</h3>
-      <p>Yes, and it's the default. Mouse look with sensitivity and Y-invert, WASD to move, ESC to
-      release the cursor. A gamepad (DualSense, DualShock 4, Xbox, Switch Pro, 8BitDo) works
-      alongside it rather than replacing it &mdash; whichever input is being held wins.</p>
-    </div>
+    <h3>Does multiplayer work?</h3>
+    <p>Local split screen supports two, three and four players. Campaign co-op and LAN multiplayer are inherited beta systems from pre-takeover work. Co-op missions still assume one Bond in important ways, and LAN sessions have measured desynchronization. Neither was part of the GoldenMark64 1.0 campaign-certification pass.</p>
 
-    <div class="faq-item reveal">
-      <h3>Is there a crouch key?</h3>
-      <p>Yes, and the original doesn't have one &mdash; retail crouch means holding aim, pushing down,
-      then releasing aim while staying low. Here it's <code>C</code> or <code>Left Shift</code>, with
-      <code>V</code> to stand. The original gesture still works if you're attached to it.</p>
-    </div>
+    <h3>Are bots real?</h3>
+    <p>Yes, as a beta feature. The tree has player-input bots and compiled AI archetypes that can be attached to spawned characters. Match setup and higher-level bot integration are still evolving.</p>
 
-    <div class="faq-item reveal">
-      <h3>How fast does it run? Can it go above 60fps?</h3>
-      <p>Uncapped, it measures 354&ndash;562 fps on an Apple Silicon Mac. But GoldenEye's gameplay
-      logic is tied to its frame step &mdash; weapon fire rates, guard reactions and turret behaviour
-      advance per tick, not per second &mdash; so rendering faster also runs the game faster.
-      <code>framerate=30</code> pairs with a tick divider to run the simulation at its authored cadence
-      while rendering stays smooth. A fixed simulation tick with interpolated rendering is the correct
-      fix and is on the roadmap; until it lands, 60fps is the honest ceiling for unchanged gameplay.</p>
-    </div>
+    <h3>Can I use HD texture packs?</h3>
+    <p>Yes. Texture-hash PNG replacement is implemented and has been verified end to end. No game-derived texture pack ships with the project.</p>
 
-    <div class="faq-item reveal">
-      <h3>Is there widescreen?</h3>
-      <p>Resolution and aspect are fully configurable, but changing the window aspect does not widen
-      the field of view today &mdash; the renderer fits the 4:3 view into whatever shape the window is.
-      True aspect-aware widescreen is a roadmap item.</p>
-    </div>
+    <h3>Where is the Windows download?</h3>
+    <p>There is not yet an official no-code Windows package on the Releases page. The ROM-free setup app exists as a release candidate and is validated in CI, but publication is a separate future release step. Developers can build Windows from source now.</p>
 
-    <div class="faq-item reveal">
-      <h3>Is multiplayer online, or over LAN?</h3>
-      <p>Split screen works today. A LAN session exists and is alpha, and whether the approach can work
-      at all is honestly disputed inside the project's own docs: one document argues for a lockstep
-      model, another argues against it from measurements &mdash; both are kept rather than picking a
-      winner prematurely. Online play sits downstream of the frame-timing work.</p>
-    </div>
+    <h3>Who made this?</h3>
+    <p>The original GoldenEye Native port was developed by <a href="https://github.com/SegfaultEvan">@SegfaultEvan</a>. After that upstream repository disappeared, this repository became the <a href="https://github.com/GoldenMark64">@GoldenMark64</a> community continuation. The reconstructed game source is the work of the <a href="https://github.com/n64decomp/007">n64decomp/007</a> project and its contributors.</p>
 
-    <div class="faq-item reveal">
-      <h3>Can two people play the single-player campaign?</h3>
-      <p>Partly, and it's alpha. Two to four players spawn into a solo mission with its own geometry,
-      props and objectives, and everyone moves and renders. What isn't adapted yet is everything the
-      campaign authors around a single Bond: objectives, AI and cutscenes.</p>
-    </div>
-
-    <div class="faq-item reveal">
-      <h3>Can I mod it?</h3>
-      <p>Three ways, none needing a rebuild: Lua scripts in <code>mods/</code> (<code>onFrame</code>,
-      <code>onPlayerSpawn</code>, <code>onWeaponFire</code>, plus a read API into live game state),
-      roughly 275 <code>GETV_*</code> behaviour gates, and the source itself. HD texture replacement is
-      on the roadmap and not implemented yet.</p>
-    </div>
-
-    <div class="faq-item reveal">
-      <h3>Does it run on Steam Deck, Raspberry Pi, Android or iPhone?</h3>
-      <p>Linux builds run where Linux runs, so a Deck is a Linux build. An Apple TV target builds from
-      this tree as of the Metal backend landing (2026-08-26), with device bring-up next. iOS and
-      Android are not here yet &mdash; the groundwork exists (SDL2 underneath, a platform layer already
-      split from the game, a renderer that already targets GLES) but the shipping work doesn't.
-      Nothing mobile is distributed and nothing mobile is claimed as working today.</p>
-    </div>
-
-    <div class="faq-item reveal">
-      <h3>Does it need Wine, Proton or WSL?</h3>
-      <p>No. Every platform gets a real native binary. The Windows build uses mingw-w64, with no
-      MSYS2, Cygwin or WSL anywhere near it.</p>
-    </div>
-
-    <div class="faq-item reveal">
-      <h3>Is this legal? What's the license?</h3>
-      <p>The platform layer, build tooling and documentation are MIT. That does not, and cannot, cover
-      everything: the Fast3D renderer and audio mixer were inherited from another project and their
-      exact licensing terms are still unresolved, and the decompilation itself ships no license file
-      upstream. None of that is glossed over &mdash; the full, itemized account (what's settled, what
-      isn't, and why) is in
-      <a href="https://github.com/seb-patron/goldeneye-native/blob/main/docs/LICENSING.md">docs/LICENSING.md</a>.
-      No game data is ever distributed, under any of it.</p>
-    </div>
-
-    <div class="faq-item reveal">
-      <h3>Where can I download it?</h3>
-      <p>There's no prebuilt binary to download right now &mdash; see <a href="build.html">Build it</a>
-      for why, and for the actual build steps, which are a few commands.</p>
-    </div>
-
+    <h3>Is it legal?</h3>
+    <p>The project does not make a blanket legal claim. Read the current <a href="https://github.com/GoldenMark64/goldeneye-native/blob/main/docs/LICENSING.md">licensing and provenance record</a>, and use your own cartridge dump only in a way permitted where you live.</p>
   </div>
 </section>
 
 <footer class="site">
   <div class="wrap">
     <div class="foot-links">
-      <a href="https://github.com/seb-patron/goldeneye-native">Source</a>
-      <a href="https://github.com/seb-patron/goldeneye-native/wiki">Wiki</a>
-      <a href="https://github.com/seb-patron/goldeneye-native/blob/main/CONTRIBUTING.md">Contributing</a>
-      <a href="https://github.com/seb-patron/goldeneye-native/blob/main/SECURITY.md">Security</a>
-      <a href="https://github.com/seb-patron/goldeneye-native/blob/main/docs/LICENSING.md">Licensing &amp; provenance</a>
-      <a href="https://github.com/seb-patron/goldeneye-native/issues">Issues</a>
+      <a href="https://github.com/GoldenMark64/goldeneye-native">Source</a>
+      <a href="https://github.com/GoldenMark64/goldeneye-native/blob/main/docs/README.md">Docs</a>
+      <a href="https://github.com/GoldenMark64/goldeneye-native/blob/main/CONTRIBUTING.md">Contributing</a>
+      <a href="https://github.com/GoldenMark64/goldeneye-native/blob/main/SECURITY.md">Security</a>
+      <a href="https://github.com/GoldenMark64/goldeneye-native/blob/main/docs/LICENSING.md">Licensing &amp; provenance</a>
+      <a href="https://github.com/GoldenMark64/goldeneye-native/issues">Issues</a>
     </div>
-    <p class="foot-note">
-      GoldenEye 007 was made by Rare. This project is not affiliated with, endorsed by, or connected
-      to Nintendo, Rare, MGM, Danjaq or EON Productions.
-    </p>
   </div>
 </footer>
 

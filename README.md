@@ -28,10 +28,10 @@ free flying photo camera, HD upgrades, and more!
 
 ![Silo, from the walkway beside the missile](docs/images/screenshot-01.jpg)
 
-This is not an emulator. It is the game's own source code, from the
+This is not an emulator. It is reconstructed C source from the
 [`n64decomp/007`](https://github.com/n64decomp/007) decompilation, built into a real binary for
-your machine. There is no N64 being emulated underneath. Because the game is compiled from reconstructed
-source, source-level behavior can be measured and repaired directly in the port.
+your machine. There is no N64 being emulated underneath. Because the game is compiled from
+reconstructed source, source-level behavior can be measured and repaired directly in the port.
 
 You supply your own legally dumped cartridge. No game data ships here, and none ever will.
 
@@ -446,8 +446,9 @@ Written plainly, because a README that oversells is worse than one that undersel
 ## Frequently asked questions
 
 **Is this an emulator?** No. An emulator interprets N64 machine code and pretends to be the
-hardware. This is the game's own C, compiled for your processor, drawing through your GPU. That
-is why the frame-rate problem is fixable here and not there.
+hardware. This project compiles reconstructed GoldenEye C source for your processor and draws
+through your GPU. That is why source-level timing behavior can be changed and measured directly
+here.
 
 **Do I need a ROM?** Yes, your own. Nothing playable ships here. The installer reads your copy,
 extracts the assets it needs on your machine, and never uploads anything.

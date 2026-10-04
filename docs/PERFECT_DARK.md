@@ -1,5 +1,11 @@
 # What can be adopted from the Perfect Dark port
 
+> **Status note (October 4, 2026):** this is a dated design/adoption audit that records what was
+> checked during the August 2026 comparison work. Its per-item DONE/stale/open judgments are
+> historical evidence, not authoritative current project status. Use [`ROADMAP.md`](ROADMAP.md),
+> [`README.md`](../README.md), and [`TESTING_1.0.md`](TESTING_1.0.md) for current status and
+> certification scope.
+
 Perfect Dark and GoldenEye 007 were built by the same studio on the same engine, and the
 Perfect Dark PC port has solved a number of problems this port is still working through. That
 port is MIT-licensed and may be adapted with attribution. This document is a ranked, concrete

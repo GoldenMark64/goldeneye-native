@@ -1,0 +1,189 @@
+--- a/src/game/vtxstore.c
++++ b/src/game/vtxstore.c
+@@ -43,6 +43,84 @@
+ //CODE.bss:8007A0F2
+ s16 word_CODE_bss_8007A0F2;
+ 
++#ifdef GE_PORT_NATIVE
++static s32 ge_vtxstore_corruption_reported;
++
++static s32 geVtxstoreValidateChain(struct unk_09B7A0_struct_parent *table,
++    s32 entries, const char *pool_name, const char *where)
++{
++    s32 idx = 0;
++    s32 hops = 0;
++
++    while (1)
++    {
++        s32 next;
++
++        if ((idx < 0) || (idx >= entries) || (hops >= entries))
++        {
++            s32 i;
++
++            if (!ge_vtxstore_corruption_reported)
++            {
++                ge_vtxstore_corruption_reported = 1;
++                osSyncPrintf("[getv][vtxstore] CORRUPT where=%s pool=%s idx=%d hops=%d entries=%d\n",
++                    where, pool_name, idx, hops, entries);
++
++                for (i = 0; i < entries; i++)
++                {
++                    if (table[i].unk0E != -1)
++                    {
++                        osSyncPrintf("[getv][vtxstore] slot=%d ptr=%p count=%d refs=%d next=%d prev=%d owner=%p level=%d\n",
++                            i, (void *)table[i].unk00, (s32)table[i].unk0C,
++                            (s32)table[i].unk0E, (s32)table[i].unk10,
++                            (s32)table[i].unk12, table[i].unk04, table[i].unk08);
++                    }
++                }
++            }
++
++            return 0;
++        }
++
++        hops++;
++        next = table[idx].unk10;
++
++        if (next == -1)
++        {
++            return 1;
++        }
++
++        if ((next < 0) || (next >= entries) || (table[next].unk12 != idx))
++        {
++            s32 i;
++
++            if (!ge_vtxstore_corruption_reported)
++            {
++                ge_vtxstore_corruption_reported = 1;
++                osSyncPrintf("[getv][vtxstore] BROKEN-LINK where=%s pool=%s idx=%d next=%d nextprev=%d entries=%d\n",
++                    where, pool_name, idx, next,
++                    (next >= 0 && next < entries) ? (s32)table[next].unk12 : -32768,
++                    entries);
++
++                for (i = 0; i < entries; i++)
++                {
++                    if (table[i].unk0E != -1)
++                    {
++                        osSyncPrintf("[getv][vtxstore] slot=%d ptr=%p count=%d refs=%d next=%d prev=%d owner=%p level=%d\n",
++                            i, (void *)table[i].unk00, (s32)table[i].unk0C,
++                            (s32)table[i].unk0E, (s32)table[i].unk10,
++                            (s32)table[i].unk12, table[i].unk04, table[i].unk08);
++                    }
++                }
++            }
++
++            return 0;
++        }
++
++        idx = next;
++    }
++}
++#endif
++
+ void null_init_main_1(void)
+ {
+     return;
+@@ -147,6 +225,12 @@
+     {
+         dword_CODE_bss_8007A0EC[i].unk0E = -1;
+     }
++
++#ifdef GE_PORT_NATIVE
++    ge_vtxstore_corruption_reported = 0;
++    geVtxstoreValidateChain(dword_CODE_bss_8007A0E8, dword_CODE_bss_8007A0D4, "0xCCCC", "reset/cccc");
++    geVtxstoreValidateChain(dword_CODE_bss_8007A0EC, dword_CODE_bss_8007A0DC, "0x0B0B", "reset/b0b");
++#endif
+ }
+ 
+ 
+@@ -287,6 +371,10 @@
+         }
+     }
+ 
++#ifdef GE_PORT_NATIVE
++    geVtxstoreValidateChain(dword_CODE_bss_8007A0EC, dword_CODE_bss_8007A0DC, "0x0B0B", "tick/post");
++#endif
++
+     if (word_CODE_bss_8007A0F2 < ((s32)dword_CODE_bss_8007A0D8 >> 2)) {
+         sub_GAME_7F056690();
+     }
+@@ -382,6 +470,10 @@
+         } else {
+             *var_t3 -= temp_t2;
+         }
++#ifdef GE_PORT_NATIVE
++        geVtxstoreValidateChain(var_t0, var_a2,
++            type == 0xCCCC ? "0xCCCC" : "0x0B0B", "allocate/post");
++#endif
+         return var_t0[var_a1].unk00;
+     }
+     return 0;
+@@ -397,17 +489,24 @@
+     s16* var_t2;
+     struct unk_09B7A0_struct_parent* var_a3;
+     s16 var_a1;
++    s32 var_a2;
++    s32 hops;
+     s32 stop;
+     s32 var_v1;
++    const char *pool_name;
+ 
+     if ((arg0 >= dword_CODE_bss_8007A0E0) &&
+         (arg0 <= dword_CODE_bss_8007A0E0 + (dword_CODE_bss_8007A0D0 - 1))) {
+         var_a3 = dword_CODE_bss_8007A0E8;
+         var_t2 = &word_CODE_bss_8007A0F0;
++        var_a2 = dword_CODE_bss_8007A0D4;
++        pool_name = "0xCCCC";
+     } else if ((arg0 >= dword_CODE_bss_8007A0E4) &&
+                (arg0 <= dword_CODE_bss_8007A0E4 + (dword_CODE_bss_8007A0D8 - 1))) {
+         var_a3 = dword_CODE_bss_8007A0EC;
+         var_t2 = &word_CODE_bss_8007A0F2;
++        var_a2 = dword_CODE_bss_8007A0DC;
++        pool_name = "0x0B0B";
+     } else {
+         sub_GAME_7F09B7A8();
+         sub_GAME_7F09B7E4();
+@@ -415,9 +514,41 @@
+     }
+ 
+     var_a1 = 0;
++    hops = 0;
+     stop = 0;
+ 
++#ifdef GE_PORT_NATIVE
++    geVtxstoreValidateChain(var_a3, var_a2, pool_name, "free/pre");
++#endif
++
+     while (stop == 0) {
++#ifdef GE_PORT_NATIVE
++        /*
++         * The allocator has a traversal-count escape, but the matching free path
++         * historically walked unk10 forever.  If native metadata is corrupted into
++         * a cycle (or an invalid index), stage teardown can therefore spin forever
++         * instead of preserving evidence.  Validate only impossible list states;
++         * the normal allocation/free algorithm is unchanged.
++         */
++        if ((var_a1 < 0) || (var_a1 >= var_a2) || (hops >= var_a2)) {
++            s32 i;
++            osSyncPrintf("[getv][vtxstore-free] CORRUPT pool=%s arg=%p idx=%d hops=%d entries=%d free=%d\n",
++                pool_name, (void *)arg0, (s32)var_a1, hops, var_a2, (s32)*var_t2);
++
++            for (i = 0; i < var_a2; i++) {
++                if (var_a3[i].unk0E != -1) {
++                    osSyncPrintf("[getv][vtxstore-free] slot=%d ptr=%p count=%d refs=%d next=%d prev=%d owner=%p level=%d\n",
++                        i, (void *)var_a3[i].unk00, (s32)var_a3[i].unk0C,
++                        (s32)var_a3[i].unk0E, (s32)var_a3[i].unk10,
++                        (s32)var_a3[i].unk12, var_a3[i].unk04, var_a3[i].unk08);
++                }
++            }
++
++            return;
++        }
++
++        hops++;
++#endif
+         if (var_a3[var_a1].unk00 == arg0) {
+             stop = 1;
+             // FAKE

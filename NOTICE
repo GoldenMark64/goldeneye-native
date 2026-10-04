@@ -35,9 +35,9 @@ docs/LICENSING.md.
 Game data
 ---------
 
-No ROM, no extracted assets, no textures, no audio, no level data, and no
-game-derived material of any kind is included in this repository or in its
-history. Building requires a copy of the game that you own. See README.md.
+The current tracked public tree is intended not to contain ROMs, extracted
+assets, textures, audio, level data, or other ROM-derived game data. Building
+requires a copy of the game that you own. See README.md.
 
 Trademarks
 ----------

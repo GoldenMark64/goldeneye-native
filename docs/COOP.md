@@ -16,12 +16,13 @@ split screen. It is bring-up quality: the mission is authored around one Bond, s
 are present rather than accounted for. `GETV_MP` is the separate, unrelated path that boots a
 real multiplayer arena setup instead.
 
-**Use `GETV_MOVE_SELFTEST` for any input measurement here.** It holds the left stick forward on
-every port from a given frame, which is what makes a co-op measurement mean anything: the other
-paths each reach one player. `GETV_SCRIPT` drives port 0 and has never been shown to move anyone
-in any mode -- solo on Dam travels identically with it and without it, and that travel is the
-intro camera animating rather than input driving the player. The player API
-(`gePlayerClaim`/`gePlayerPost`, see [`HARNESS.md`](HARNESS.md)) addresses a single slot.
+**Use `GETV_MOVE_SELFTEST` when reproducing the inherited all-player movement measurements
+below.** It holds the left stick forward on every port from a given frame, which is useful because
+one command drives the whole co-op group at once. The old investigation recorded an earlier
+`GETV_SCRIPT` path that did not prove player movement; that statement is historical and has been
+superseded. In the current tree `GETV_SCRIPT` injects real device-side scripted input for one
+selected port (default 0), while the player API (`gePlayerClaim`/`gePlayerPost`) targets an
+explicit player slot. See [`HARNESS.md`](HARNESS.md) for the current automation interfaces.
 
 Two knobs, both read once:
 

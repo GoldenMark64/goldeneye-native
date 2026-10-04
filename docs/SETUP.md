@@ -803,13 +803,13 @@ On failure the last line is `LINK FAILED`, preceded by up to 30 lines of linker 
 The normal full build. Complete expected output:
 
 ```
-mac game: 167 built, 0 failed
-mac assets: 746 built, 0 failed
-mac audio: 40 built, 0 failed
+mac game: <count> built, 0 failed
+mac assets: <count> built, 0 failed
+mac audio: <count> built, 0 failed
 mac port layer: <count> built, 0 failed
-mac libge.a:  31M, 1016 members
+mac libge.a:  <size>, <member-count> members
 ld: warning: reducing alignment of section __DATA,__common from 0x8000 to 0x4000 because it exceeds segment maximum alignment
-mac binary: /path/to/goldeneye-native/getv/build-mac/goldeneye ( 20M, arm64)
+mac binary: /path/to/goldeneye-native/getv/build-mac/goldeneye (<size>, arm64)
 ```
 
 The `ld` warning about `__DATA,__common` alignment is expected and harmless: the game arena is a

@@ -32,7 +32,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | [`CODEBASE.md`](CODEBASE.md) | Architecture, build/runtime/input flows, repository map, and where a change belongs. |
 | [`DEVELOPMENT.md`](DEVELOPMENT.md) | Branch, edit, rebuild, test, validate, and review loop. |
 | [`../getv/patches/README.md`](../getv/patches/README.md) | Safely record changes to the ignored decompilation. |
-| [`HARNESS.md`](HARNESS.md) | Deterministic runtime harness and automated scenarios. |
+| [`HARNESS.md`](HARNESS.md) | Current scripted-input and player-API automation seams. |
 | [`TASK_QUEUE.md`](TASK_QUEUE.md) | Historical two-machine bot/Windows task queue and engineering record. |
 
 ## Features and subsystems
@@ -47,7 +47,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | [`COOP.md`](COOP.md) | Cooperative mission behavior and limitations. |
 | [`NETPLAY.md`](NETPLAY.md) | LAN implementation and known synchronization failures. |
 | [`GIBS.md`](GIBS.md) | Opt-in enemy-gib implementation and policies. |
-| [`STANCE.md`](STANCE.md) | Crouch, stance, jump, and lean design notes. |
+| [`STANCE.md`](STANCE.md) | Current crouch action plus jump/lean design notes. |
 | [`COLOUR_BUGS.md`](COLOUR_BUGS.md) | Texture/colour decoding investigations. |
 
 ## Internal interfaces and ports
@@ -56,9 +56,9 @@ start with [`BUILDING.md`](BUILDING.md).
 |---|---|
 | [`PLAYER_API.md`](PLAYER_API.md) | Player state and control API used by bots, netplay, and automation. |
 | [`ENEMY_API.md`](ENEMY_API.md) | Port-side live-enemy query API; game-side source adapter is still pending. |
-| [`ASSET_LOADING.md`](ASSET_LOADING.md) | ROM asset conversion and runtime loading. |
+| [`ASSET_LOADING.md`](ASSET_LOADING.md) | Historical early asset-loading investigation; retained for forensic reasoning, not current status. |
 | [`asset-converter-spec.md`](asset-converter-spec.md) | Asset converter contract. |
-| [`PORTING.md`](PORTING.md) | Platform-port history, constraints, and build baselines. |
+| [`PORTING.md`](PORTING.md) | Historical August 2026 Windows/Linux porting plan and subsequent engineering record. |
 | [`WINDOWS_STAN_ORDERING.md`](WINDOWS_STAN_ORDERING.md) | Windows geometry-ordering root cause and fix. |
 | [`PROP_ALLOCATOR_TELEMETRY.md`](PROP_ALLOCATOR_TELEMETRY.md) | Versioned, content-free runtime prop-pool observations. |
 | [`PERFECT_DARK.md`](PERFECT_DARK.md) | Audited opportunities from the MIT-licensed Perfect Dark port. |

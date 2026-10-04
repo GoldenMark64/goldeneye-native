@@ -255,7 +255,7 @@ measured, and what remains open.
 | **Post-processing** | **Done** | FXAA, MSAA to 4x, supersampling, anisotropic filtering, mipmaps, parallax mapping. |
 | **Two renderers** | **Done** | OpenGL everywhere, plus a native Metal backend on Apple platforms. Not MoltenVK. |
 | **Launcher** | **Done** | A window for level, ruleset, cheats and video settings. No config file needed. |
-| **Real-font text** | **Beta** | Optional TrueType text overlay, off by default. It is still a raw development gate and has known cosmetic alignment/case differences from retail. [`CONFIGURATION.md`](docs/CONFIGURATION.md#getv_real_fonts----the-real-font-text-overlay) |
+| **Real-font text** | **Beta** | Optional TrueType text overlay, off by default. It is still a raw development gate and has known cosmetic alignment/case differences from retail. [`CONFIGURATION.md`](docs/CONFIGURATION.md) |
 | **Saves** | **Done** | Persistent, in your platform's normal application-data directory. |
 | **Around 250 settings** | **Done** | Every development gate settable by name, from the config file or the command line. |
 | **Free camera** | **Beta** | Photo mode. `F8` unpins the camera from Bond and hands you the room: fly it on `W` `A` `S` `D`, look with the arrows, rise and drop on `R` and `F`, hold shift or ctrl to change pace. The camera is Rare's own -- a six-degree fly camera that shipped inside the cartridge and was never reachable from a controller. Visibility still roots at Bond, so leaving his room culls the world behind you. |

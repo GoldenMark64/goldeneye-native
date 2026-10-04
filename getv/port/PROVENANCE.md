@@ -1,80 +1,124 @@
 # Provenance of `getv/port/`
 
-**Status: unresolved.** This is a factual record, not legal advice, and not a decision. It
-exists because the project intends to publish this port layer, and `getv/port/fast3d/`
-currently carries no licence file, no provenance note and no attribution header of any kind
-(`gfx_pc.c` opens on `#include <math.h>`).
+**Current as of October 4, 2026.**
 
-Sources and full texts: `docs/research/MGB64_MINING.md` §5, `docs/research/GOLDENPAD_PRIOR_ART.md`.
+This is the file-level companion to [`docs/LICENSING.md`](../../docs/LICENSING.md) and
+[`docs/THIRD_PARTY.md`](../../docs/THIRD_PARTY.md). It is a factual engineering record, not legal
+advice.
 
----
+## 1. Publicly tracked port code
 
-## 1. What is in here, and where it came from
+The current repository tracks the GoldenEye-specific port layer, build glue, tests, and patch/
+reconstruction instructions.
 
-| path | origin | notes |
-|---|---|---|
-| `fast3d/gfx_pc.c`, `gfx_opengl.c`, `gfx_cc.c`, `gfx_sdl2.c`, headers | **sm64ex**, which took it from **`Emill/n64-fast3d-engine`** | licence contested - see §2 |
-| `fast3d/ge_sky_rdp.{c,h}` | ours | decodes GE's hand-built RDP triangles from `sky.c`'s `G_RDPHALF_*` pairs |
-| `audio/ge_mixer.c` | ours, built against libultra's AL semantics | `aPoleFilter` derived from GE's own `init_lpfilter` coefficients |
-| `src/**`, `mac/**` | ours | tvOS/macOS harness, input, asset bridge, render loop |
+Project-specific examples include:
 
-Anything adapted from another project must record repo, commit and file both at the
-adaptation site and in this document.
+- `src/` platform/game integration;
+- `mac/` platform integration;
+- GoldenEye-specific renderer hooks such as `fast3d/ge_sky_rdp.{c,h}`;
+- launcher/configuration integration;
+- diagnostics, GPU/function-flight instrumentation, and regression tooling; and
+- the patch stacks that transform pinned upstream/decomp sources locally.
 
-## 2. The Fast3D licence question - settled as to fact, open as to consequence
+The repository's root MIT license does not erase separate notices on adapted or third-party
+material.
 
-`Emill/n64-fast3d-engine` has never been MIT. This is established from its own history:
+## 2. Fifteen sm64ex baseline files are fetched, not redistributed
 
-- `LICENSE.txt` has exactly four commits.
-- In the initial commit `a99492dd` (2020-04-24), condition 2 read `Redistributions in binary
-  form are not allowed.` - a flat ban.
-- Commit `881eb68b` (2021-10-26, *"Updating license"*) changed one line only, adding the
-  carve-out *"except in cases where the binary contains no assets you do not have the right
-  to distribute"*.
-- GitHub classifies the repository `NOASSERTION`.
+The 1.0 clean-install design deliberately does **not** keep the inherited sm64ex Fast3D/audio
+baseline as ordinary tracked source files.
 
-Two downstream projects label the same lineage differently:
+`tools/fetch-thirdparty.sh` fetches fifteen files from pinned sm64ex commit:
 
-- **Perfect Dark** (`port/fast3d/LICENSE.txt`) says plain MIT. That label was applied in
-  commit `9508b136` (2023-08-01, *"replace old fast3d with libultraship-fast3d"*), which
-  deleted Emill's custom text entirely and inserted standard MIT while retaining the
-  `Copyright (c) 2020 Emill, MaikelChan` line. libultraship's own root licence is MIT
-  © 2022 kenix3.
-- **mgb64** (MIT overall) explicitly retracts an earlier MIT claim about the Emill engine,
-  reading it as custom BSD-2-Clause with a binary-redistribution restriction.
+```text
+d7ca2c04364a6dd0dac58b47151e04e26887e6f0
+```
 
-Our own lineage is the stricter one. We descend from sm64ex, which ships no root licence and
-reproduces the Emill notice in exactly one place - `src/pc/README-n64-fast32-engine.md` - in
-the pre-2021 form, with the flat binary ban and no asset carve-out. The strict reading is
-therefore not merely mgb64's opinion; it is the notice our own upstream ships.
+The exact list lives in:
 
-What this does not settle: whether our Fast3D is closer to Emill's original or to
-libultraship's rewrite, and what either permits. That requires a human decision. Do not
-publish `getv/port/fast3d/` on the assumption that it is MIT.
+```text
+getv/patches/thirdparty/MANIFEST
+```
 
-## 3. Quarantine - do not take code from these
+It includes the Fast3D renderer baseline, historical mixer inputs, `configfile.h`, and `fs.h`.
 
-| project | licence | status |
-|---|---|---|
-| GoldenRecomp | GPL-3.0 | quarantined; incompatible with permissive publication |
-| `cblock85/GoldenEye64Recomp` | GPL-3.0 | quarantined |
-| `DeeStiz/007` | none (`license: null`) | read for understanding only, never adapt |
-| `chrissotraidis/goldenpad` | no top-level licence; notes an N64ModernRuntime GPL-3.0 obligation | do not adapt |
+GoldenEye-specific changes are reconstructed locally from the public patch/template material. See
+[`docs/THIRD_PARTY.md`](../../docs/THIRD_PARTY.md) for the exact pipeline and verification
+mechanism.
 
-## 4. Cleared for adaptation, with attribution
+## 3. Why the Fast3D lineage stays separated
 
-| project | licence | local copy |
-|---|---|---|
-| mgb64 (`akratch/mgb64`) | MIT | `scratchpad/mgb64` (head `0d1d40b4`) |
-| Perfect Dark (`perfect-dark-pc-port/perfect_dark`) | MIT | `vendor/pd-ext` (2025-12-02) and `vendor/pd-port` |
+The relevant lineage is:
 
-## 5. Never distributable, under any licence
+```text
+Emill/n64-fast3d-engine -> sm64ex -> GoldenEye Native local reconstruction
+```
 
-The ROM, extracted assets, and anything derived from them. `.gitignore` blocks `*.z64`,
-`*.n64`, `*.v64`, `*.o2r`, `*.otr` and `base.zip`, and also `getv/build-sim-*/` and
-`getv/build-mac/`, which hold objects compiled from extracted ROM data. Without those last
-two entries, a `git add -A` in `getv/` would stage derived game data.
+The form of the notice inherited through sm64ex is not treated by this project as a settled
+standard permissive license. Rather than assert that the question is resolved, the public release
+does not redistribute those baseline files.
 
-The decomp source itself (`n64decomp/007`) has no licence file, and its libultra sources
-carry SGI proprietary headers. That is upstream's situation rather than ours to resolve, but
-it is a fact about the base this port is built on.
+This is a distribution boundary, not a claim that another project's legal interpretation is wrong.
+
+## 4. Perfect Dark-derived compatibility work
+
+The optional Perfect Dark renderer compatibility experiment adapts a small set of backend ideas from
+`perfect-dark-pc-port/perfect_dark`, which is MIT-licensed.
+
+The retained notice is:
+
+```text
+LICENSES/perfect-dark-port-MIT.txt
+```
+
+The experiment is opt-in and does not replace GoldenEye's Fast3D frontend or game code.
+
+The current mixer reconstruction/provenance details are documented in
+[`docs/THIRD_PARTY.md`](../../docs/THIRD_PARTY.md).
+
+## 5. Other third-party components
+
+Third-party headers/fonts keep their own notices. Examples include stb_image, stb_truetype, and
+Roboto Condensed.
+
+Do not infer their terms from the repository's root `LICENSE`.
+
+## 6. Quarantine
+
+Code is not to be copied/adapted from sources whose terms do not fit the current project policy.
+
+Examples:
+
+- GoldenRecomp — GPL-3.0;
+- `cblock85/GoldenEye64Recomp` — GPL-3.0;
+- `chrissotraidis/goldenpad` — no clean permissive top-level grant / documented GPL obligation;
+- `DeeStiz/007` — no license granting reuse.
+
+Reading for behavior/reference is separate from copying code.
+
+## 7. Game data boundary
+
+Never commit or publish:
+
+- ROMs;
+- extracted ROM assets;
+- generated game-data archives;
+- saves/EEPROM data; or
+- locally built playable executables containing locally extracted game data.
+
+The local build may necessarily combine user-supplied game data with code to produce a playable
+binary. That does not make the resulting binary part of this source repository's redistributable
+artifact set.
+
+## 8. Recording future adaptations
+
+Any new external adaptation must record:
+
+- upstream repository;
+- exact commit/version;
+- source file(s);
+- license;
+- what was adapted; and
+- retained notice location.
+
+Update this file together with `docs/LICENSING.md` and `docs/THIRD_PARTY.md`.

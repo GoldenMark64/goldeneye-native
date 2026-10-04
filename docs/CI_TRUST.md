@@ -1,8 +1,9 @@
 # CI trust and proposed merge protection
 
-This is issue #46's first local baseline: ownership, explicit job names, action pins and token
-permissions, plus a settings proposal. **No GitHub settings are activated by this change.** Host
-acceptance remains pending; this baseline does not complete issue #46.
+This document records the repository's CI-trust baseline: ownership, explicit job names, action
+pins, token permissions, and a proposed settings posture. **No GitHub settings are activated merely
+by this document or the committed workflow changes.** Repository-side protection must be checked
+and enabled separately, and the observations below should be re-verified before relying on them.
 
 ## Observed repository settings
 

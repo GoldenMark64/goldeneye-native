@@ -40,7 +40,7 @@ start with [`BUILDING.md`](BUILDING.md).
 |---|---|
 | [`MODDING.md`](MODDING.md) | Lua mods, environment gates, asset seams, and HD texture packs. |
 | [`MOUSE.md`](MOUSE.md) | Mouse-look design, measurements, and tests. |
-| [`FRAME_TIMING.md`](FRAME_TIMING.md) | Decoupled simulation and rendering clocks. |
+| [`FRAME_TIMING.md`](FRAME_TIMING.md) | High-refresh timing improvements, measurements, and remaining frame-counted limitations. |
 | [`PERFORMANCE.md`](PERFORMANCE.md) | Performance profiles and measurements. |
 | [`BOTS.md`](BOTS.md) | Bot architecture and skill policies. |
 | [`COOP.md`](COOP.md) | Cooperative mission behavior and limitations. |

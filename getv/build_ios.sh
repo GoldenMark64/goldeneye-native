@@ -3,10 +3,10 @@
 # target triple, the SDK, the SDL/ImGui prefixes and the deploy mechanism -- see that
 # file's header comment for the overall rationale (native decomp port, not emulation).
 #
-# No physical iPhone/iPad is paired yet, unlike the tvOS Apple TV on the LAN. `lib` and
-# `app` are fully usable today; `deploy` needs DEV_DEVICECTL_IOS set to a real device UDID
-# once one exists (`xcrun devicectl list devices` after pairing one over USB/Wi-Fi). Until
-# then, use build_ios_sim.sh -- it needs no physical hardware and can be screenshotted.
+# `lib` and `app` do not require a paired physical device. `deploy` requires the caller
+# to set DEV_DEVICECTL_IOS to the id of a paired iPhone/iPad reported by
+# `xcrun devicectl list devices`. Device identifiers are intentionally not stored here.
+# Without a physical device, use build_ios_sim.sh.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -193,12 +193,15 @@ cmd_app() {
 cmd_deploy() {
   local app="$HERE/build-ios-device/Build/Products/Release-iphoneos/Goldeneye-Native-iOS.app"
   [ -d "$app" ] || { echo "no app at $app - run '$0 app' first"; return 1; }
-  # "iPhone18ProS", an iPhone 14 Pro -- found paired via `xcrun devicectl list devices`
-  # on 2026-08-26. Override with DEV_DEVICECTL_IOS if a different device is the target.
-  local DEV_DEVICECTL_IOS="${DEV_DEVICECTL_IOS:-3AA1F63F-53C0-5C57-A19F-06BC22CBB1B6}"
-  xcrun devicectl device uninstall app --device "$DEV_DEVICECTL_IOS" "$BUNDLE_ID" || true
-  xcrun devicectl device install app --device "$DEV_DEVICECTL_IOS" "$app"
-  xcrun devicectl device process launch --device "$DEV_DEVICECTL_IOS" --console "$BUNDLE_ID"
+  local device_id="${DEV_DEVICECTL_IOS:-}"
+  [ -n "$device_id" ] || {
+    echo "DEV_DEVICECTL_IOS is required for iOS deployment." >&2
+    echo "Run 'xcrun devicectl list devices' and export the id of your paired iPhone/iPad." >&2
+    return 1
+  }
+  xcrun devicectl device uninstall app --device "$device_id" "$BUNDLE_ID" || true
+  xcrun devicectl device install app --device "$device_id" "$app"
+  xcrun devicectl device process launch --device "$device_id" --console "$BUNDLE_ID"
 }
 
 cmd_clean() { rm -rf "$BUILD" "$HERE/build-ios-device"; echo "cleaned"; }

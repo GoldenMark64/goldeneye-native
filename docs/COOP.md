@@ -1,5 +1,16 @@
 # Co-op
 
+## Provenance of the current status
+
+The co-op implementation and the measurements in this document come from **SegfaultEvan's
+pre-takeover August 2026 development history**. In particular, that history includes separate
+camera/first-person work and later commits reporting measured player movement and co-op team rules.
+
+The GoldenMark64 1.0 campaign-certification pass did **not** independently re-run a dedicated co-op
+validation matrix. Treat the results below as inherited project evidence until they are re-tested on
+the current release line.
+
+
 Two to four players share a single-player mission's own geometry, objectives and cutscenes,
 split screen. It is bring-up quality: the mission is authored around one Bond, so extra players
 are present rather than accounted for. `GETV_MP` is the separate, unrelated path that boots a

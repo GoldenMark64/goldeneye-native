@@ -72,7 +72,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | [`VISION.md`](VISION.md) | Long-term design ideas; older feature-status tables are historical. |
 | [`MAINTAINING.md`](MAINTAINING.md) | Community branch workflow and future upstream replay. |
 | [`../PATCH_QUEUE.md`](../PATCH_QUEUE.md) | Independently replayable community fixes. |
-| [`REUSE_AUDIT.md`](REUSE_AUDIT.md) | Evaluated reuse candidates and license boundaries. |
+| [`REUSE_AUDIT.md`](REUSE_AUDIT.md) | Reuse inventory and dated adoption audit; current feature status lives in README/ROADMAP. |
 
 ## Licensing and provenance
 

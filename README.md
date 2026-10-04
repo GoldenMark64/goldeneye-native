@@ -253,7 +253,7 @@ measured, and what remains open.
 | **Toggle aim** | **Done** | Press once to raise the sight instead of holding the button. The game's own option, exposed as `aim_toggle`. |
 | **Coloured reticle** | **Done** | Any RRGGBB, and a smaller modern sight size. How cleanly a colour takes depends on the baked asset. |
 | **Post-processing** | **Done** | FXAA, MSAA to 4x, supersampling, anisotropic filtering, mipmaps, parallax mapping. |
-| **Two renderers** | **Done** | OpenGL everywhere, plus a native Metal backend on Apple platforms. Not MoltenVK. |
+| **Renderers** | **Done** | Desktop builds use OpenGL, Apple targets also have native Metal, and mobile/TV bring-up uses the platform-appropriate GL ES or Metal path. Not MoltenVK. |
 | **Launcher** | **Done** | A window for level, ruleset, cheats and video settings. No config file needed. |
 | **Real-font text** | **Beta** | Optional TrueType text overlay, off by default. It is still a raw development gate and has known cosmetic alignment/case differences from retail. [`CONFIGURATION.md`](docs/CONFIGURATION.md) |
 | **Saves** | **Done** | Persistent, in your platform's normal application-data directory. |
@@ -465,7 +465,8 @@ and Known limitations rather than assuming every modern machine is certified.
 **Can I play with a controller?** Yes, and with mouse and keyboard, and with all eight of the
 game's original control styles.
 
-**Does multiplayer work?** Split screen, yes, fully. Over a network, not reliably yet, and the
+**Does multiplayer work?** Local split screen, yes: two to four players, the normal scenarios,
+radar, arenas and the 64-character roster are available. Over a network, not reliably yet, and the
 Known limitations section says exactly how far it gets.
 
 **Why is it called GoldenEye+?** It is the name for the profile that turns on everything this

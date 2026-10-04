@@ -54,7 +54,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | Guide | Subject |
 |---|---|
 | [`PLAYER_API.md`](PLAYER_API.md) | Player state and control API used by bots, netplay, and automation. |
-| [`ENEMY_API.md`](ENEMY_API.md) | Live enemy accessor surface. |
+| [`ENEMY_API.md`](ENEMY_API.md) | Port-side live-enemy query API; game-side source adapter is still pending. |
 | [`ASSET_LOADING.md`](ASSET_LOADING.md) | ROM asset conversion and runtime loading. |
 | [`asset-converter-spec.md`](asset-converter-spec.md) | Asset converter contract. |
 | [`PORTING.md`](PORTING.md) | Platform-port history, constraints, and build baselines. |

@@ -1,132 +1,151 @@
-# Enemy awareness
+# Enemy API
 
-## The gap this fills
+**Status: port-side API implemented; live game-side source adapter not yet installed.**
 
-`ge_world_api` answers *what does this level contain* -- objectives, waypoints, routes, and guard
-spawn points from the extraction. That is static knowledge: true before the level starts, unchanged
-by anything that happens in it. A bot steering by it alone is navigating a map of a room it is not
-looking at.
+The query implementation lives in:
 
-`ge_enemy_api` is the other half: who is actually here, how hurt they are, whether they have
-noticed anyone, and **where they think their target is**. The game has tracked all of it per
-character since 1997. None of it was reachable from a bot or a mod.
+- `getv/port/src/ge_enemy_api.h`
+- `getv/port/src/ge_enemy_api.c`
 
-## Why belief is the interesting part
+The current consolidated decompilation patch does not install the `ChrRecord` source callbacks,
+so a normal current build has no live enemy source for this API unless another caller explicitly
+installs one. With no source installed, the API deliberately returns an empty/absent result rather
+than inventing data.
 
-`ChrRecord` (bondtypes.h:2454-2591) carries more than position and health:
+This page separates what is already implemented from what still needs wiring.
 
-| field | meaning |
-| --- | --- |
-| `alertness` | awareness level, driven by AI commands 86-8A |
-| `lastknowntargetpos` | where this character last knew its target to be |
-| `lastseetarget60` | frames since it had eyes on |
-| `lastheartarget60` | frames since it heard something |
-| `hearingscale` | rises when shot at |
-| `chrseeshot`, `shotbondsum` | saw / took fire |
+## Why this API exists
 
-`lastknowntargetpos` is the one worth building on. The gap between what an enemy *believes* and
-what is *true* is the whole basis for deciding whether to break contact:
+Static level data can tell a bot where guards were placed. It cannot answer live questions such as:
 
-- belief close to your real position, recently seen -> you are tracked, and retreating straight
-  away from the enemy is the worst option because that is where it is already aiming
-- belief far or stale -> contact is broken, and any move that does not re-enter its view keeps it
-  broken
-- several enemies believing the same wrong place -> that place is where the fight is; it is a
-  location to avoid, not an enemy to fight
+- which character slots are currently occupied;
+- where a living enemy is now;
+- how much damage it has taken;
+- whether it is alert;
+- where it last believed its target to be; or
+- how recently it saw or heard that target.
 
-A bot that knows enemy positions can fight. A bot that knows what enemies *believe* can disengage,
-flank, and bait -- and those are the behaviours that read as intelligent.
+GoldenEye already tracks those facts in `ChrRecord`. The enemy API is the port-side query surface
+for exposing them without making every consumer depend directly on game-private structs.
 
-`geEnemyThreatAt(x, y, z, radius)` exists for exactly this. It scores a **destination**, not a
-neighbourhood, and it is deliberately not the same question as `geEnemiesNear`. In the test fixture
-the origin has one living enemy within 120 units but three converging on it -- one of them 9000
-units away, which is precisely the guard about to arrive and the one a proximity query misses.
+## Implemented port-side surface
 
-It does **not** filter on alertness. An enemy walking to where it last saw someone threatens that
-spot whether or not it is alert right now; alertness describes its state, the belief describes its
-destination. Filtering here would hide the guard that is about to arrive.
-
-## The source is installed, not linked
-
-The live data is in `ChrRecord`, and the port layer is compiled without the decomp's include path
-(`$portFlags` in `build_windows.ps1` covers `port/`, `port/include`, `port/fast3d`, `port/src` and
-nothing else), so it cannot name that type. The established bridge is a flat accessor implemented
-game-side -- `gePortPlayerPos` in `objective_status.c:717` is exactly that shape.
-
-Declaring an extern the port cannot satisfy would turn a missing shim into a **link failure for
-everyone**. So the source is registered at boot instead, the way `joySetPlaybackFunc` registers
-input playback. With nothing registered, every query reports zero enemies and
-`geEnemySourceInstalled()` returns 0 -- the absence is a readable runtime state rather than a
-broken build.
-
-## What's still needed
-
-The port half is written, compiled and tested. The game-side shim is not: it belongs inside
-`vendor/ge-decomp`, which this project patches rather than owns outright (see
-[`MODDING.md`](MODDING.md)), and it is about forty lines beside `gePortPlayerPos`:
+The public header defines:
 
 ```c
-static int gePortEnemyCount(void)
-{
-    return g_NumChrSlots;          /* chr.h:215 */
-}
+void geEnemySourceInstall(GeEnemyCountFn count_fn, GeEnemyAtFn at_fn);
+int geEnemySourceInstalled(void);
 
-static int gePortEnemyAt(int index, f32 *out, int count)
-{
-    ChrRecord *chr;
-
-    if (index < 0 || index >= g_NumChrSlots) { return 0; }
-    if (count < 14)                          { return 0; }   /* GE_ENEMY_FIELD_COUNT */
-
-    chr = &g_ChrSlots[index];                                 /* chr.h:214 */
-    if (chr->model == NULL) { return 0; }                     /* free slot: chr.c:1775 */
-    if (chr->prop  == NULL) { return 0; }
-
-    out[0]  = chr->prop->pos.x;    /* PropRecord.pos, bondtypes.h offset 0x08 */
-    out[1]  = chr->prop->pos.y;
-    out[2]  = chr->prop->pos.z;
-    out[3]  = chr->damage;
-    out[4]  = chr->maxdamage;
-    out[5]  = (f32) chr->alertness;
-    out[6]  = chr->hearingscale;
-    out[7]  = chr->lastknowntargetpos.x;
-    out[8]  = chr->lastknowntargetpos.y;
-    out[9]  = chr->lastknowntargetpos.z;
-    out[10] = (f32) chr->lastseetarget60;
-    out[11] = (f32) chr->lastheartarget60;
-    out[12] = (f32) chr->chrnum;
-    out[13] = (chr->actiontype != ACT_DEAD) ? 1.0f : 0.0f;    /* per chr.c:202 */
-
-    return 1 | 2 | 4 | 8;   /* POSITION | HEALTH | ALERT | BELIEF */
-}
+int geEnemyCount(void);
+int geEnemy(int index, GeEnemy *out);
+int geEnemyById(int id, GeEnemy *out);
+int geEnemiesNear(float x, float y, float z, float radius,
+                  GeEnemy *out, int max);
+int geEnemyThreatAt(float x, float y, float z, float radius);
 ```
 
-Then `geEnemySourceInstall(gePortEnemyCount, gePortEnemyAt)` once a level is running, and
-`geEnemySourceInstall(NULL, NULL)` on teardown. **The uninstall matters**: a source outliving its
-level hands out positions of characters that no longer exist, and they read as perfectly plausible
-enemies.
+The source is registered as two callbacks:
 
-Three details worth not improvising on:
+- a slot-count callback; and
+- a callback that fills one flat, versioned field row for a requested slot.
 
-1. **Return a field mask, not a bool.** A build that can reach position but not alertness should
-   return `GE_EN_POSITION` alone, so a bot can see it is blind on awareness instead of reading
-   every guard as oblivious.
-2. **Check `count`.** Refuse rather than write past the array. Adding a field later must not
-   silently shift every reader by one slot -- that failure is quiet and total.
-3. **Health is inverted at the boundary, not here.** The game stores damage *taken*; the port
-   converts to remaining. Getting it backwards reads a dying guard as healthy.
+Both callbacks must be present. Installing only one is rejected by uninstalling the source, because
+"there are enemies but none can be described" would be a misleading partial state.
 
-## Tests
+## Field model
 
-`getv/port/tests/test_enemy.c` runs the whole API against a fake population with no game running --
-which is the point of the install seam. It covers the health inversion, nearest-first ordering with
-a `max` cap that keeps the closest rather than the first found, corpse exclusion, partial-data
-rows, and the belief-versus-proximity contrast.
+The flat source row currently has fourteen slots:
 
-```bash
-pwsh getv/port/tests/run_tests.ps1
-```
+- position: x/y/z;
+- accumulated damage and maximum damage;
+- alertness and hearing scale;
+- last-known target position;
+- frames since target was seen/heard;
+- character id; and
+- alive/dead state.
 
-The threat assertion failed on its first run claiming 4 where the code said 3. The code was right:
-the fourth character reports position only, so it holds no belief and must not vote. The
-expectation was wrong, which is the correct way round for a test to fail.
+The callback returns a `GE_EN_*` mask saying which groups are actually valid.
+
+That same rule carries into `GeEnemy`: unavailable data must stay distinguishable from a real
+zero. A guard at full health and a guard whose health could not be read are not the same fact.
+
+## Query behavior
+
+### `geEnemy()`
+
+Reads one character slot. Empty or invalid slots return no enemy.
+
+### `geEnemyById()`
+
+Looks up a live row by GoldenEye character id (`chrnum`). Use this when a consumer wants to follow
+one character across frames rather than depending on a slot index.
+
+### `geEnemiesNear()`
+
+Returns living enemies within a horizontal radius, nearest first. The navigation layer treats this
+as a floor-plan query, so Y is deliberately not part of the distance calculation.
+
+### `geEnemyThreatAt()`
+
+Counts living enemies whose **belief position** lies within the requested radius.
+
+This is intentionally different from "how many enemies are physically near here." An empty
+location can still be dangerous if several guards are converging on the place where they last saw
+their target.
+
+The threat query does not filter out a character merely because its current alertness is low:
+belief describes where it is acting toward, while alertness describes another part of its current
+state.
+
+## What is still missing
+
+The port-side API cannot name `ChrRecord` directly because the port layer does not compile against
+the game's private type surface.
+
+The remaining integration is a small game-side adapter in the patched decompilation that:
+
+1. returns the character-slot loop bound;
+2. reads one slot safely;
+3. fills the fourteen-field row;
+4. returns the correct `GE_EN_*` availability mask; and
+5. installs the callbacks with `geEnemySourceInstall()` at the appropriate lifetime boundary.
+
+The adapter should uninstall the source on level teardown so stale pointers cannot survive into the
+next level.
+
+As of this documentation update, no `geEnemySourceInstall` / `gePortEnemy*` source adapter is
+present in the current `getv/patches/0001-source.patch`, and the later playtested source-catchup
+patch does not add one either.
+
+## Where the adapter belongs
+
+The natural implementation point is beside the existing game-side port accessors that already
+bridge private GoldenEye state into flat values.
+
+Do **not** solve this by duplicating `ChrRecord` layout in the port layer. That would turn a
+private game-structure change or native-layout correction into silent field corruption.
+
+The flat callback boundary exists specifically to avoid that coupling.
+
+## Relationship to bots
+
+The enemy API is not the bot AI itself. It is one possible live-observation source.
+
+A bot can operate from simpler sensing/world APIs today; once the live source adapter lands,
+`geEnemyThreatAt()` and the belief fields can support more informed retreat, pursuit and
+destination scoring.
+
+See [`BOTS.md`](BOTS.md) and [`ENEMY_API.md`](ENEMY_API.md) consumers as they evolve.
+
+## Completion criteria
+
+This API should be described as fully live only after a normal clean reconstruction:
+
+- installs the source automatically during gameplay;
+- reports nonzero live enemies on a stage with guards;
+- distinguishes empty/dead/live slots correctly;
+- returns stable `chrnum` lookup results;
+- exercises health/alert/belief field masks; and
+- tears the source down cleanly between levels.
+
+Until then the accurate status is: **implemented query layer, pending live game-side source wiring**.

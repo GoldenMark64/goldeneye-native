@@ -1,115 +1,180 @@
-# Frequently asked
+# Frequently asked questions
 
-Questions that come up often enough to be worth a page. The short answers are on the
-[front page](../README.md); these are the longer ones.
+These answers describe the current GoldenEye Native 1.0 line. For exact certification scope, see
+[`TESTING_1.0.md`](TESTING_1.0.md); for known limitations and current feature status, see the
+[front page](../README.md).
 
 ## Is this an emulator?
 
-No, and the difference is the whole point. An emulator runs the retail ROM by pretending to be
-an N64, which works but cannot change the game, because the game inside it is compiled MIPS
-machine code. This is built from the [decompilation](https://github.com/n64decomp/007): the game
-as editable C, compiled to a normal executable for your operating system. No core to configure,
-no plugin to pick, no ROM loaded at runtime.
+No. An emulator runs the retail N64 program by emulating the original hardware. GoldenEye Native
+builds from the [`n64decomp/007`](https://github.com/n64decomp/007) reconstruction of the game's C
+source and compiles it as a native application for the host operating system.
 
-Longer version, including why the renderer is the easy part:
-[front page](../README.md#if-you-came-here-looking-for-a-goldeneye-emulator).
+You still supply your own supported cartridge dump locally. The project does not ship the ROM or
+extracted game assets.
 
-## Is this the Xbox 360 remaster, or the cancelled XBLA build?
+## Is this the Xbox 360 remaster or the cancelled XBLA release?
 
-Neither. Those are separate codebases. This is the Nintendo 64 game, from its decompilation.
+No. Those are separate codebases. This project is based on the Nintendo 64 game and its
+decompilation.
 
-## How is this different from a source port like Ship of Harkinian?
+## How is this different from a static recompilation?
 
-Same idea, different game. A decompilation gets turned into a native program with a modern
-platform layer. Ship of Harkinian is Ocarina of Time; this one is GoldenEye. Their work proved
-the shape of this years before I started, and it is credited on the front page.
+A static recompiler translates existing machine code for another CPU. This project works from
+editable reconstructed C source. That allows native-port bugs and game logic to be changed and
+tested directly rather than only patched around from outside.
 
-## Do I need the ROM?
+## Which platforms work?
 
-Yes, your own legal copy of the NTSC (US) cartridge. Nothing in this repository contains game
-data and nothing ever will: every texture, model, animation, sound bank and level layout is read
-out of your dump at build time and emitted as C. The expected size and SHA-1 are in
-[the ROM section](../README.md#bring-your-own-rom).
+The current desktop targets are macOS, Linux and Windows.
 
-The build reads it once. What you run afterwards never touches it.
+- **Linux:** builds and plays; the complete 1.0 retail campaign was human-certified on the primary
+  Ubuntu 24.04 x86-64 / Intel Iris Xe system. Other GPU, driver and distribution combinations are
+  not exhaustively certified.
+- **macOS:** builds and plays on Apple silicon and Intel; OpenGL and a native Metal backend exist.
+- **Windows:** builds natively with mingw-w64 and passes the project's self-test, but does not yet
+  have the same full campaign-certification evidence as the primary Linux system.
 
-## Does it support mouse and keyboard, or a controller?
+tvOS and iOS are bring-up targets. Android has a compiling arm64/GLES port layer but is not yet a
+running game.
 
-Both, at the same time, and mouse and keyboard is the default. Mouse look with sensitivity and
-Y-invert, WASD to move, ESC to let go of the cursor.
+See the [platform table](../README.md#which-platforms-work).
 
-Controllers go through SDL2's game controller layer, so a DualSense, DualShock 4, Xbox pad,
-Switch Pro controller or 8BitDo is recognised without a mapping file, wired or wireless. Both
-analogue sticks are live, which the N64 controller could never do, and bindings are per player.
+## Do I need a ROM?
 
-A pad works alongside the keyboard rather than replacing it: whichever input is being held wins,
-so plugging one in never takes the keyboard away. See [`MOUSE.md`](MOUSE.md) for the mouse
-implementation.
+Yes. You need your own supported US retail GoldenEye 007 dump. Setup verifies the expected dump
+locally and extracts the data needed for your local build.
 
-## Is there a crouch button?
+The repository is intentionally source-only: it does not ship a ROM, extracted assets, or a
+prebuilt playable GoldenEye binary containing those locally extracted assets.
 
-Yes, and the original doesn't have one. Retail crouch means holding aim, pushing down, then
-releasing aim while staying low. The modern preset uses `C` or `Left Ctrl`; crouch toggles, so
-press it again to stand. In `hold` mode, releasing the key stands you up instead. The original
-gesture still works if you're attached to it.
+## Does setup upload or modify my ROM?
 
-## Does it run at 60fps? Can it go higher?
+The current installers read and verify the selected dump locally. They do not upload it, and the
+normal setup path does not modify the original file.
 
-It renders at 60 out of the box and the resolution is arbitrary.
+## Does it support mouse and keyboard and controllers?
 
-Above 60 you need `GETV_REALCLOCK=1`, because the game's per-frame systems run faster than they
-were tuned for and the default clock counts a rendered frame as a video field. The game warns
-you if you forget. That path is reasoned from the code and has never been measured on real
-high-refresh hardware.
+Yes. Mouse and keyboard work alongside SDL2-compatible controllers. Mouse sensitivity and
+inversion are configurable, controller bindings are exposed through the launcher/configuration
+surface, and all eight retail GoldenEye control styles are represented.
 
-`framerate = 30` is the faithful setting. The whole story is in
-[`FRAME_TIMING.md`](FRAME_TIMING.md), and the short version is on the
-[front page](../README.md#on-frame-timing-and-a-thank-you).
+See [`CONTROLS.md`](CONTROLS.md) and [`MOUSE.md`](MOUSE.md).
+
+## Does it run at 60 fps? Can it go higher?
+
+The conservative default on NTSC builds is 60 fps.
+
+High-refresh rendering is also available. The real-clock free-run path allows rendering to run
+substantially faster without simply making the main GoldenEye field clock advance once per
+rendered frame. This has been measured: the documented Dam tests kept the main field clock near
+60 fields/sec while rendering hundreds of frames per second.
+
+That is a **timing improvement, not a claim that every timing-sensitive subsystem is completely
+fixed**. Some game logic still advances per simulation update and remains subject to
+subsystem-by-subsystem audit.
+
+See [`FRAME_TIMING.md`](FRAME_TIMING.md) and the
+[README timing summary](../README.md#frame-rate-and-timing-improvements).
+
+## Is 30 fps the only faithful setting?
+
+No blanket claim like that is made. The project keeps 60 fps as the conservative default and uses
+deterministic 60 fps runs for many measurements. A 30 Hz paired timing mode also exists and is
+useful when testing lower update cadence.
+
+The correct answer depends on the subsystem being measured; see [`FRAME_TIMING.md`](FRAME_TIMING.md).
+
+## Does widescreen work?
+
+Yes. Widescreen and ultrawide output are implemented, and the renderer uses the actual framebuffer
+aspect rather than merely advertising a wider window. HUD and gun-sight corrections are included.
+
+Field of view is separately configurable. See [`CONFIGURATION.md`](CONFIGURATION.md).
 
 ## Can it run at 4K?
 
-Internal resolution is arbitrary and supersampling is available, so yes. Whether it is a good
-idea depends on the frame-timing answer above.
+The internal resolution is configurable and supersampling is available. Practical performance
+depends on the renderer, GPU, resolution, filtering and other selected features.
 
-## Is there widescreen?
+High resolution and high refresh are separate questions: resolution support does not imply that
+every gameplay subsystem has been certified at arbitrary render rates.
 
-Resolution is fully configurable, but here is the measured truth: **changing the window aspect
-does not widen the field of view.** The renderer fits the 4:3 view to whatever window you give
-it.
+## Are HD texture packs supported?
 
-Use `fov` if you want to genuinely see more. That is the setting that changes what you can see.
-Real aspect-aware widescreen is a roadmap item and is not done.
+Yes. Texture replacement is implemented and has been verified end to end with a 4x replacement.
+Pack images are matched by texture hash. No HD pack or original game texture is shipped by this
+repository.
+
+See [`MODDING.md`](MODDING.md).
 
 ## Can I mod it?
 
-Three ways, none of which need a rebuild: Lua scripts in `mods/`, roughly 275 `GETV_*` behaviour
-gates, and `goldeneye.cfg`. Start at [`MODDING.md`](MODDING.md).
+Yes. The project exposes several opt-in modification surfaces, including Lua mods, configuration
+and environment gates, texture replacement, gameplay presets and developer tooling.
 
-Texture replacement is on the roadmap and not implemented.
+Those extensions are separate from the 1.0 base-campaign certification. Start with
+[`MODDING.md`](MODDING.md).
 
-## Is multiplayer online?
+## Is split-screen multiplayer supported?
 
-No. Split-screen multiplayer works, with all 64 characters, the radar and the full multiplayer
-setup.
+Yes. The original local multiplayer supports two to four players, radar, all 64 selectable
+characters, scenarios and multiplayer arenas.
 
-LAN and online sit downstream of the frame-timing work. A lockstep session exists in the tree,
-and whether it can work at all is honestly disputed here: [`NETPLAY.md`](NETPLAY.md) argues for
-it and [`PLAYER_API.md`](PLAYER_API.md) argues against it from measurements. Both documents are
-kept.
+## Is LAN multiplayer finished?
 
-## Can two people play the single-player missions?
+No. It is **beta/experimental**.
 
-Partly, and it is alpha. Two to four players spawn into a solo mission with its own geometry,
-props and objectives, and every viewport renders. Then they stand there: none of them moves yet.
+The current network path can open a real UDP session, complete the handshake, exchange synchronized
+input and run the integrated game-loop path. The remaining problem is correctness: repeated trials
+can desynchronize even with identical inputs, seed and pinned simulation step.
 
-The limit is measured rather than guessed, and [`COOP.md`](COOP.md) has the detail.
+So the accurate status is **connected and running, but not reliable enough to call finished**.
 
-## Does it need Wine, Proton, WSL or a compatibility layer?
+See [`NETPLAY.md`](NETPLAY.md).
 
-No. Every platform gets a real native binary. Windows uses mingw-w64, with no MSYS2, Cygwin or
-WSL anywhere near it.
+## Can multiple people play campaign missions together?
+
+Yes, experimentally. Co-op can place two to four players into a solo mission with separate player
+positions/cameras, and the movement path has been fixed so the players can actually walk.
+
+It remains **beta** because GoldenEye's mission scripting, objectives, AI and cutscenes were authored
+around one Bond. Extra players therefore exist in missions whose design does not fully account for
+them.
+
+See [`COOP.md`](COOP.md).
+
+## Are bots finished?
+
+Bots are available as a beta feature with skill tiers and behavioral policies, but they are an
+optional extension rather than part of the certified retail campaign path.
+
+See [`BOTS.md`](BOTS.md).
+
+## Does it need Wine, Proton, WSL, MSYS2 or Cygwin?
+
+The desktop builds are native. Windows uses mingw-w64; macOS and Linux build native host
+executables. Compatibility layers are not required to run the resulting desktop build.
+
+## Is there a no-code installer?
+
+macOS has a double-click setup path and Linux has the `tools/install.sh` path. The Windows
+no-code setup package exists as a release candidate, but the main README currently does not claim a
+coordinated official downloadable Windows package.
+
+See [`GETTING_STARTED.md`](GETTING_STARTED.md) and
+[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md).
 
 ## Is the source available?
 
-All of it. That's the point. What is *not* mine to license is spelled out in
-[`LICENSING.md`](LICENSING.md), and the unresolved parts are named rather than glossed.
+The public repository contains the project's source, patches, tests, documentation and
+reconstruction tooling, subject to the provenance boundaries documented in
+[`LICENSING.md`](LICENSING.md) and [`THIRD_PARTY.md`](THIRD_PARTY.md).
+
+The root MIT license does not relicense the GoldenEye game, user-supplied ROM data, extracted
+assets, or independently licensed third-party source.
+
+## Is this affiliated with Nintendo, Rare or the James Bond rights holders?
+
+No. GoldenEye Native is an independent community project and is not affiliated with or endorsed by
+Nintendo, Rare, MGM, Danjaq or EON Productions.

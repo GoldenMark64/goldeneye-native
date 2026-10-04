@@ -1,56 +1,67 @@
-# Injecting input: which path actually works
+# Automated input harnesses
 
-There are two ways to drive a player without a human, and only one of them works. This is
-written down because the broken one looks like it works, and it is easy to measure against it
-and draw the wrong conclusion.
+GoldenEye Native has two useful input-injection layers. Older versions of this document said
+`GETV_SCRIPT` did not move a player; that was true of an earlier implementation and is no longer
+current.
 
-## The player API works
+## `GETV_SCRIPT`: device-side scripted input
 
-`gePlayerClaim(slot, GE_SLOT_INJECTED)` plus `gePlayerPost(...)` writes `OSContPad` straight into
-the controller sample ring, one sample per main-loop pass, immediately before the game consumes
-it. Measured on Bunker 1 with the route follower on slot 0: the player turns from 360 to 144
-degrees, walks 155 units, and its distance to the target closes 2387 -> 2250. With the bot off,
-`MoveBond`'s walk block does not execute at all.
+`GETV_SCRIPT` is implemented in `getv/port/src/port_input.c`. It injects a synthetic
+`GePadState` **upstream** of the normal N64 controller mapping and sample-ring path. Downstream,
+the production input path still performs N64 button mapping, stick scaling, C-button thresholding,
+`osContGetReadData()`, the `joy.c` sample ring and press-edge detection.
 
-**It needs the companion pad.** Under the 2.x control styles -- and this port defaults to 2.2
-Galore -- the engine reads movement from a second controller at `playernum + getPlayerCount()`.
-`ge_playback` routes the walk axis there in a second pass. In solo that pad is index 1, so bot
-runs need `GETV_PADS=2` or `joyGetStickY(1)` returns 0 whatever was written.
+A live script forces its selected port present, so it does not require a physical controller or a
+separate `GETV_PADS` setting.
 
-## `GETV_SCRIPT` does not
+Syntax:
 
-**It has never been shown to move any player, and it does not.** Measured on Bunker 1, 1021
-frames, `GETV_STATEAPI` sampled at the same two frames in every run:
-
-```
-control          pos=(-1376 280 2297) -> (-1364 327 2305)  ang 360.0 -> 332.0
-SY=70            pos=(-1376 280 2297) -> (-1364 327 2305)  ang 360.0 -> 332.0
-SX=70            identical
-turn then walk   identical
+```text
+GETV_SCRIPT="<frame>:<keys>[:<hold>][,...]"
+GETV_SCRIPT_PORT=<n>       # default 0
+GETV_SCRIPT_TRACE=0        # optional: silence per-entry trace
 ```
 
-Byte-identical to the control, including the angle. And at the input layer, `SY=70`, `SX=70`,
-`SY=-70` and **no script at all** all produce the same `analogTurn=75 analogStrafe=0
-analogWalk=0`. A sign flip that changes nothing is not an input reaching the game.
+Keys are N64-oriented and can include `A B X Y START BACK Z L R DU DD DL DR CU CD CL CR LT RT`
+plus `SX=<n>` and `SY=<n>` for N64 stick counts in the -80..80 range. Buttons should normally
+be held for at least two frames because the game's edge detector derives presses from consecutive
+samples; the default script hold is four frames.
 
-**Two traps worth knowing, from measurements taken against it before this was understood.**
+The script path has priority over keyboard/mouse input for values it asserts and also overlays a
+real controller, which keeps unattended runs reproducible whether or not a pad happens to be
+connected.
 
-**Always run the control.** On Dam a scripted run travels 36 units and looks like proof --
-until the no-script control travels the same 36 units, because Dam's opening walks the player
-itself. Every "the script moved someone" result so far was the level's own intro.
+## Player API: tick-addressed injected input
 
-**Never sample with `tail -1`.** `GETV_SCRIPT="400:SY=70:600"` stops holding at frame 1000, so a
-run ending at 1201 spends its last 200 frames with no input, and the last trace line shows
-`spd=0.000`. That reads as "the walk never worked" and is really "you looked after it ended" --
-the same trap as reading any value with `tail -1` instead of pinning it to a fixed frame: what
-you see depends on when the run happened to stop, not on what happened in it.
+The player API is a different seam. `gePlayerClaim(slot, GE_SLOT_INJECTED)` and
+`gePlayerPost(...)` queue explicit per-slot input against the player API's game tick. This is the
+right interface for bots, external agents and netplay because a caller can target a slot and a
+specific tick and can detect refusal when input is posted too late or the queue is full.
 
-## What to do about it
+That refusal is significant: netplay and automation must be able to distinguish “applied” from
+“missed the simulation tick.”
 
-Use the player API. It is the seam bots, an external agent and netplay all need anyway, and it
-is the one with evidence behind it.
+## Which one to use
 
-`GETV_SCRIPT` should be reimplemented on top of `gePlayerPost` rather than debugged where it is.
-It currently synthesises a *gamepad* state and hands it to `port_os` for mapping, which is two
-translation layers away from the pad the game reads; the API writes the pad directly. Until then
-treat scripted runs as testing the menu and the boot path, not movement.
+Use `GETV_SCRIPT` when the test should behave like a synthetic local controller going through the
+normal device/mapping path: front-end navigation, button sequences, bounded gameplay actions and
+reproducible local input scenarios.
+
+Use the player API when the test or subsystem needs explicit player ownership, tick scheduling or a
+shared control seam with bots/netplay/agents.
+
+They are complementary, not competing implementations.
+
+## Measurement rules
+
+Two old lessons remain valid regardless of injection path:
+
+1. **Always run a no-input control.** Intro/cutscene motion can make a player appear to have moved
+   even when injected movement did nothing.
+2. **Sample a fixed frame/tick, not merely the last log line.** A scripted hold can end before the
+   process exits; looking only at the final sample can turn a successful action into an apparent
+   no-op.
+
+For higher-level bounded scenarios, combine scripted/player-API input with the current state/event
+interfaces and an explicit termination condition rather than treating renderer activity as a
+gameplay pass condition.

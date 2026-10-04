@@ -79,10 +79,12 @@ the cheapest way to alter the game without touching a line of code.
 
 - A gate is an environment variable read with `getenv`, usually cached in a function-local
   `static` on first use.
-- **Unset preserves stock behaviour.** A gate that changes what the game does when unset is a bug.
-- `=0` reverts to the pre-fix behaviour. For fixes that are on by default, this is how you get the
-  old code path back inside the same binary.
-- `=1` enables, for gates that are off by default.
+- **Unset uses that gate's documented default.** Opt-in experiments normally default off;
+  correctness fixes that are part of the maintained native path may default on.
+- For a default-on correctness gate, `=0` usually restores the pre-fix/legacy comparison path.
+- For a default-off feature or diagnostic gate, `=1` enables it.
+- Do not infer retail behavior from “unset” alone; check the gate's documented default and the
+  current source before using it as an A/B control.
 - Announce what you resolved to. A gate that applies silently is indistinguishable from one that
   failed to reach the consumer.
 
@@ -271,10 +273,15 @@ for is still being assembled.
 `ge.waypoint(id)`, `ge.waypoint_at(index)`, `ge.waypoint_count()`, `ge.waypoint_near(x, y, z)`,
 `ge.guard_at(index)`, `ge.guard_count()`, `ge.guards_near(x, y, z [, radius])`.
 
-### Enemies, as they are right now (live)
+### Live-enemy query surface
 
 `ge.enemies_near(x, y, z [, radius] [, max])`, `ge.enemy(chrnum)`, `ge.enemy_count()`,
 `ge.threat_at(x, y, z [, radius])`.
+
+The API is present, but the normal current build does **not** install the game-side
+`ChrRecord` source adapter yet. In that state the calls deliberately report no live-enemy source
+rather than inventing data. Treat these as live queries only when `ge.enemy_count()` reports that
+a source is installed; see [`ENEMY_API.md`](ENEMY_API.md) for the current wiring status.
 
 ### Diagnostics
 
@@ -290,9 +297,10 @@ player is dead. Treating the first as the second walks you into a full-health gu
 game's own number. Ids are sparse, and synthetic spawn and portal nodes are numbered above every
 natural one. Iterate by index, follow a route by id -- a route step names an id.
 
-**`guards_near` and `enemies_near` answer different questions.** The first is where guards *start*,
-from the extraction. The second is who is *actually there*, alive, now. Reasoning about a level
-from the first is reasoning from a roster that stopped being true the moment anyone fired.
+**`guards_near` and `enemies_near` answer different questions when a live-enemy source is
+installed.** The first is where guards *start*, from the extraction. The second is who is
+*actually there*, alive, now. Without the current game-side adapter, use the installed-source flag
+rather than treating an empty live query as “no enemies.”
 
 **`ge.threat_at` is not `ge.enemies_near`.** It counts enemies whose *last known target position*
 is near a point -- who is converging on it, not who is standing on it. A spot can be crowded and

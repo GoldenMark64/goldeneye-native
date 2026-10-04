@@ -36,8 +36,8 @@ This recovery does not overwrite your saved choice. You can then change **Video 
 permanently or just start the game once with OpenGL. The app does not retry automatically.
 Missing/unavailable renderers are disabled, and an unavailable selection prevents starting.
 The current installer builds one renderer; a missing Metal build needs the optional Metal
-build described in [`DEVELOPMENT.md`](DEVELOPMENT.md#macos). Installing both automatically is
-tracked separately in #53. There is no in-game hot switch.
+build described in [`DEVELOPMENT.md`](DEVELOPMENT.md#macos). Automatically installing both
+renderer builds remains follow-up packaging work. There is no in-game hot switch.
 
 Both choices use the OpenGL build folder's existing `goldeneye.cfg` when that folder exists,
 or the app's own folder otherwise, followed by the usual shared user config. Explicit config

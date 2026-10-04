@@ -14,7 +14,6 @@
  * Every input is a stubbed function, so no game and no level are needed.
  */
 
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -23,7 +22,7 @@
 /* port_random.c owns this in a real build; the seed only has to exist and be deterministic
  * for these checks. ge_event.c does not pull in the N64 types the way ge_player_api.c does,
  * which is why this needs the header explicitly where test_intent did not. */
-uint64_t g_randomSeed = 0xAB8D9F7781280783ULL;   /* matches port_random.c's real initialiser */
+unsigned long long g_randomSeed = 0xAB8D9F7781280783ULL;   /* matches port_random.c's real initialiser */
 
 /* ---------------------------------------------------------------- the fake world */
 

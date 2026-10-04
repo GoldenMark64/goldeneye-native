@@ -31,5 +31,12 @@ jobs:
             [[ "$(basename "$patch")" == 0002-* ]] && continue
             git -C vendor/ge-decomp apply "$patch"
           done
+      - name: Generate ROM-free model file views
+        shell: bash
+        env:
+          CPATH: ${{ github.workspace }}/tools/tests/fixtures
+        run: |
+          cd vendor/ge-decomp
+          python3 ../../tools/gen_asset_fileview.py
       - name: Run reverse animation interpolation regression
         run: python3 tools/tests/test_reverse_animation_interpolation_native.py

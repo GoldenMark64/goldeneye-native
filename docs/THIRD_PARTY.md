@@ -1,10 +1,14 @@
 # Third-party sources this repository does not ship
 
-Goldeneye-Native does not contain a complete build tree. Two things must be supplied before it
-compiles: the GoldenEye 007 ROM, which you already have to provide yourself, and fifteen source
-files inherited from another project, which are fetched by a script. This document explains what
-those fifteen files are, where they come from, on what terms, and why they are fetched rather
-than vendored.
+Goldeneye-Native intentionally does not vendor every input used to construct a local build.
+This document is specifically about **fifteen inherited third-party source files** that are fetched
+by a script rather than stored in this repository. A complete local build also obtains the
+decompilation source, uses the player's own supported GoldenEye 007 ROM, and prepares platform
+dependencies such as SDL2; see [`BUILDING.md`](BUILDING.md) and [`SETUP.md`](SETUP.md) for the
+full pipeline.
+
+The sections below explain what those fifteen files are, where they come from, on what terms, and
+why they are fetched rather than vendored.
 
 `docs/LICENSING.md` is the wider provenance record for the whole repository, and
 `getv/port/PROVENANCE.md` is the file-level record for the port layer. This document covers only

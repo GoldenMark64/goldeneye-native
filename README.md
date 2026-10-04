@@ -23,8 +23,8 @@
 
 **GoldenEye 007, compiled as a native application for macOS, Linux and Windows.** Mouse and
 keyboard. Real widescreen. High-refresh rendering with timing improvements and documented
-limitations. Online Multiplayer or Co Op, AI Bots, Lua mod pack scripting, horde mode, a free
-flying photo camera, HD upgrades, and more!
+limitations. Experimental LAN multiplayer, Co Op, AI Bots, Lua mod pack scripting, horde mode, a
+free flying photo camera, HD upgrades, and more!
 
 ![Silo, from the walkway beside the missile](docs/images/screenshot-01.jpg)
 
@@ -158,7 +158,8 @@ explicitly and `--desktop` to add a per-user applications-menu entry.
 
 ### If something goes wrong
 
-Nothing here can break your computer or your ROM, and nothing is ever uploaded anywhere.
+The installer does not modify or upload your ROM. If setup stops partway, fix the reported
+prerequisite or error and run it again; completed work is reused where possible.
 
 - **It stopped partway.** Run it again. It picks up where it left off rather than starting over.
 - **The Windows setup cannot use your ROM.** Select the supported US big-endian `.z64` dump.
@@ -196,7 +197,7 @@ otherwise.
 
 | Platform | Renderer | State |
 |---|---|---|
-| **macOS** (Apple silicon) | OpenGL or native Metal | Builds and plays. Primary target. |
+| **macOS** (Apple silicon and Intel) | OpenGL or native Metal | Builds and plays; both native architectures are supported. |
 | **Linux** (x86-64 and arm64) | OpenGL | Builds and plays. Full 1.0 campaign certified on Ubuntu 24.04 x86-64; build verified on Debian 12 aarch64. |
 | **Windows** (x86-64) | OpenGL | Builds native mingw-w64. Self-test 16 of 16. |
 | **tvOS** (Apple TV) | GL ES or Metal | Builds, signs and deploys to real hardware. |
@@ -453,8 +454,9 @@ extracts the assets it needs on your machine, and never uploads anything.
 and the build requires a cartridge dump supplied locally by the user. GoldenEye 007 and its
 trademarks belong to their owners; this project is unaffiliated with Nintendo, Rare, MGM or EON.
 
-**Will it run on my machine?** If it has a GPU from the last decade and runs macOS, Linux or
-Windows, almost certainly. It is not demanding; the original targeted 1996 hardware.
+**Will it run on my machine?** The project builds on current macOS, Linux and Windows targets
+listed above, but runtime confidence varies by platform, GPU and driver. Check the platform table
+and Known limitations rather than assuming every modern machine is certified.
 
 **Can I play with a controller?** Yes, and with mouse and keyboard, and with all eight of the
 game's original control styles.

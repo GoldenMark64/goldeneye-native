@@ -73,7 +73,7 @@ submission on the affected Latitude (`i915.enable_guc=0`). See
 ## Documentation
 
 - **New player:** [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md)
-- **No-code Windows install:** [`docs/WINDOWS_INSTALL.md`](docs/WINDOWS_INSTALL.md)
+- **Windows no-code setup status:** [`docs/WINDOWS_INSTALL.md`](docs/WINDOWS_INSTALL.md)
 - **Controls and rebinding:** [`docs/CONTROLS.md`](docs/CONTROLS.md)
 - **All settings:** [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md)
 - **1.0 certification and fixes:** [`docs/RELEASE_1.0.md`](docs/RELEASE_1.0.md),
@@ -199,7 +199,7 @@ otherwise.
 |---|---|---|
 | **macOS** (Apple silicon and Intel) | OpenGL or native Metal | Builds and plays; both native architectures are supported. |
 | **Linux** (x86-64 and arm64) | OpenGL | Builds and plays. Full 1.0 campaign certified on Ubuntu 24.04 x86-64; build verified on Debian 12 aarch64. |
-| **Windows** (x86-64) | OpenGL | Builds native mingw-w64. Self-test 16 of 16. |
+| **Windows** (x86-64) | OpenGL | Builds native mingw-w64; the full campaign has not yet been human-certified on Windows. |
 | **tvOS** (Apple TV) | GL ES or Metal | Builds, signs and deploys to real hardware. |
 | **iOS** | Metal | Bring-up. Builds; deploying needs a paired device. |
 | **Android** (arm64) | GL ES | Bring-up. The port layer builds for arm64 GLES and carries on-screen touch controls as a virtual pad. Not yet a running game. |
@@ -255,7 +255,7 @@ measured, and what remains open.
 | **Post-processing** | **Done** | FXAA, MSAA to 4x, supersampling, anisotropic filtering, mipmaps, parallax mapping. |
 | **Two renderers** | **Done** | OpenGL everywhere, plus a native Metal backend on Apple platforms. Not MoltenVK. |
 | **Launcher** | **Done** | A window for level, ruleset, cheats and video settings. No config file needed. |
-| **Real-font text** | **Done** | Optional crisp menu text through a TrueType atlas instead of stretched 24-pixel glyphs. Off by default. |
+| **Real-font text** | **Beta** | Optional TrueType text overlay, off by default. It is still a raw development gate and has known cosmetic alignment/case differences from retail. [`CONFIGURATION.md`](docs/CONFIGURATION.md#getv_real_fonts----the-real-font-text-overlay) |
 | **Saves** | **Done** | Persistent, in your platform's normal application-data directory. |
 | **Around 250 settings** | **Done** | Every development gate settable by name, from the config file or the command line. |
 | **Free camera** | **Beta** | Photo mode. `F8` unpins the camera from Bond and hands you the room: fly it on `W` `A` `S` `D`, look with the arrows, rise and drop on `R` and `F`, hold shift or ctrl to change pace. The camera is Rare's own -- a six-degree fly camera that shipped inside the cartridge and was never reachable from a controller. Visibility still roots at Bond, so leaving his room culls the world behind you. |
@@ -427,10 +427,11 @@ Written plainly, because a README that oversells is worse than one that undersel
 - **Linux certification is hardware-specific.** The complete 1.0 campaign was certified on the
   primary Ubuntu 24.04 / Intel Iris Xe test system with `i915.enable_guc=0`; other Linux
   distributions, GPUs and driver combinations are not exhaustively certified.
-- **Windows is unplayed too.** It builds, boots, passes the self-test 16 of 16, and the settings
-  have since been measured there rather than assumed: field of view, crosshair scale, the CRT
-  filter and HD texture packs all take effect, and netplay opens a session. What nobody has done
-  on Windows is sit down and play a mission through.
+- **Windows is unplayed too.** It builds and boots, and the settings have been measured there
+  rather than assumed: field of view, crosshair scale, the CRT filter and HD texture packs all
+  take effect, and netplay opens a session. The port-layer test suite has grown since the earlier
+  Windows bring-up runs, so this README does not claim a current all-tests count. What nobody has
+  done on Windows is sit down and play a mission through.
 - **The MI5 crest is missing** on the multiplayer character select. The same asset renders
   correctly on the file-select screen, so the decode path is sound and the fault is elsewhere.
 - **Select File draws a flat black background** where the original has a faint watermark.
@@ -501,7 +502,7 @@ project uses on itself are all in `tools/`.
 | [`getv/patches/`](getv/patches/) | Every change made to the decompilation, as numbered patches. |
 | [`getv/port/tests/`](getv/port/tests/) | The self-test suite. |
 | [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) | Install, launch, configure, update, and first checks. |
-| [`docs/WINDOWS_INSTALL.md`](docs/WINDOWS_INSTALL.md) | No-code Windows installation and first run. |
+| [`docs/WINDOWS_INSTALL.md`](docs/WINDOWS_INSTALL.md) | Windows no-code setup candidate, current availability, and first run. |
 | [`docs/BUILDING.md`](docs/BUILDING.md) | Developer source-build entry points for Windows, macOS, and Linux. |
 | [`docs/CONTROLS.md`](docs/CONTROLS.md) | Keyboard, mouse, gamepad, rebinding, and shortcuts. |
 | [`docs/CODEBASE.md`](docs/CODEBASE.md) | Architecture, runtime flow, and where changes belong. |

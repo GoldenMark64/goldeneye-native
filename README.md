@@ -367,22 +367,22 @@ bash getv/port/tests/run_tests.sh
 
 **Reporting a problem.** Use the
 [guided issue forms](https://github.com/GoldenMark64/goldeneye-native/issues/new/choose) and include
-your exact commit, platform, the four build counts the installer printed, and the first meaningful
+your exact commit, platform, the build summary the installer printed, and the first meaningful
 error. Never attach a ROM, a save, or anything extracted from one; issues containing game data get
 closed without being read.
 
 ## Controls
 
-Keyboard and mouse work alongside any SDL2-compatible controller. The core keyboard map is `WASD`
-to move, arrows or mouse to look, `Space`/left mouse to fire, `Q`/right mouse to aim, `E` or `F`
-to use, `R` to cycle weapons, `Tab` to pause, and `C`/left Shift to crouch in the N64-style
-keyboard preset. In the modern preset crouch defaults to `C`/left Ctrl. Crouch is a toggle by
-default; there is no separate stand key.
+Keyboard and mouse work alongside any SDL2-compatible controller. The default `modern`
+keyboard preset uses `WASD` to move, mouse/arrows to look, left mouse or `Space` to fire,
+right mouse to aim, `E`/`F` to use, `R` to reload, `Q`/wheel-up for next weapon, wheel-down
+for previous weapon, `Tab` to pause, and `C`/left Ctrl to crouch. The `n64` preset retains
+the port's older action layout, including `Q` for aim, `R`/Return for next weapon and
+`C`/left Shift for crouch. Crouch toggles by default; there is no separate stand key.
 
-Gamepad actions can be rebound globally or per player in the launcher, config file, or command
-line. The physical keyboard layout is currently fixed; it has no arbitrary key-binding UI. All
-eight retail control styles are supported, and the port defaults to the dual-analog `2.2 galore`
-layout for a modern two-stick pad.
+Keys, mouse buttons/wheel actions and gamepad buttons are rebindable, and the launcher can save
+bindings to `goldeneye.cfg`. All eight retail control styles are supported, while the native
+input preset defaults are designed for a modern keyboard/mouse or two-stick pad.
 
 The full map, gamepad button names, per-player examples, mouse settings, and live `F5`-`F11`
 shortcuts are in [`docs/CONTROLS.md`](docs/CONTROLS.md).

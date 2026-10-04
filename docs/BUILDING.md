@@ -1,7 +1,9 @@
 # Building from source
 
-This guide is for developers and advanced users working from a source checkout. If you only want
-to try the game on Windows, use the no-code [`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) path.
+This guide is for developers and advanced users working from a source checkout. On Windows, the
+no-code setup is still a release candidate and is **not yet an official downloadable package**;
+[`WINDOWS_INSTALL.md`](WINDOWS_INSTALL.md) documents that future/end-user path. Today, a Windows
+user who wants to build and run the project uses the source-build instructions below.
 
 A source build needs development tools, internet access, about 4 GB of free disk space, and your
 own supported US GoldenEye 007 cartridge dump. The repository never supplies a ROM. Do not commit,
@@ -62,5 +64,5 @@ A successful build reports `0 failed` for every build group. The generated execu
 
 Before changing code, read [`CONTRIBUTING.md`](../CONTRIBUTING.md), the repository-level
 `AGENTS.md` when using an agent, and the relevant subsystem documentation. The existing
-[`DEVELOPMENT.md`](DEVELOPMENT.md) describes the project's cross-machine integration workflow;
-it is not an installation guide.
+[`DEVELOPMENT.md`](DEVELOPMENT.md) describes the local edit/build/test/review loop; it is not an
+installation guide.

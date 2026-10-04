@@ -35,7 +35,7 @@ are locked through the boot and the level intro, so anything held from frame 0 i
 before the player has control. On BUNKER1 the dispatch reaches `cammode=4 branch=MoveBond` at
 about frame 600, so 700 is a safe start and 1501 a run long enough to see travel.
 
-## Fixed: per-player spawn and camera
+## Inherited fix: per-player spawn and camera
 
 **Root cause: a campaign mission has one start pad.** `bondview_r.c:546` picks a per-player
 start pad, gated on `getPlayerCount() >= 2 && startpadcount > 0`. Multiplayer arenas carry five
@@ -63,7 +63,7 @@ p=1  pos=(-1181.4, 2278.4)  cam=(-1181.4, 2284.4)
 
 Each camera now matches its own player.
 
-## Fixed: co-op reaches first person
+## Inherited fix: co-op reaches first person
 
 Separately, co-op never advanced its camera to first person at all. `bondview_r.c:885` picks
 the camera path by player count -- one player takes `CAMERAMODE_INTRO`, two or more take
@@ -98,7 +98,7 @@ motion is the single-player intro swirl dragging every player through its own sc
 player-driven, and the campaign intro assumes exactly one player, so a second can fall through
 the level. Kept as a diagnostic knob, not a fix.
 
-## Resolved: both players walk
+## Inherited result: both players walk
 
 **Superseded. The section this replaces said "Nobody walks yet" and pointed at a guard inside
 `bondviewCalcUpdatePlayerCollision` that refuses the movement offset "specifically when a second
@@ -154,7 +154,7 @@ non-zero -- so its absence means the speed was never set, not that the code did 
 `[getv][move] ... GATE canLookAhead=` sits inside `if (g_PlayerIsInTank == 1)`; it is a tank
 trace and will never fire on foot.
 
-## Fixed: players cannot shoot each other
+## Inherited fix: players cannot shoot each other
 
 Found the way COOP.md said it would have to be: two people sat down and played it. Player 2
 spawns behind player 1, both facing the same way, and the first trigger pull killed a team mate
@@ -189,7 +189,7 @@ already tries eight directions across three rings, falling back closer only when
 finds no tile. Players start close in a corridor because the corridor is narrow, not because the
 placement is careless.
 
-## Fixed: one player dying does not fail the mission
+## Inherited fix: one player dying does not fail the mission
 
 `g_isBondKIA` is a global, and `bondviewKillCurrentPlayer` set it from a single player's death.
 Two places in `front.c` treat it as final: `frontCompleteAllObjectivesAliveSuccess()` returns 0
@@ -209,7 +209,7 @@ say -- and it should end the mission for the team.
 See the respawn section below: the dead player now comes back rather than sitting out the rest
 of the mission.
 
-## Fixed: the dead player comes back
+## Inherited fix: the dead player comes back
 
 The respawn machinery already existed and co-op was already reaching it. `mp_respawn_handler()`
 does the whole job -- `init_player_BONDdata()`, `bondviewPlayerBeginLife()`, clearing `bonddead`

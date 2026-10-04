@@ -67,9 +67,9 @@ enemy.
 
 ## Bloodier gibs (Brutal GoldenEye)
 
-The first Brutal GoldenEye blood work was tracked in the
-[historical milestone 2](https://github.com/seb-patron/goldeneye-native/milestone/2) on the earlier
-preservation repository. The current feature adds a short mist, ballistic droplets, clustered
+The first Brutal GoldenEye blood work was tracked as milestone 2 on the earlier preservation
+repository. That historical project-management reference is retained as provenance rather than as
+a current project link. The current feature adds a short mist, ballistic droplets, clustered
 directional surface splashes, a broad
 immediate death pool, and smaller growing pools under settled chunks. All are cosmetic and use a private random sequence. No model dismemberment
 or extra blood on ordinary hits is implemented in this step.

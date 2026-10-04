@@ -388,7 +388,7 @@ the reported phase still contains too much code.
 
 ### Renderer and GPU flight recorders
 
-The 1.0 tree also contains a deeper renderer-forensics layer created for the Intel Iris Xe hang
+The 1.0 tree also contains a deeper renderer-forensics layer created for the Intel/i915 hang
 investigation. It is deliberately dormant during normal play. Nothing is allocated or written
 unless the corresponding diagnostic setting is explicitly supplied.
 

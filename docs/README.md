@@ -32,7 +32,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | [`DEVELOPMENT.md`](DEVELOPMENT.md) | Branch, edit, rebuild, test, validate, and review loop. |
 | [`../getv/patches/README.md`](../getv/patches/README.md) | Safely record changes to the ignored decompilation. |
 | [`HARNESS.md`](HARNESS.md) | Deterministic runtime harness and automated scenarios. |
-| [`TASK_QUEUE.md`](TASK_QUEUE.md) | Current task inventory and evidence state. |
+| [`TASK_QUEUE.md`](TASK_QUEUE.md) | Historical two-machine bot/Windows task queue and engineering record. |
 
 ## Features and subsystems
 
@@ -68,7 +68,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | Guide | Subject |
 |---|---|
 | [`ROADMAP.md`](ROADMAP.md) | Current state, known issues, and planned work. |
-| [`VISION.md`](VISION.md) | Long-term project direction. |
+| [`VISION.md`](VISION.md) | Long-term design ideas; older feature-status tables are historical. |
 | [`MAINTAINING.md`](MAINTAINING.md) | Community branch workflow and future upstream replay. |
 | [`../PATCH_QUEUE.md`](../PATCH_QUEUE.md) | Independently replayable community fixes. |
 | [`REUSE_AUDIT.md`](REUSE_AUDIT.md) | Evaluated reuse candidates and license boundaries. |

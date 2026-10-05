@@ -1,4 +1,4 @@
-/* Unit tests for geConfigSave() -- writing settings back to goldeneye.cfg.
+/* Unit tests for geConfigSave() -- writing settings back to the active config file.
  *
  * Worth its own file rather than more cases in test_config.c: that one is about
  * READING, and every case here is about not destroying something. A config file is a

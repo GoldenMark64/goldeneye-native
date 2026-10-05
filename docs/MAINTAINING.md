@@ -44,15 +44,19 @@ Then:
 3. Keep unrelated cleanup, documentation policy and other bugs out of the fix commit.
 4. Run the relevant focused checks and the complete self-test workflow.
 5. Open one pull request to this repository's `main` and link the bug report.
-6. Record the replayable code commit and any dependency in [`PATCH_QUEUE.md`](../PATCH_QUEUE.md).
+6. Preserve provenance in the right record: numbered `getv/patches/` entries for decompilation
+   source changes, the ordered third-party stack for renderer/audio transformations, and focused Git
+   commits/PRs for port-layer/build/CI/documentation changes.
 7. Merge only after the diff and evidence have been reviewed.
 
-The code change and its test should form one replayable commit when practical. If the pull request
-also updates the community-only patch queue, keep that bookkeeping in a separate commit. A future
-upstream submission cherry-picks the code commit, not the queue update or a community merge commit.
+The code change and its test should form one replayable commit when practical. `PATCH_QUEUE.md` is
+now explicitly the historical pre-1.0 commit-replay index; do not duplicate every modern 1.0-era
+source patch into that table. A future upstream submission should reconstruct the smallest relevant
+change from the canonical numbered patch or focused Git commit, not from a community merge commit.
 
 Do not stack fixes by default. When fix B genuinely needs fix A, say so in both pull requests and
-in the patch queue. Merge or submit A first. Once A lands, rebase or retarget B so its final diff
+in the relevant provenance record (numbered patch documentation, third-party patch documentation,
+or focused PR). Merge or submit A first. Once A lands, rebase or retarget B so its final diff
 shows only B.
 
 ## Playing with work that is not ready to merge
@@ -75,8 +79,8 @@ git fetch upstream
 git log --oneline --decorate -10 upstream/main
 ```
 
-Never open a pull request from the accumulated community `main`. For each entry marked
-`upstream: pending` in the patch queue:
+Never open a pull request from the accumulated community `main`. For an older entry marked
+`upstream: pending` in the historical patch queue:
 
 ```bash
 git switch --create submit/short-description upstream/main
@@ -94,7 +98,10 @@ git diff upstream/main...HEAD
 ```
 
 Push `submit/short-description` to a fork of the restored repository and open one upstream pull
-request. Wait for it to merge or close before preparing a dependent fix. Fetch the new upstream
+request. For 1.0-era work that is not in the historical table, derive the minimal change from the
+numbered public patch stack or focused Git commit, apply it to a fresh `submit/*` branch, and record
+the exact source patch/commit used in the submission. Wait for it to merge or close before preparing
+a dependent fix. Fetch the new upstream
 `main`, create a fresh `submit/*` branch, and repeat. Community-only maintenance documents should
 not be included unless the original maintainer explicitly asks for them.
 
@@ -127,8 +134,9 @@ to the issue. The same one-fix, measured-evidence and provenance rules apply.
 - Keep `main` buildable and reserve it for reviewed changes.
 - Require one bug per issue and one logical fix per pull request.
 - Confirm failures against current `main` before attributing them to a patch.
-- Preserve the canonical fix commit and record dependencies in `PATCH_QUEUE.md`.
-- Replay queued commits in a disposable clone before describing them as independent.
+- Preserve the canonical fix in the appropriate provenance record and record its dependencies.
+- Replay historical queued commits or modern numbered patches in a disposable clone before
+  describing them as independent.
 - Keep ROMs, saves and extracted game data out of Git, issues and pull requests.
 - Do not rewrite published history or detach this repository from its fork network casually.
 - If more maintainers join, use review and branch protection rather than sharing credentials.

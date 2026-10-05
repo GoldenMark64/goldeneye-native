@@ -7,7 +7,7 @@ default. Enabled gibs now also emit optional blood, described below.
 
 ## Policies
 
-Set one policy in `goldeneye.cfg`:
+Set one policy in `goldeneye.ini` (legacy `goldeneye.cfg` remains accepted):
 
 ```ini
 gibs = off

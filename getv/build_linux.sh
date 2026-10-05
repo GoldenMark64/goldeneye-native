@@ -127,13 +127,23 @@ fi
 
 BIN="$BUILD/goldeneye"
 
-# Prefer clang, but fall back to gcc when it is absent rather than refusing to build. gcc
-# works: it is what the Mint box uses and what produced the Windows port. See warn_flags()
-# for how the two differ. Override either way with CC=.
+# The frozen Linux x86-64 0064 release reference was built with GCC 13.3. Keep that
+# compiler as the default on x86-64 so a clean public rebuild does not silently change a
+# code-generation variable in this native-layout-sensitive port. Other Linux architectures
+# retain the existing clang-first policy. Explicit CC= always wins.
 if [ -z "${CC:-}" ]; then
-  if command -v clang >/dev/null 2>&1; then CC=clang
-  elif command -v gcc >/dev/null 2>&1; then CC=gcc
-  else echo "error: no clang or gcc on PATH (set CC=)"; exit 1; fi
+  case "$(uname -m)" in
+    x86_64|amd64)
+      if command -v gcc >/dev/null 2>&1; then CC=gcc
+      elif command -v clang >/dev/null 2>&1; then CC=clang
+      else echo "error: no gcc or clang on PATH (set CC=)"; exit 1; fi
+      ;;
+    *)
+      if command -v clang >/dev/null 2>&1; then CC=clang
+      elif command -v gcc >/dev/null 2>&1; then CC=gcc
+      else echo "error: no clang or gcc on PATH (set CC=)"; exit 1; fi
+      ;;
+  esac
 fi
 command -v "$CC" >/dev/null 2>&1 || { echo "error: compiler '$CC' not found (set CC=)"; exit 1; }
 

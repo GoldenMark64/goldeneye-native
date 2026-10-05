@@ -1,15 +1,11 @@
 name: Deploy project site to Pages
 
-# Inert until this file is pushed to GitHub AND Pages is switched on by hand in
-# Settings -> Pages -> Source: GitHub Actions. Nothing here runs on a local clone,
-# and nothing in this repository pushes or enables that setting automatically.
+# Intentionally manual-only until Pages is switched on by hand in
+# Settings -> Pages -> Source: GitHub Actions. Keeping this off the push path avoids a
+# permanently red workflow on repositories where Pages is deliberately disabled. Nothing
+# here runs on a local clone, and nothing in this repository enables Pages automatically.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "site/**"
-      - ".github/workflows/pages.yml"
   workflow_dispatch: {}
 
 permissions:

@@ -1,8 +1,8 @@
 # GoldenEye Native 1.0 — Fix Summary
 
 This is a release-facing summary of the 1.0 stabilization cycle rather than a chronological debug
-log. Individual replayable fixes, dependencies and source provenance remain in the patch queue,
-focused tests and subsystem documentation.
+log. Individual replayable fixes, dependencies and source provenance remain in the numbered public
+source patch stack, focused Git history, regression tests and subsystem documentation.
 
 ## Campaign and gameplay stability
 

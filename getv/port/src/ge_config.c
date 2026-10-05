@@ -19,7 +19,7 @@
  * to any consumer. Every existing `getenv("GETV_...")` call site in port_render.c,
  * port_input.c, port_audio.c, port_save.c, port_support.c, gfx_sdl2.c, gfx_opengl.c,
  * gfx_pc.c and front.c keeps working unmodified. A harness that exports
- * GETV_EXIT_FRAME=61 gets 61 no matter what a user's goldeneye.cfg says.
+ * GETV_EXIT_FRAME=61 gets 61 no matter what a user's config file says.
  *
  * The consequence is that this file must run before anything reads a gate. It is called
  * from the first statement of main() in port/mac/ge_mac_main.c, before SDL_main(), and
@@ -1401,13 +1401,13 @@ static int locate(const char *argv0, const char *cliPath)
  if (argv0 != NULL) {
         /* Both separators. This looked for '/' only, which on Windows means argv[0] --
          * "C:\...\goldeneye.exe" -- contains no match at all, so step 3 silently degraded to
-         * a bare "goldeneye.cfg" relative to the WORKING directory and then fell through to
+         * a bare config filename relative to the WORKING directory and then fell through to
          * the per-user config in step 4.
          *
          * That is invisible while the working directory happens to be the one holding the
          * binary, which is what a shell in the build directory and a double-click from
          * Explorer both give. Launch the same folder from a shortcut with a different "start
-         * in", or from a terminal anywhere else, and the goldeneye.cfg sitting beside the
+         * in", or from a terminal anywhere else, and the config sitting beside the
          * executable was ignored -- which makes a distributed folder's own config file
          * decorative. Found by running -Target dist from outside its directory. */
  const char *fw = strrchr(argv0, '/');
@@ -1438,7 +1438,8 @@ static int locate(const char *argv0, const char *cliPath)
     }
 
     /* Search step 4: the per-user config directory. On macOS this is
-     * "$HOME/Library/Application Support/Goldeneye-Native/goldeneye.cfg"; see
+     * "$HOME/Library/Application Support/Goldeneye-Native/goldeneye.ini" (with legacy
+     * goldeneye.cfg fallback); see
      * getv/port/src/port_paths.c for the other hosts. */
     if (gePortUserDataDir("Goldeneye-Native", "Goldeneye-Native", dir, sizeof dir) == 0) {
         snprintf(buf, sizeof buf, "%s/" GE_CFG_BASENAME, dir);
@@ -1855,7 +1856,7 @@ static int write_default(const char *path)
  * The gap that made remapping unusable. The launcher has always applied settings by
  * setenv() and then re-exec'ing the game, so a rebound key lasted exactly as long as
  * the process: quit, and it was gone. Nothing in the port had ever written
- * goldeneye.cfg except --write-config, which emits the static template and would
+ * the config file except --write-config, which emits the static template and would
  * discard whatever the file already held.
  *
  * This is a rewrite-in-place, not a regeneration. Comments, ordering, spacing and

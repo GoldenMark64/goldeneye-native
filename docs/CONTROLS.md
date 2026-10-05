@@ -4,8 +4,8 @@ GoldenEye-Native accepts keyboard, mouse, and SDL2-compatible gamepads at the sa
 connected gamepad does not disable keyboard or mouse input.
 
 **Everything is rebindable** — keys, mouse buttons, the wheel, and gamepad buttons, each
-independently of the others. Bindings can be saved to `goldeneye.cfg` from the launcher so they
-survive quitting.
+independently of the others. Bindings can be saved to the active config from the launcher so they survive quitting. New installs
+use `goldeneye.ini`; an existing legacy `goldeneye.cfg` remains supported.
 
 ## Presets
 
@@ -209,8 +209,7 @@ is the ImGui one. Both edit the same settings.
 - **SwiftUI** — type the key name into the field. A binding can be a list, which a
   press-a-key capture cannot express, and the placeholder shows what the preset supplies.
 
-**Starting the game saves them.** The controls page is written to `goldeneye.cfg` when you press
-START, and there is also a SAVE CONTROLS button for saving without launching. Every *other*
+**Starting the game saves them.** The controls page is written to the active config when you press START, and there is also a SAVE CONTROLS button for saving without launching. Every *other*
 setting in the launcher still works the old way — handed to the relaunched game as an environment
 variable, gone when you quit — but a rebind that vanished on the next cold start was a trap, so
 controls are persisted.
@@ -218,9 +217,9 @@ controls are persisted.
 The write is a rewrite in place: comments, ordering, settings from other pages, and any key this
 build does not recognise are all left alone.
 
-### In `goldeneye.cfg`
+### In `goldeneye.ini`
 
-The exact config path is printed at startup.
+The exact config path is printed at startup. Existing legacy `goldeneye.cfg` files are still accepted.
 
 ```ini
 input_preset = modern

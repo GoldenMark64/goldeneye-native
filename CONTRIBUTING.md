@@ -48,10 +48,11 @@ replayable commit when practical. Do not mix a second bug, opportunistic cleanup
 governance changes into that commit. Link the issue, give exact reproduction and validation
 evidence, and identify any fix that must land first.
 
-The canonical fix commit is recorded in [`PATCH_QUEUE.md`](PATCH_QUEUE.md). This allows the
-community `main` to keep improving while each patch remains available for a clean, one-at-a-time
-submission if the original upstream returns. Patch-queue bookkeeping is community-only; if it is
-updated in the same pull request, keep it in a separate commit from the code and test.
+Preserve each fix in the provenance record that actually owns it. Decompilation-source changes
+belong in the numbered `getv/patches/` stack and its README; third-party renderer/audio changes
+belong in the ordered third-party patch stack; port-layer/build/CI/documentation changes remain
+traceable through focused Git commits and pull requests. [`PATCH_QUEUE.md`](PATCH_QUEUE.md) is the
+historical pre-1.0 commit-replay index, not an exhaustive ledger of current `main`.
 
 Read [`docs/MAINTAINING.md`](docs/MAINTAINING.md) for the full branch, integration and future
 upstream-replay process.

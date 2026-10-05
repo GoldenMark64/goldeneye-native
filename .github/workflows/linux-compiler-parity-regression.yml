@@ -1,0 +1,20 @@
+name: Linux compiler parity regression
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  linux-compiler-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax
+        run: |
+          bash -n getv/build_linux.sh
+          bash -n tools/install.sh
+      - name: Frozen 0064 compiler-selection regression
+        run: python3 tools/tests/test_linux_compiler_parity.py

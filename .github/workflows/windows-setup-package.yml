@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/windows-setup-package.yml"
       - "getv/build_wizard.ps1"
+      - "getv/build_windows.ps1"
       - "getv/patches/**"
       - "getv/wizard/**"
       - "getv/port/src/ge_icon_apply.c"
@@ -13,6 +14,7 @@ on:
       - "tools/install.ps1"
       - "tools/package_windows_wizard.ps1"
       - "tools/setup-windows.sh"
+      - "tools/tests/test_windows_toolchain_defaults.py"
   workflow_dispatch:
 
 permissions:
@@ -36,6 +38,9 @@ jobs:
 
       - name: Reject ROMs, saves, and non-public artifacts
         run: python tools/check_no_game_data.py --tracked
+
+      - name: Verify Windows toolchain defaults agree
+        run: python tools/tests/test_windows_toolchain_defaults.py
 
       - name: Cache Windows wizard toolchain
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0

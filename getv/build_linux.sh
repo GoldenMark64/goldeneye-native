@@ -57,11 +57,12 @@
 #      is the single most likely reason a first run stops before compiling anything.
 #
 #   4. The compiler. `-Wno-everything` is clang-only and it is not cosmetic -- see
-#      warn_flags() below. Under gcc the warning set genuinely differs. Prefer clang for
-#      the first build so the only variable is the platform.
+#      warn_flags() below. Under gcc the warning set genuinely differs. The frozen Linux
+#      x86-64 0064 release reference was built with GCC 13.3, so x86-64 now defaults to
+#      GCC for release parity; other Linux architectures retain the clang-first policy.
 #
-# The warning at the top still stands. Two blockers being fixed is not the same as this
-# having run, and nobody has run it.
+# This path has been built and runtime-validated on Linux x86-64. Keep the notes below as
+# implementation history, not as a statement that the Linux build is untested.
 #
 # The remaining Linux-specific items in PORTING.md section 11 are already satisfied in
 # tree and need nothing from this script: getv/port/include/{PR,platform_info.h} are

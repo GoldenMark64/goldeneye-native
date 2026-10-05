@@ -87,8 +87,48 @@ confirm() {
 say "toolchain"
 missing=""
 for t in git python3 cmake; do have "$t" || missing="$missing $t"; done
-have cc || have gcc || have clang || missing="$missing a-C-compiler"
 have make || missing="$missing make"
+
+# Mirror build_linux.sh's compiler/C++-driver selection closely enough that a fresh install
+# cannot pass this gate and then fail later merely because only the C frontend is installed.
+# Explicit CC=/CXX= overrides still win; otherwise x86-64 prefers GCC for frozen-0064 parity
+# and other Linux architectures retain the existing Clang-first policy.
+if [ "$PLATFORM" = linux ]; then
+    linux_cc="${CC:-}"
+
+    if [ -z "$linux_cc" ]; then
+        case "$(uname -m)" in
+            x86_64|amd64)
+                if have gcc; then linux_cc=gcc
+                elif have clang; then linux_cc=clang
+                fi
+                ;;
+            *)
+                if have clang; then linux_cc=clang
+                elif have gcc; then linux_cc=gcc
+                fi
+                ;;
+        esac
+    fi
+
+    if [ -z "$linux_cc" ] || ! have "$linux_cc"; then
+        missing="$missing a-C-compiler"
+    else
+        linux_cxx="${CXX:-}"
+
+        if [ -z "$linux_cxx" ]; then
+            case "$linux_cc" in
+                clang) linux_cxx=clang++ ;;
+                gcc)   linux_cxx=g++ ;;
+                *)     linux_cxx=c++ ;;
+            esac
+        fi
+
+        have "$linux_cxx" || missing="$missing a-C++-compiler"
+    fi
+else
+    have cc || have gcc || have clang || missing="$missing a-C-compiler"
+fi
 
 if [ -n "$missing" ]; then
     echo "   missing:$missing"
@@ -108,7 +148,7 @@ if [ -n "$missing" ]; then
     fi
     die "install the above and run this again"
 fi
-info "git, python3, cmake, make and a compiler are all present"
+info "git, python3, cmake, make and the required compiler drivers are all present"
 
 # Keep the installer aligned with build_linux.sh's platform default. Linux x86-64
 # intentionally uses GCC to match the frozen 0064 release reference; other architectures

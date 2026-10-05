@@ -38,6 +38,13 @@ validated in the private working tree but were not yet represented in the public
 that catch-up, a clean source reconstruction matches the playtested source tree except for files that
 the installer intentionally generates locally from the user's own game data. See `TESTING_1.0.md`.
 
+The final Linux x86-64 publication check also aligned the compiler with frozen 0064. The reference
+binary records GCC 13.3.0; the public Linux build now defaults x86-64 to GCC while preserving
+explicit compiler overrides. A fresh GCC 13.3.0 rebuild was human-checked at the Dam view that had
+previously exposed the persistent stray-line/geometry defect, and the defect was absent. This was a
+focused reconstruction acceptance check, not a second full-campaign certification pass. See
+`TESTING_1.0.md` for the exact build evidence.
+
 ## Advanced renderer diagnostics retained in 1.0
 
 The Intel investigation produced a reusable GPU/function-flight subsystem capable of joining a

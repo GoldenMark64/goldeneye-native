@@ -157,6 +157,10 @@ elif [ "$CC" = "clang" ]; then CXX=clang++
 elif [ "$CC" = "gcc" ];   then CXX=g++
 else CXX=c++
 fi
+command -v "$CXX" >/dev/null 2>&1 || {
+  echo "error: C++ compiler '$CXX' not found (set CXX=)" >&2
+  exit 1
+}
 case "$("$CC" --version 2>/dev/null | head -1)" in
   *clang*) CC_KIND=clang ;;
   *)       CC_KIND=gcc ;;

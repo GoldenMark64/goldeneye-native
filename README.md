@@ -14,8 +14,9 @@
 > continues here for optional features, portability, and any new defects that are reported.
 >
 > Development continues on this fork. Reviewed fixes are merged into a stable, playable `main`
-> one at a time and recorded in the [`PATCH_QUEUE.md`](PATCH_QUEUE.md) so they can be offered back
-> individually if the original upstream returns. See the
+> one at a time. Decompilation changes are preserved in the numbered public patch stack; the
+> [`PATCH_QUEUE.md`](PATCH_QUEUE.md) retains the older commit-replay queue from the community
+> continuation's pre-1.0 period. See the
 > [community maintenance workflow](docs/MAINTAINING.md) for the branch and replay process.
 >
 > Found a problem? [Open a guided bug report](https://github.com/GoldenMark64/goldeneye-native/issues/new/choose).
@@ -47,8 +48,8 @@ You supply your own legally dumped cartridge. No game data ships here, and none 
 - **Modern desktop play.** Mouse and keyboard, controllers, widescreen and ultrawide displays work
   without changing the original campaign into a different game.
 - **Source-only and reproducible.** The repository ships no ROM or extracted game assets. Players
-  provide their own supported cartridge dump, and the public patch queue records the community
-  continuation's native fixes.
+  provide their own supported cartridge dump, and the numbered public patch stack plus Git history
+  preserve the native fixes used to reconstruct the maintained build.
 
 The frame-timing work is described in [`docs/FRAME_TIMING.md`](docs/FRAME_TIMING.md), and the 1.0
 human validation record is in [`docs/TESTING_1.0.md`](docs/TESTING_1.0.md).
@@ -228,7 +229,7 @@ measured, and what remains open.
 | **Mouse and keyboard** | **Done** | The default. Real mouse look, tuned and unit-tested. [`MOUSE.md`](docs/MOUSE.md) |
 | **Controller support** | **Done** | Xbox, PlayStation and MFi pads through SDL2, plugged in and detected. All 8 retail control styles. |
 | **Widescreen and ultrawide** | **Done** | The renderer takes its aspect from the actual framebuffer, so any window shape works, 16:9 through ultrawide. HUD and gun sight corrected. |
-| **27 loadable stages** | **Done** | Every mission the cartridge shipped, plus the multiplayer-only arenas. Counted by [`stage_census.sh`](tools/stage_census.sh). |
+| **26 loadable stages** | **Done** | All 20 campaign stages plus the 6 multiplayer-only arenas. Counted by [`stage_census.sh`](tools/stage_census.sh). |
 | **Split screen** | **Done** | Two, three and four players, all 64 characters, the radar, every scenario. |
 | **HD texture packs** | **Done** | PNGs named by texture hash, dropped in a folder. Verified end to end at 4x upscale. |
 | **Lua scripting and mod packs** | **Done** | Scripted mods loaded from a folder, with a real API. [`MODDING.md`](docs/MODDING.md) |
@@ -368,7 +369,7 @@ the port's older action layout, including `Q` for aim, `R`/Return for next weapo
 `C`/left Shift for crouch. Crouch toggles by default; there is no separate stand key.
 
 Keys, mouse buttons/wheel actions and gamepad buttons are rebindable, and the launcher can save
-bindings to `goldeneye.cfg`. All eight retail control styles are supported, while the native
+bindings to `goldeneye.ini` (legacy `goldeneye.cfg` remains accepted). All eight retail control styles are supported, while the native
 input preset defaults are designed for a modern keyboard/mouse or two-stick pad.
 
 The full map, gamepad button names, per-player examples, mouse settings, and live `F5`-`F11`
@@ -509,7 +510,7 @@ project uses on itself are all in `tools/`.
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | State, known issues, planned work. |
 | [`docs/MAINTAINING.md`](docs/MAINTAINING.md) | Community workflow and future upstream replay. |
 | [`docs/WINDOWS_PACKAGING.md`](docs/WINDOWS_PACKAGING.md) | Windows package boundary, build, CI artifact and test checklist. |
-| [`PATCH_QUEUE.md`](PATCH_QUEUE.md) | One-by-one index of community fixes. |
+| [`PATCH_QUEUE.md`](PATCH_QUEUE.md) | Historical one-by-one commit replay queue for the pre-1.0 community continuation. |
 | [`docs/LICENSING.md`](docs/LICENSING.md) | Every third-party component and its licence. |
 
 ## Building from source

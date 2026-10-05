@@ -114,6 +114,15 @@ class PublicArtifactSafetyTests(unittest.TestCase):
                         )
                     )
 
+    def test_requires_review_for_public_audio_binaries(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.wav"
+            path.write_bytes(b"RIFF" + b"\x00" * 32)
+            failures = safety.inspect_path(path)
+            self.assertTrue(
+                any("public audio binary requires explicit provenance review" in item for item in failures)
+            )
+
     def test_detects_encoded_payload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "encoded.txt"

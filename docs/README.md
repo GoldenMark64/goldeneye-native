@@ -71,7 +71,7 @@ start with [`BUILDING.md`](BUILDING.md).
 | [`ROADMAP.md`](ROADMAP.md) | Current state, known issues, and planned work. |
 | [`VISION.md`](VISION.md) | Long-term design ideas; older feature-status tables are historical. |
 | [`MAINTAINING.md`](MAINTAINING.md) | Community branch workflow and future upstream replay. |
-| [`../PATCH_QUEUE.md`](../PATCH_QUEUE.md) | Independently replayable community fixes. |
+| [`../PATCH_QUEUE.md`](../PATCH_QUEUE.md) | Historical pre-1.0 commit-replay queue; current decomp fixes live in the numbered public patch stack. |
 | [`REUSE_AUDIT.md`](REUSE_AUDIT.md) | Reuse inventory and dated adoption audit; current feature status lives in README/ROADMAP. |
 
 ## Licensing and provenance

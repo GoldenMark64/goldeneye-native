@@ -31,6 +31,10 @@ focused tests and subsystem documentation.
 
 - Fixed previously observed Archives/partial-geometry and diagonal-geometry defects in the native
   renderer path.
+- Aligned the public Linux x86-64 build default with frozen 0064's GCC 13.3 toolchain. The fresh
+  GCC-built public candidate no longer reproduced the Dam stray-line/geometry defect seen in the
+  earlier clean Clang reconstruction; this was a focused publication-parity acceptance check, not
+  a second campaign-certification pass.
 - Added dynamic texture refresh handling for mutable transient graphics buffers.
 - Added source provenance for GPU-flight draws so hardware submissions can be tied back to
   GoldenEye background/model display-list producers.

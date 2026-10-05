@@ -103,6 +103,35 @@ corrected release overlay reproduces all 15 fetched files byte-for-byte.
 Post-correction validation: dynamic-texture refresh 3/3, gfx-state diagnostic 8/8, GPU-flight
 recorder 4/4, PD-renderer A/B 3/3, and the normal port suite 39/39 PASS.
 
+### Frozen 0064 Linux compiler parity — October 4 publication verification
+
+A final clean Linux x86-64 publication check found one remaining build-state difference after the
+source and third-party reconstruction had been aligned: the clean public build selected Clang,
+while the frozen 0064 executable records
+`GCC: (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0` in its ELF `.comment` section.
+
+The Linux x86-64 default was therefore changed to GCC-first while preserving explicit `CC=`
+overrides and the existing Clang-first policy on other Linux architectures. A fresh Latitude build
+using that public branch reported:
+
+- `CC=gcc (gcc)`;
+- Linux game 167 built, 0 failed;
+- assets 746 built, 0 failed;
+- audio 40 built, 0 failed;
+- port layer 81 built, 0 failed;
+- `libge.a` with 1032 members; and
+- candidate SHA-256
+  `5a3340193004f839d0065248aecc0d613ae57fb12cc67595cb44bf628ffd1c1c`.
+
+The rebuilt candidate's ELF `.comment` records the same GCC 13.3.0 toolchain identity as frozen
+0064. Human runtime validation then repeated the Dam view that had exposed the persistent
+stray-line/geometry defect in the earlier public reconstruction; the defect was **absent** in the
+GCC-built public candidate, matching frozen 0064.
+
+This is a narrow publication/reconstruction acceptance result. It establishes the accepted Linux
+x86-64 build configuration for the 0064-equivalent public line; it is not a new full-campaign pass
+and does not expand the platform scope of the October 3 certification.
+
 ## Intel GPU blocker closure
 
 The final recurring blocker was a whole-desktop Intel/i915 GPU stall. The investigation created

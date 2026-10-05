@@ -318,9 +318,11 @@ Review every changed and untracked path. In particular, reject:
 - local absolute paths, credentials, and private logs; and
 - unrelated cleanup.
 
-Keep the source change and focused test replayable. If a community change also updates
-`PATCH_QUEUE.md`, keep that bookkeeping separate from the source-and-test commit. See
-[`MAINTAINING.md`](MAINTAINING.md) for the community branch and future-upstream replay model.
+Keep the source change and focused test replayable. Record decompilation fixes in the numbered
+public patch stack, third-party transformations in their ordered patch stack, and port/build/CI
+changes in focused Git commits. `PATCH_QUEUE.md` is retained for the historical pre-1.0 replay
+series. See [`MAINTAINING.md`](MAINTAINING.md) for the community branch and future-upstream
+replay model.
 
 ## Handoff and review
 

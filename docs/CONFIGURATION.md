@@ -12,15 +12,16 @@ The first of these that exists is used, and the rest are ignored:
 
 1. `$GETV_CONFIG`
 2. `--config=PATH`
-3. `goldeneye.cfg` in the same directory as the binary
-4. `goldeneye.cfg` in the platform user-data directory
+3. `goldeneye.ini` in the same directory as the binary, falling back to legacy `goldeneye.cfg`
+4. `goldeneye.ini` in the platform user-data directory, falling back to legacy `goldeneye.cfg`
 
 If none exists and none was asked for, the game writes the commented template to location 4 and
 reads it back. That first-run write is how the port's tuned defaults actually reach you; a value
 that only appears in a template nobody has generated does nothing.
 
 On macOS the user-data config is
-`~/Library/Application Support/Goldeneye-Native/goldeneye.cfg`. Windows and Linux use the path
+`~/Library/Application Support/Goldeneye-Native/goldeneye.ini`. Existing `goldeneye.cfg` files
+remain supported as a legacy fallback. Windows and Linux use the path
 returned by SDL for the platform. The selected path is printed at startup, which is the
 authoritative location for the current machine. Older macOS installs with a config under the
 pre-rename `GoldenEye` directory are detected and kept in place.
@@ -474,7 +475,8 @@ reload key bound, `0` removes it even without one. The resolved answer is printe
 
 The launcher has always applied settings by setting environment variables and re-exec'ing the
 game, which is enough for them to take effect and not enough for them to survive quitting. The
-Controls page is now written to `goldeneye.cfg` **when you start the game**, and there is a
+Controls page is now written to the active config (`goldeneye.ini`, or a legacy `goldeneye.cfg`
+that was discovered) **when you start the game**, and there is a
 **SAVE CONTROLS** button for saving without launching.
 
 Persisting on start rather than only on an explicit button is deliberate. Every other page takes
@@ -643,8 +645,9 @@ existing build. Plain macOS and Linux binaries use `--launcher` (or `GETV_LAUNCH
 
 It is a user interface over the existing surface, not new capability: every control resolves
 to a `GETV_*` gate that already worked from a shell, and each one opens showing the value the
-config layer just resolved, so the launcher reflects `goldeneye.cfg` rather than competing
-with it. It does not write the config file.
+config layer just resolved, so the launcher reflects the active config rather than competing
+with it. Most launcher pages remain session/environment settings; the Controls page can persist
+its settings to the active config as described above.
 
 **Why it restarts the game rather than applying settings in place.** 76 of the `GETV_` gates
 are read once into a `static` on first use, so a setting changed after the game has started
@@ -820,8 +823,8 @@ hostiles only. See [GIBS.md](GIBS.md) for implementation boundaries, tests and e
 ### Brutal GoldenEye blood and Base Game
 
 The launcher's Gameplay page has a **Brutal GoldenEye** section. These choices apply when you
-launch the game. The launcher holds choices for that launch; put them in `goldeneye.cfg` to keep
-preferences between application sessions.
+launch the game. The launcher holds choices for that launch; put them in `goldeneye.ini` (or an
+existing legacy `goldeneye.cfg`) to keep preferences between application sessions.
 
 ```ini
 base_game = off

@@ -1,8 +1,18 @@
-# Community patch queue
+# Historical community commit-replay queue
 
-This file records the small fixes carried by the community continuation that were not part of the
-last known original-upstream `main`. It is an index for replaying fixes individually if
-`SegfaultEvan/goldeneye-native` returns; it is not a request to merge the entire community branch.
+This file preserves the early community continuation's one-fix/one-commit replay queue from before
+the 1.0 stabilization patch stack became the canonical decompilation record. It is an index for
+replaying those recorded fixes individually if `SegfaultEvan/goldeneye-native` returns; it is not
+an exhaustive inventory of current `main` and it is not a request to merge the entire community
+branch.
+
+For the 1.0 stabilization line and later, decompilation changes are recorded exhaustively by the
+numbered files in [`getv/patches/`](getv/patches/) and their descriptions in
+[`getv/patches/README.md`](getv/patches/README.md). Third-party renderer/audio transformations are
+recorded separately in [`getv/patches/thirdparty/README.md`](getv/patches/thirdparty/README.md).
+Port-layer, build, CI and documentation changes remain traceable through focused Git commits and pull
+requests. Do not infer that a current fix is absent merely because it is not duplicated in the
+historical table below.
 
 Historical original-upstream anchor:
 [`47fe1a1`](https://github.com/seb-patron/goldeneye-native/commit/47fe1a1d215240adc1a3054c4ffefe780f526fe6)
@@ -50,14 +60,18 @@ against the restored repository's current `main` before opening each submission.
 
 ## Updating the queue
 
-Add one row for every community fix. Record:
+Keep this table for the historical commit-replay series it already represents. If an old queued fix
+is submitted, merged, rejected or made obsolete upstream, update its status here.
 
-- a descriptive name and community pull request;
-- the exact code-and-test commit to cherry-pick, not the merge commit;
-- any fix that must land first; and
-- one upstream state: `pending`, `submitted: URL`, `merged: URL`, `rejected: reason`,
-  `obsolete: reason`, or `community-only`.
+For new work:
 
-Keep patch-queue bookkeeping separate from the replayable code commit. Full instructions for
-creating clean upstream submission branches are in
+- decompilation-source changes belong in the numbered public patch stack and
+  `getv/patches/README.md`;
+- third-party renderer/audio transformations belong in the ordered third-party patch stack;
+- port-layer/build/CI/documentation changes should remain focused, reviewable Git commits/PRs; and
+- when a specific modern fix is prepared for a restored upstream, create a fresh `submit/*` branch
+  from that upstream and record the exact replay evidence in the submission itself rather than
+  retroactively pretending this historical table was exhaustive.
+
+Full instructions for creating clean upstream submission branches are in
 [`docs/MAINTAINING.md`](docs/MAINTAINING.md#if-the-original-upstream-returns).

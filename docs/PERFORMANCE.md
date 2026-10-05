@@ -1,5 +1,13 @@
 # Windows performance: what was measured, and what turned out not to matter
 
+> [!IMPORTANT]
+> **Historical measured snapshot.** The numbers and conclusions below describe the specific
+> Windows/Intel test system and source state used for this performance investigation. They are
+> retained because the measurements and failed hypotheses are useful engineering evidence, but
+> statements such as "this build is not CPU-bound" are not universal claims about current `main`,
+> other GPUs, or other platforms. Re-measure the current build on the target machine before using
+> these figures to guide new optimization work.
+
 Every number here was measured on the target machine (Surface Pro 3, i5-4300U, Intel HD 4400,
 Windows 11) with `tools/bench_windows.ps1` or `tools/bench_ab.ps1`. Claims without a measurement
 behind them are not recorded, and two things that *looked* like wins are written down as

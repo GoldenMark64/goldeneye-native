@@ -30,8 +30,9 @@ and attachment manually.
 - Address one problem per issue and one logical fix per pull request.
 - Preserve the provenance rules in `CONTRIBUTING.md` and `docs/LICENSING.md`. Do not derive code
   from prohibited GoldenEye projects.
-- Keep source changes and focused regression coverage replayable. Keep community-only patch-queue
-  bookkeeping in a separate commit.
+- Keep source changes and focused regression coverage replayable. Put decompilation provenance in
+  the numbered public patch stack, third-party transformations in their ordered patch stack, and
+  treat `PATCH_QUEUE.md` as the historical pre-1.0 commit-replay index.
 - Do not hide an unchanged-main failure or weaken a threshold to make a patch pass.
 - Review the complete diff and `git status` before staging. Never use `git add -A` without first
   accounting for every untracked path.

@@ -180,7 +180,7 @@ void  put_str(const char *k, const char *v)
 
 /* The stage list. Ids and names are from the project's own stage reference table, the
  * ground truth for which stages are solo, multiplayer-only or have no data at all. Only
- * loadable stages are offered: eleven ids can never load (nine cut, plus CITADEL, whose
+ * loadable stages are offered: eleven ids can never load (ten cut, plus CITADEL, whose
  * background exists but whose setup file does not), and offering them would be offering a
  * hang. MP-only stages are marked because selecting one solo loads geometry with no setup,
  * which looks like a rendering bug and is not one. */

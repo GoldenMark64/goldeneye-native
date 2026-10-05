@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Build and run GoldenEye natively on macOS (arm64 or x86_64), on the existing Fast3D + GL path.
+# Build and run GoldenEye natively on macOS (arm64 or x86_64), using the Fast3D frontend with
+# either the desktop OpenGL path or the optional native Metal backend.
 #
 # Why this target exists
 # ----------------------
@@ -11,11 +12,12 @@
 # a real crash report, and a build that can be played.
 #
 # This script is additive. It does not read, write or source build.sh or build_sim.sh.
-# tvOS is on hold, not abandoned: `./build.sh` (device) and `./build_sim.sh` (simulator)
-# must keep working, and this file exists precisely so they are never edited for Mac.
+# The tvOS device/simulator builds remain separate targets and must keep working; this file exists
+# precisely so macOS-specific changes do not need to rewrite those build scripts.
 #
-# No Metal backend. This uses the same renderer the tvOS build uses, so a regression
-# seen here is a regression there. Only the platform bindings differ:
+# The OpenGL build shares the Fast3D/OpenGL lineage used by the Apple GL ES targets. macOS also
+# carries a native Metal backend selected with GETV_RENDERER=metal; backend-specific regressions
+# therefore need to be checked against the renderer actually being tested.
 #
 #            tvOS device / sim            macOS
 #   GL       OpenGL ES 3.0 (EAGL)         OpenGL 2.1 compat (NSOpenGL)
@@ -41,8 +43,8 @@
 # GETV_RENDERER=gl|metal (default gl, i.e. today's behaviour, byte-for-byte unchanged).
 # metal selects port/fast3d/gfx_metal.mm -- a native Metal backend behind the same
 # GfxRenderingAPI, the tvOS/iOS unlock (GL ES is deprecated there and our fast3d wants
-# desktop GL 2.1, which does not exist on tvOS at all). See docs/ROADMAP.md "Phase 3" and
-# docs/REUSE_AUDIT.md. It gets its own BUILD dir and binary name (build-mac-metal/,
+# desktop GL 2.1, which does not exist on tvOS at all). See docs/REUSE_AUDIT.md and the current
+# renderer/platform status in docs/ROADMAP.md. It gets its own BUILD dir and binary name (build-mac-metal/,
 # goldeneye-metal) so it can never collide with or regress the gl path's objects.
 #
 # usage: GETV_RENDERER=metal ./build_mac.sh {sdl|lib|port|app|bundle|all|run|env}

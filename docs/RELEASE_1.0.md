@@ -29,12 +29,13 @@ feature, operating system or graphics driver.
 The 1.0 line includes repairs and validation across native pointer/layout assumptions, collision and
 traversal, ladders and tank interaction, mission progression, post-mission input, scripted character
 behavior, NPC animation/weapon state, gunbarrel timing, geometry/rendering defects and platform
-stability. `FIXES_1.0.md` is the release-facing summary; the patch queue and focused regression tests
-remain the implementation/provenance record.
+stability. `FIXES_1.0.md` is the release-facing summary; the numbered public source patch stack, focused Git
+history and regression tests remain the implementation/provenance record.
 
 The final source-only review also performed a reconstruction-equivalence audit against the exact
 playtested decomp source. `0061-playtested-native-source-catchup.patch` captures fixes that had been
-validated in the private working tree but were not yet represented in the public patch queue. After
+validated in the private working tree but were not yet represented in the public numbered source
+patch stack. After
 that catch-up, a clean source reconstruction matches the playtested source tree except for files that
 the installer intentionally generates locally from the user's own game data. See `TESTING_1.0.md`.
 

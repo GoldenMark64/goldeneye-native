@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import re
 import struct
@@ -37,25 +38,28 @@ FORBIDDEN_NAMES = {
 }
 ALLOWED_BINARY_SUFFIXES = {
     ".png", ".jpg", ".jpeg", ".gif", ".ico", ".icns", ".ttf", ".otf",
-    ".woff", ".woff2", ".pdf", ".ogg", ".wav",
+    ".woff", ".woff2", ".pdf",
 }
 # Binary image formats are broadly allowed because launcher/UI artwork uses them, but
 # the two public documentation image directories are deliberately closed by default.
-# Runtime game captures belong in reviewed issue/PR attachments, never in Git. A new
-# tracked image in either directory therefore needs an explicit path review here.
-REVIEWED_PUBLIC_IMAGE_PATHS = {
-    "docs/images/launcher-controls.png",
-    "docs/images/launcher-crt.png",
-    "docs/images/launcher-mods.png",
-    "docs/images/screenshot-06.jpg",  # source/editor screenshot, not rendered game output
-    "site/assets/images/launcher-controls.png",
-    "site/assets/images/launcher-crt.png",
-    "site/assets/images/launcher-mods.png",
-    "site/assets/images/mark.png",
-    "site/assets/images/screenshot-06.jpg",
+# Runtime game captures belong in reviewed issue/PR attachments, never in Git. Approved
+# public images are pinned to their Git blob SHA-1, so replacing a reviewed UI image with
+# different bytes under the same filename fails the guard instead of inheriting approval.
+REVIEWED_PUBLIC_IMAGE_BLOBS = {
+    "docs/images/launcher-controls.png": "e0668678f2a9cb650cc24e4b0211bfddbdd22cca",
+    "docs/images/launcher-crt.png": "41cb6c56b59fb7859d7195a88bce3fbb5452bb89",
+    "docs/images/launcher-mods.png": "391db6bfd08c3464f2250a5ff5f43e0813921b92",
+    "site/assets/images/launcher-controls.png": "e0668678f2a9cb650cc24e4b0211bfddbdd22cca",
+    "site/assets/images/launcher-crt.png": "41cb6c56b59fb7859d7195a88bce3fbb5452bb89",
+    "site/assets/images/launcher-mods.png": "391db6bfd08c3464f2250a5ff5f43e0813921b92",
+    "site/assets/images/mark.png": "417ed808e41ccb2e9b708a4d4cbe8c0a3463fb43",
 }
 PUBLIC_IMAGE_PREFIXES = ("docs/images/", "site/assets/images/")
 PUBLIC_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif"}
+# Audio exports are especially easy to derive directly from a ROM. None are currently
+# published, so require an explicit guard change/provenance review instead of broadly
+# accepting arbitrary .wav/.ogg files by extension.
+REVIEW_REQUIRED_AUDIO_SUFFIXES = {".ogg", ".wav"}
 BASE64_PAYLOAD = re.compile(rb"(?:[A-Za-z0-9+/]{4096,}={0,2})")
 HEX_LITERAL = re.compile(r"\b0[xX][0-9A-Fa-f]{2,16}(?:[uUlL]*)\b")
 BRACED_TEXT = re.compile(r"\{([^{}]*)\}", re.DOTALL)
@@ -235,10 +239,24 @@ def inspect_content(path: Path, data: bytes, *, allow_native_bmp: bool = False) 
         repository_path is not None
         and suffix in PUBLIC_IMAGE_SUFFIXES
         and repository_path.startswith(PUBLIC_IMAGE_PREFIXES)
-        and repository_path not in REVIEWED_PUBLIC_IMAGE_PATHS
     ):
+        expected_blob = REVIEWED_PUBLIC_IMAGE_BLOBS.get(repository_path)
+        if expected_blob is None:
+            failures.append(
+                f"{display}: unreviewed public image path; runtime captures must not be committed"
+            )
+        else:
+            header = f"blob {len(data)}\0".encode("ascii")
+            actual_blob = hashlib.sha1(header + data).hexdigest()
+            if actual_blob != expected_blob:
+                failures.append(
+                    f"{display}: reviewed public image content changed; review the bytes and "
+                    "update the pinned blob only if the replacement is publication-safe"
+                )
+    if suffix in REVIEW_REQUIRED_AUDIO_SUFFIXES:
         failures.append(
-            f"{display}: unreviewed public image path; runtime captures must not be committed"
+            f"{display}: public audio binary requires explicit provenance review; "
+            "ROM-derived audio must never be committed"
         )
     if lower_name in FORBIDDEN_NAMES:
         failures.append(f"{display}: forbidden game-data filename")

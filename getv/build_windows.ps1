@@ -29,14 +29,14 @@
   USAGE
       powershell -NoProfile -File getv\build_windows.ps1 -Target all
       -Target : all | lib | port | app | clean      (default all)
-      -Mingw  : toolchain root                      (default C:\msys64\mingw64)
+      -Mingw  : toolchain root                      (default C:\mingw64; matches tools/install.ps1)
       -Jobs   : parallel compiles                   (default = processor count)
 #>
 [CmdletBinding()]
 param(
   [ValidateSet('all','lib','port','app','dist','clean')]
   [string]$Target = 'all',
-  [string]$Mingw  = 'C:\msys64\mingw64',
+  [string]$Mingw  = 'C:\mingw64',
   [int]$Jobs      = 0,
 
   # Optimisation level, and it is a REAL DIAL rather than a constant, which is why it is here.

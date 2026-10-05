@@ -76,7 +76,7 @@ class PublicArtifactSafetyTests(unittest.TestCase):
             self.assertTrue(any("N64 ROM header" in item for item in safety.inspect_path(renamed)))
             self.assertTrue(any("ZIP archive" in item for item in safety.inspect_path(archive)))
 
-    def test_rejects_unreviewed_public_images_but_allows_reviewed_ui(self) -> None:
+    def test_rejects_unreviewed_public_images_and_pins_reviewed_ui_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             capture = root / "docs/images/new-runtime-capture.jpg"
@@ -92,12 +92,36 @@ class PublicArtifactSafetyTests(unittest.TestCase):
                         for item in safety.inspect_path(capture)
                     )
                 )
-                self.assertFalse(
+                self.assertTrue(
                     any(
-                        "unreviewed public image path" in item
+                        "reviewed public image content changed" in item
                         for item in safety.inspect_path(reviewed)
                     )
                 )
+
+                data = reviewed.read_bytes()
+                blob = __import__("hashlib").sha1(
+                    f"blob {len(data)}\0".encode("ascii") + data
+                ).hexdigest()
+                with patch.dict(
+                    safety.REVIEWED_PUBLIC_IMAGE_BLOBS,
+                    {"docs/images/launcher-controls.png": blob},
+                ):
+                    self.assertFalse(
+                        any(
+                            "public image" in item
+                            for item in safety.inspect_path(reviewed)
+                        )
+                    )
+
+    def test_requires_review_for_public_audio_binaries(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.wav"
+            path.write_bytes(b"RIFF" + b"\x00" * 32)
+            failures = safety.inspect_path(path)
+            self.assertTrue(
+                any("public audio binary requires explicit provenance review" in item for item in failures)
+            )
 
     def test_detects_encoded_payload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

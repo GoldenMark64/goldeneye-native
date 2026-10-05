@@ -39,9 +39,9 @@ The current installer builds one renderer; a missing Metal build needs the optio
 build described in [`DEVELOPMENT.md`](DEVELOPMENT.md#macos). Automatically installing both
 renderer builds remains follow-up packaging work. There is no in-game hot switch.
 
-Both choices use the OpenGL build folder's existing `goldeneye.cfg` when that folder exists,
-or the app's own folder otherwise, followed by the usual shared user config. Explicit config
-and save overrides still apply. Other custom launcher controls remain session settings.
+Both choices use the OpenGL build folder's existing `goldeneye.ini` when that folder exists,
+falling back to legacy `goldeneye.cfg`, or the app's own folder otherwise, followed by the usual
+shared user config. Explicit config and save overrides still apply. Other custom launcher controls remain session settings.
 
 The first install takes about 10 to 40 minutes. Re-running the installer resumes completed work.
 
@@ -164,12 +164,13 @@ For a one-off override, use a command-line option:
 ./getv/build-mac/goldeneye --resolution=1920x1080 --fullscreen=1
 ```
 
-For persistent settings, edit `goldeneye.cfg`. The exact file used is printed at startup. You can
+For persistent settings, edit `goldeneye.ini` (or an existing legacy `goldeneye.cfg`). The exact
+file used is printed at startup. You can
 also generate a commented template at a path of your choice:
 
 ```bash
-./getv/build-mac/goldeneye --write-config=/path/to/goldeneye.cfg
-./getv/build-mac/goldeneye --config=/path/to/goldeneye.cfg
+./getv/build-mac/goldeneye --write-config=/path/to/goldeneye.ini
+./getv/build-mac/goldeneye --config=/path/to/goldeneye.ini
 ```
 
 Precedence is:

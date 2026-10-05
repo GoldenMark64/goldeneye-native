@@ -26,7 +26,6 @@ keyboard. Real widescreen. High-refresh rendering with timing improvements and d
 limitations. Experimental LAN multiplayer, Co Op, AI Bots, Lua mod pack scripting, horde mode, a
 free flying photo camera, HD upgrades, and more!
 
-![Silo, from the walkway beside the missile](docs/images/screenshot-01.jpg)
 
 This is not an emulator. It is reconstructed C source from the
 [`n64decomp/007`](https://github.com/n64decomp/007) decompilation, built into a real binary for
@@ -180,18 +179,6 @@ prerequisite or error and run it again; completed work is reused where possible.
 Developers and advanced users can still build from a source checkout on Windows, macOS, or Linux.
 Start with [`docs/BUILDING.md`](docs/BUILDING.md) and then read
 [`CONTRIBUTING.md`](CONTRIBUTING.md).
-
-## Screenshots
-
-| | |
-|---|---|
-| ![Facility](docs/images/screenshot-02.jpg) | ![Dam](docs/images/screenshot-03.jpg) |
-| ![Multiplayer split screen](docs/images/screenshot-04.jpg) | ![Bunker](docs/images/screenshot-05.jpg) |
-
-![FXAA on and off](docs/images/fxaa-comparison.png)
-
-Captured from this port, not from an emulator, on the default settings unless the caption says
-otherwise.
 
 ## Which platforms work
 

@@ -76,6 +76,29 @@ class PublicArtifactSafetyTests(unittest.TestCase):
             self.assertTrue(any("N64 ROM header" in item for item in safety.inspect_path(renamed)))
             self.assertTrue(any("ZIP archive" in item for item in safety.inspect_path(archive)))
 
+    def test_rejects_unreviewed_public_images_but_allows_reviewed_ui(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            capture = root / "docs/images/new-runtime-capture.jpg"
+            capture.parent.mkdir(parents=True)
+            capture.write_bytes(b"\xff\xd8\xff\xe0synthetic")
+            reviewed = root / "docs/images/launcher-controls.png"
+            reviewed.write_bytes(b"\x89PNG\r\n\x1a\nsynthetic")
+
+            with patch.object(safety, "ROOT", root):
+                self.assertTrue(
+                    any(
+                        "unreviewed public image path" in item
+                        for item in safety.inspect_path(capture)
+                    )
+                )
+                self.assertFalse(
+                    any(
+                        "unreviewed public image path" in item
+                        for item in safety.inspect_path(reviewed)
+                    )
+                )
+
     def test_detects_encoded_payload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "encoded.txt"

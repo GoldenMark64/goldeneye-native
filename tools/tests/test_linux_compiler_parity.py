@@ -13,6 +13,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD = ROOT / "getv" / "build_linux.sh"
+INSTALL = ROOT / "tools" / "install.sh"
 
 
 def _write_exe(path: Path, body: str) -> None:
@@ -62,6 +63,54 @@ class LinuxCompilerParityTests(unittest.TestCase):
 
     def test_explicit_cc_override_still_wins(self) -> None:
         self.assertIn("CC=clang (clang)", self.run_env("x86_64", override="clang"))
+
+    def test_build_rejects_missing_explicit_cxx_driver(self) -> None:
+        env = os.environ.copy()
+        env["CC"] = "gcc"
+        env["CXX"] = "goldeneye-missing-cxx-driver"
+        proc = subprocess.run(
+            ["bash", str(BUILD), "env"],
+            cwd=ROOT,
+            env=env,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+        self.assertNotEqual(proc.returncode, 0, proc.stdout)
+        self.assertIn("C++ compiler 'goldeneye-missing-cxx-driver' not found", proc.stdout)
+
+    def test_installer_rejects_missing_matching_cxx_before_fetching(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            bindir = Path(td)
+            _write_exe(
+                bindir / "uname",
+                "#!/bin/sh\n"
+                "case \"$1\" in\n"
+                "  -s) echo Linux ;;\n"
+                "  -m) echo x86_64 ;;\n"
+                "  *) exec /usr/bin/uname \"$@\" ;;\n"
+                "esac\n",
+            )
+            _write_exe(bindir / "gcc", "#!/bin/sh\necho 'gcc (fake) 13.3.0'\n")
+
+            env = os.environ.copy()
+            env["PATH"] = str(bindir) + os.pathsep + env["PATH"]
+            env["CC"] = "gcc"
+            env["CXX"] = "goldeneye-missing-cxx-driver"
+
+            proc = subprocess.run(
+                ["bash", str(INSTALL), "--no-build", "--yes"],
+                cwd=ROOT,
+                env=env,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                check=False,
+            )
+            self.assertNotEqual(proc.returncode, 0, proc.stdout)
+            self.assertIn("a-C++-compiler", proc.stdout)
+            self.assertNotIn("third-party port-layer sources", proc.stdout)
 
 
 if __name__ == "__main__":

@@ -203,7 +203,7 @@ now the implementation, including the re-exec, which the measurement predicted w
 necessary.
 
 A launcher is much cheaper than it looks, because **the entire mod
-surface is already environment variables**: about 275 `GETV_*` gates plus `goldeneye.cfg`.
+surface is already environment variables**: about 275 `GETV_*` gates plus `goldeneye.ini` (with legacy `goldeneye.cfg` fallback).
 A launcher is a user interface over that surface, not new engine capability.
 
 One measured constraint decides its architecture. **76 of those gates are read once into a

@@ -39,6 +39,23 @@ ALLOWED_BINARY_SUFFIXES = {
     ".png", ".jpg", ".jpeg", ".gif", ".ico", ".icns", ".ttf", ".otf",
     ".woff", ".woff2", ".pdf", ".ogg", ".wav",
 }
+# Binary image formats are broadly allowed because launcher/UI artwork uses them, but
+# the two public documentation image directories are deliberately closed by default.
+# Runtime game captures belong in reviewed issue/PR attachments, never in Git. A new
+# tracked image in either directory therefore needs an explicit path review here.
+REVIEWED_PUBLIC_IMAGE_PATHS = {
+    "docs/images/launcher-controls.png",
+    "docs/images/launcher-crt.png",
+    "docs/images/launcher-mods.png",
+    "docs/images/screenshot-06.jpg",  # source/editor screenshot, not rendered game output
+    "site/assets/images/launcher-controls.png",
+    "site/assets/images/launcher-crt.png",
+    "site/assets/images/launcher-mods.png",
+    "site/assets/images/mark.png",
+    "site/assets/images/screenshot-06.jpg",
+}
+PUBLIC_IMAGE_PREFIXES = ("docs/images/", "site/assets/images/")
+PUBLIC_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif"}
 BASE64_PAYLOAD = re.compile(rb"(?:[A-Za-z0-9+/]{4096,}={0,2})")
 HEX_LITERAL = re.compile(r"\b0[xX][0-9A-Fa-f]{2,16}(?:[uUlL]*)\b")
 BRACED_TEXT = re.compile(r"\{([^{}]*)\}", re.DOTALL)
@@ -210,6 +227,19 @@ def inspect_content(path: Path, data: bytes, *, allow_native_bmp: bool = False) 
     lower_name = path.name.lower()
     lower_parts = {part.lower() for part in path.parts}
     suffix = path.suffix.lower()
+    try:
+        repository_path = path.resolve().relative_to(ROOT.resolve()).as_posix()
+    except (OSError, ValueError):
+        repository_path = None
+    if (
+        repository_path is not None
+        and suffix in PUBLIC_IMAGE_SUFFIXES
+        and repository_path.startswith(PUBLIC_IMAGE_PREFIXES)
+        and repository_path not in REVIEWED_PUBLIC_IMAGE_PATHS
+    ):
+        failures.append(
+            f"{display}: unreviewed public image path; runtime captures must not be committed"
+        )
     if lower_name in FORBIDDEN_NAMES:
         failures.append(f"{display}: forbidden game-data filename")
     if suffix in FORBIDDEN_SUFFIXES:

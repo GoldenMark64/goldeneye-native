@@ -110,18 +110,26 @@ if [ -n "$missing" ]; then
 fi
 info "git, python3, cmake, make and a compiler are all present"
 
-# clang is preferred on Linux and the reason is not taste. build_linux.sh passes
-# -Wno-everything, which is clang-only, and it is not cosmetic there: it suppresses the
-# decomp's PR headers warning on every translation unit while -Werror=return-type stays on,
-# which is the guard that catches this port's second-largest bug family. Under gcc the
-# warning set genuinely differs, so a first build on gcc changes two variables at once.
+# Keep the installer aligned with build_linux.sh's platform default. Linux x86-64
+# intentionally uses GCC to match the frozen 0064 release reference; other architectures
+# keep the existing clang-first policy. Explicit CC= remains available to contributors.
 if [ "$PLATFORM" = linux ]; then
-    if have clang; then
-        info "clang found, which is what build_linux.sh expects"
-    else
-        info "clang not found. gcc will be used and -Wno-everything will not apply,"
-        info "so expect a large amount of warning output that is not new breakage."
-    fi
+    case "$(uname -m)" in
+        x86_64|amd64)
+            if have gcc; then
+                info "gcc found; x86-64 defaults to gcc to match the frozen 0064 release reference"
+            elif have clang; then
+                info "gcc not found; clang will be used as the x86-64 fallback"
+            fi
+            ;;
+        *)
+            if have clang; then
+                info "clang found, which is the default on this Linux architecture"
+            elif have gcc; then
+                info "clang not found; gcc will be used"
+            fi
+            ;;
+    esac
 fi
 
 # ---------------------------------------------------------------- 2. port-layer sources

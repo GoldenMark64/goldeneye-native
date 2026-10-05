@@ -881,7 +881,7 @@ Lines worth recognising:
 
 ```
 [getv][config] first run -- wrote a default config; edit it to taste
-[getv][config] file /Users/you/Library/Application Support/Goldeneye-Native/goldeneye.cfg | window=1280x960 fps=60 ss=1 controls=5 filtering=2
+[getv][config] file /Users/you/Library/Application Support/Goldeneye-Native/goldeneye.ini | window=1280x960 fps=60 ss=1 controls=5 filtering=2
 [getv] GoldenEye tvOS harness starting
 [getv] window: 1280x960 windowed, resizable; fullscreen toggle = F11 / Cmd-F / Alt-Enter
 [getv] GL_VENDOR=Apple | GL_RENDERER=Apple M1 | GL_VERSION=2.1 Metal - 90.5
@@ -902,10 +902,12 @@ On first run, with no configuration file present anywhere, the game writes a ful
 template and immediately reads it back:
 
 ```
-~/Library/Application Support/Goldeneye-Native/goldeneye.cfg
+~/Library/Application Support/Goldeneye-Native/goldeneye.ini
 ```
 
 Current builds keep configuration and saves under the same `Goldeneye-Native` user-data directory.
+The primary config filename is `goldeneye.ini`; a pre-existing `goldeneye.cfg` is accepted as a
+legacy fallback and is left in place rather than silently migrated.
 An earlier build used a `GoldenEye` config directory; if the old config exists and the new one does
 not, the game detects and continues using the old file without copying or deleting it.
 
@@ -920,8 +922,8 @@ The search order, first match wins:
 
 1. `$GETV_CONFIG`
 2. `--config=PATH`
-3. `goldeneye.cfg` in the same directory as the binary
-4. `~/Library/Application Support/Goldeneye-Native/goldeneye.cfg`
+3. `goldeneye.ini` in the same directory as the binary, falling back to legacy `goldeneye.cfg`
+4. `~/Library/Application Support/Goldeneye-Native/goldeneye.ini`, falling back to legacy `goldeneye.cfg`
 
 Precedence for values: command line > environment > config file > built-in default.
 
@@ -929,7 +931,7 @@ To regenerate the template at any time, overwriting what is there:
 
 ```bash
 ./build-mac/goldeneye --write-config
-# [getv][config] wrote /Users/you/Library/Application Support/Goldeneye-Native/goldeneye.cfg
+# [getv][config] wrote /Users/you/Library/Application Support/Goldeneye-Native/goldeneye.ini
 ```
 
 `--write-config=PATH` writes somewhere else instead. Both exit without starting the game.
@@ -1030,7 +1032,7 @@ sends the front end to a terminal `MENU_NO_CONTROLLERS` state with no way out. A
 The complete physical map, mouse controls, live shortcuts, and rebinding are in
 [`CONTROLS.md`](CONTROLS.md). Everything is rebindable: keys, mouse buttons, the wheel, and
 gamepad buttons, each independently of the others, and the launcher can save them to
-`goldeneye.cfg` so they survive quitting.
+`goldeneye.ini` (or an existing legacy `goldeneye.cfg`) so they survive quitting.
 
 ---
 
@@ -1490,7 +1492,7 @@ symptom of a wrong `$HOME` and must stay visible rather than being papered over 
 
 ```
 [getv][config] mkdir failed: /Users/you/Library/Application Support/Goldeneye-Native
-[getv][config] cannot write /Users/you/Library/Application Support/Goldeneye-Native/goldeneye.cfg
+[getv][config] cannot write /Users/you/Library/Application Support/Goldeneye-Native/goldeneye.ini
 ```
 
 The config directory *is* created recursively, because `--write-config` is explicitly a "set this
@@ -1507,7 +1509,7 @@ mkdir -p ~/Library/"Application Support"/Goldeneye-Native
 or redirect both away from home for a disposable diagnostic run:
 
 ```bash
-GETV_SAVEDIR=/tmp/ge-save ./build-mac/goldeneye --config=/tmp/ge/goldeneye.cfg
+GETV_SAVEDIR=/tmp/ge-save ./build-mac/goldeneye --config=/tmp/ge/goldeneye.ini
 ```
 
 The `/tmp/ge-save` directory is temporary diagnostic storage: the OS or cleanup tools may

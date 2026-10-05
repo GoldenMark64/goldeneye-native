@@ -47,10 +47,8 @@ Keep runtime screenshots outside Git. Attach them to the pull request only after
    suitable and keep any CI addition focused on the fix. Documentation-only changes may mark
    runtime regression coverage not applicable and report document validation instead.
 4. Build frequently and preserve existing behavior outside the intended scope.
-5. Keep the source and test in one replayable commit when practical. Record decompilation changes
-   in the numbered public patch stack, third-party transformations in their ordered patch stack,
-   and keep unrelated community bookkeeping out of the source-and-test commit. `PATCH_QUEUE.md`
-   is the historical pre-1.0 commit-replay index.
+5. Keep the source and test in one replayable commit when practical. Keep `PATCH_QUEUE.md` or other
+   community-only bookkeeping in a separate commit.
 
 ## Capture renderer evidence
 

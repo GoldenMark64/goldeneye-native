@@ -56,6 +56,10 @@ REVIEWED_PUBLIC_IMAGE_BLOBS = {
 }
 PUBLIC_IMAGE_PREFIXES = ("docs/images/", "site/assets/images/")
 PUBLIC_IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif"}
+# Audio exports are especially easy to derive directly from a ROM. None are currently
+# published, so require an explicit guard change/provenance review instead of broadly
+# accepting arbitrary .wav/.ogg files by extension.
+REVIEW_REQUIRED_AUDIO_SUFFIXES = {".ogg", ".wav"}
 BASE64_PAYLOAD = re.compile(rb"(?:[A-Za-z0-9+/]{4096,}={0,2})")
 HEX_LITERAL = re.compile(r"\b0[xX][0-9A-Fa-f]{2,16}(?:[uUlL]*)\b")
 BRACED_TEXT = re.compile(r"\{([^{}]*)\}", re.DOTALL)
@@ -249,6 +253,11 @@ def inspect_content(path: Path, data: bytes, *, allow_native_bmp: bool = False) 
                     f"{display}: reviewed public image content changed; review the bytes and "
                     "update the pinned blob only if the replacement is publication-safe"
                 )
+    if suffix in REVIEW_REQUIRED_AUDIO_SUFFIXES:
+        failures.append(
+            f"{display}: public audio binary requires explicit provenance review; "
+            "ROM-derived audio must never be committed"
+        )
     if lower_name in FORBIDDEN_NAMES:
         failures.append(f"{display}: forbidden game-data filename")
     if suffix in FORBIDDEN_SUFFIXES:

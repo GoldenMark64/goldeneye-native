@@ -489,7 +489,7 @@ function Build-Dist {
 
   # Generated, not authored. Runs the binary that was just staged, so the defaults in the file
   # are that binary's defaults by construction.
-  $cfg = Join-Path $dist 'goldeneye.cfg'
+  $cfg = Join-Path $dist 'goldeneye.ini'
   & (Join-Path $dist 'goldeneye.exe') "--write-config=$cfg" *> $null
   if (-not (Test-Path $cfg)) {
     Write-Output 'dist: WARNING --write-config produced nothing; shipping without a default config'
@@ -506,7 +506,7 @@ function Build-Dist {
     'message and nothing on stdout.'
     ''
     '  goldeneye.exe        the game'
-    '  goldeneye.cfg        settings, commented -- edit it or use the launcher'
+    '  goldeneye.ini        settings, commented -- edit it or use the launcher'
     '  assets/fonts/        the launcher typeface (Roboto Condensed, SIL OFL 1.1)'
     '  mods/                Lua mods; one folder each, containing mod.lua'
     '  *.dll                runtime libraries'
@@ -519,10 +519,10 @@ function Build-Dist {
     ''
     'Config'
     '------'
-    'goldeneye.cfg beside the executable is read at startup. Every key is commented in'
+    'goldeneye.ini beside the executable is read at startup. Every key is commented in'
     'the file itself. Regenerate a fresh one with:'
     ''
-    '  goldeneye.exe --write-config=goldeneye.cfg'
+    '  goldeneye.exe --write-config=goldeneye.ini'
     ''
     'Mods'
     '----'

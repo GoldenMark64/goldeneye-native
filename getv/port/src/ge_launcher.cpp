@@ -2,8 +2,9 @@
  *
  * What this is. A window that opens before the game, collects settings, and then starts the
  * game with them. It is not new engine capability: the mod surface is already about 275
- * GETV_* environment gates plus goldeneye.cfg, and this is a user interface over that
- * surface. Every control below resolves to an environment variable that already existed and
+ * GETV_* environment gates plus goldeneye.ini (with legacy goldeneye.cfg fallback), and this
+ * is a user interface over that surface. Every control below resolves to an environment
+ * variable that already existed and
  * already worked from a shell.
  *
  * ---------------------------------------------------------------- why it re-execs
@@ -26,13 +27,14 @@
  * gfx_sdl2.c assumes it is the one initialising SDL video. Handing a used SDL over to it
  * would be a source of subtle, platform-specific breakage for no benefit.
  *
- * ---------------------------------------------------------------- what it does not do
+ * ---------------------------------------------------------------- what it persists
  *
- * It does not write goldeneye.cfg. The file stays the user's, edited by hand or by
- * --write-config, and the launcher composes a run on top of whatever it says. Every control
- * starts from the value already in the environment, which is the value the config layer just
- * resolved -- so the launcher opens showing the current configuration rather than a set of
- * defaults that disagree with it.
+ * Most launcher pages do not rewrite the config file. They compose a run on top of the
+ * resolved settings by changing environment variables and re-execing the game. The Controls
+ * page is the deliberate exception: Save merges its input settings into the active config via
+ * geConfigSave(). On a first save that path uses goldeneye.ini; if a legacy goldeneye.cfg was
+ * located, it continues to edit that file in place. This preserves the player's own comments
+ * and keeps the launcher from silently freezing every transient option into persistent state.
  */
 
 #include <stdio.h>
@@ -316,7 +318,7 @@ static const char *AxisLabel(int x)
 }
 
 /* Positional, matching GE_SOURCE_LIST. Names are what the player types in
- * goldeneye.cfg, so they are shown verbatim rather than prettified -- "lt" here and
+ * the config file, so they are shown verbatim rather than prettified -- "lt" here and
  * "lt" in the file is the whole point. */
 const char *kSources[] = {
 #define M(id, lo) lo,
@@ -409,7 +411,7 @@ struct Model {
      * launcher must not pin sixteen keys the first time anyone opens the page.
      *
      * Strings rather than a code, because a binding can be a LIST -- "C,Left Ctrl" --
-     * and because a name round-trips into goldeneye.cfg without a second table. */
+     * and because a name round-trips through the config file without a second table. */
     char keybind[GE_ACT_MAX][96];
     char keyaxis[GE_AXIS_MAX][96];
 
@@ -1313,7 +1315,7 @@ extern "C" {
 
 void geBridgeLoad(void) { model_load(g_bridgeModel); }
 void geBridgeSave(void) { model_store(g_bridgeModel); }
-/* Writes the CONTROLS page to goldeneye.cfg. Separate from geBridgeSave() because
+/* Writes the CONTROLS page to the active config file. Separate from geBridgeSave() because
  * applying settings and persisting them are different acts with different blast radii:
  * one lasts until you quit, the other edits a file the player also edits by hand. */
 void geBridgeSaveControls(void) { controls_save_to_config(g_bridgeModel); }
@@ -1617,7 +1619,7 @@ void relaunch()
 #endif
 
     /* The environment must stop asking for the launcher too, or a GETV_LAUNCHER=1 set in
-     * goldeneye.cfg would survive into the child and open the launcher again, forever. On
+     * the config file would survive into the child and open the launcher again, forever. On
      * Windows, 0 must remain present: an absent setting plus a plain argv is intentionally
      * interpreted as a double-click and opens the launcher by default. */
 #if defined(_WIN32)

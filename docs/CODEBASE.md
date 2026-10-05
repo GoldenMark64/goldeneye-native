@@ -121,10 +121,10 @@ behavior.
 into the existing `GETV_*` environment gates used by subsystem consumers:
 
 ```text
-command line > environment > goldeneye.cfg > built-in default
+command line > environment > goldeneye.ini (legacy goldeneye.cfg fallback) > built-in default
 ```
 
-The launcher writes the same gates and restarts the executable. Raw `GETV_*` names remain an
+The launcher applies the same gates through the environment and restarts the executable; the Controls page can also persist its input settings to the active config. Raw `GETV_*` names remain an
 escape hatch for diagnostics and experiments. See [`CONFIGURATION.md`](CONFIGURATION.md).
 
 ## Where a change belongs

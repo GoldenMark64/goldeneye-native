@@ -44,6 +44,23 @@ class ProjectConsistencyTests(unittest.TestCase):
         self.assertIn(f"3. `{primary}`", guide)
         self.assertIn(f"4. `{primary}`", guide)
 
+    def test_primary_config_filename_matches_current_surfaces(self) -> None:
+        source = (ROOT / "getv/port/src/ge_config.c").read_text(encoding="utf-8")
+        match = re.search(r'#define GE_CFG_BASENAME "([^"]+)"', source)
+        self.assertIsNotNone(match)
+        primary = match.group(1)
+
+        codebase = (ROOT / "docs/CODEBASE.md").read_text(encoding="utf-8")
+        developer_tools = (ROOT / "docs/DEVELOPER_TOOLS.md").read_text(encoding="utf-8")
+        vision = (ROOT / "docs/VISION.md").read_text(encoding="utf-8")
+        windows = (ROOT / "getv/build_windows.ps1").read_text(encoding="utf-8")
+
+        self.assertIn(f"command line > environment > {primary}", codebase)
+        self.assertIn(f"active config (`{primary}`", developer_tools)
+        self.assertIn(f"gates plus `{primary}`", vision)
+        self.assertIn(f"$cfg = Join-Path $dist '{primary}'", windows)
+        self.assertIn(f"goldeneye.exe --write-config={primary}", windows)
+
 
 if __name__ == "__main__":
     unittest.main()

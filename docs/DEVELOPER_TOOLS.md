@@ -2,7 +2,7 @@
 
 Open the desktop launcher and choose **Developer Tools** in the left sidebar. The page groups
 optional diagnostics without changing normal gameplay defaults. Its settings apply to the next
-launch; they are not saved into `goldeneye.cfg`. The desktop ImGui launcher supports this page on
+launch; they are not persisted to the active config (`goldeneye.ini`, or a located legacy `goldeneye.cfg`). The desktop ImGui launcher supports this page on
 macOS, Windows and Linux; it is not added to the native iOS/tvOS launcher.
 
 ## Which switch should I use?
